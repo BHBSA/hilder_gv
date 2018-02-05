@@ -1,12 +1,13 @@
 """
 小区字段
 """
+from lib.mongo import Mongo
 
 
 class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
-                 co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None,):
+                 co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, ):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -23,13 +24,19 @@ class Comm:
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
 
+        self.coll = Mongo('192.168.0.235', 27017, 'gv', 'gv').get_collection_object()
+
     def comm_to_mongo(self):
-        pass
+        data = {}
+        for key, value in vars(self).items():
+            if key is 'coll':
+                continue
+            data[key] = value
+        self.coll.insert_one(data)
 
 
 if __name__ == '__main__':
     c = Comm()
-    c.id = '1100'
-    c.name = 'mingzi'
-    print(c.name)
-    print(c.id)
+    c.co_index = '1100'
+    c.co_name = 'mingzi'
+    c.comm_to_mongo()
