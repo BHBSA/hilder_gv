@@ -24,7 +24,8 @@ def serialization_info(info):
 class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
-                 co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None):
+                 co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
+                 co_build_type=None):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -41,6 +42,7 @@ class Comm:
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
         self.co_owner = co_owner  # 房产证/房屋所有权证
+        self.co_build_type = co_build_type  # 建筑结构：钢筋混泥土
 
         self.time = datetime.datetime.now()
         self.coll = Mongo('192.168.0.235', 27017, 'gv', 'community').get_collection_object()
