@@ -101,3 +101,5 @@ ENV/
 *run*
 
 *test*
+
+test.py
