@@ -51,19 +51,17 @@ class Comm:
 
 
 class Building:
-    def __init__(self, co_index=None, co_id=None, bu_num=None, bu_all_house=None, bu_floor=None, bu_build_size=None,
-                 bu_live_size=None, bu_not_live_size=None, bu_price=None):
+    def __init__(self, co_index=None, co_id=None, bu_num=None, bu_id=None, bu_all_house=None, bu_floor=None,
+                 bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None, ):
         self.co_index = co_index  # 网站id
         self.co_id = co_id  # 小区id
-
+        self.bu_id = bu_id  # 楼栋id
         self.bu_num = bu_num  # 楼号 栋号
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
-
         self.bu_build_size = bu_build_size  # 建筑面积
         self.bu_live_size = bu_live_size  # 住宅面积
         self.bu_not_live_size = bu_not_live_size  # 非住宅面积
-
         self.bu_price = bu_price  # 住宅价格
 
         self.time = datetime.datetime.now()
@@ -76,9 +74,29 @@ class Building:
 
 
 class House:
-    def __init__(self):
+    def __init__(self, co_index=None, co_id=None, bu_id=None, ho_num=None, ho_floor=None, ho_type=None,
+                 ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
+                 orientation=None, ):
+        self.co_index = co_index  # 网站id
+        self.co_id = co_id  # 小区id
+        self.bu_id = bu_id  # 楼栋id
+        self.ho_num = ho_num  # 房号id
+        self.ho_floor = ho_floor  # 楼层
+        self.ho_type = ho_type  # 房屋类型：普通住宅
+        self.ho_room_type = ho_room_type  # 户型：一室一厅
+        self.ho_build_size = ho_build_size  # 建筑面积
+        self.ho_true_size = ho_true_size  # 预测套内面积,实际面积
+        self.ho_share_size = ho_share_size  # 分摊面积
+        self.ho_price = ho_price  # 价格
+        self.orientation = orientation  # 朝向
+
         self.time = datetime.datetime.now()
         self.coll = Mongo('192.168.0.235', 27017, 'gv', 'house').get_collection_object()
+
+    def insert_db(self):
+        data = serialization_info(self)
+        print(data)
+        self.coll.insert_one(data)
 
 
 if __name__ == '__main__':
