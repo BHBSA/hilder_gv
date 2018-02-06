@@ -2,7 +2,7 @@
 小区字段
 """
 from lib.mongo import Mongo
-
+import datetime
 
 class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
@@ -24,6 +24,7 @@ class Comm:
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
 
+        self.time = datetime.datetime.now()
         self.coll = Mongo('192.168.0.235', 27017, 'gv', 'gv').get_collection_object()
 
     def comm_to_mongo(self):
