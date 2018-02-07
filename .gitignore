@@ -103,3 +103,5 @@ ENV/
 *test*
 
 test.py
+
+*pyc
