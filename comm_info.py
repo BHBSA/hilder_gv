@@ -25,7 +25,7 @@ class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
-                 co_build_type=None, co_build_structural=None):
+                 co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -39,7 +39,10 @@ class Comm:
         self.co_build_start_time = co_build_start_time  # 开工时间
         self.co_build_end_time = co_build_end_time  # 竣工时间
         self.co_investor = co_investor  # 投资商
+        self.co_develops = co_develops  # 开发商
         self.co_pre_sale = co_pre_sale  # 预售证书
+        self.co_pre_sale_date = co_pre_sale_date  # 预售证书日期
+
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
         self.co_owner = co_owner  # 房产证/房屋所有权证
