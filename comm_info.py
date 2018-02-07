@@ -10,7 +10,7 @@ import datetime
 def serialization_info(info):
     """
 
-    :param comm_info:
+    :param info:
     :return: data:
     """
     data = {}
@@ -25,12 +25,13 @@ class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
-                 co_build_type=None):
+                 co_build_type=None, co_build_structural=None):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
         self.co_address = co_address  # 小区地址
-        self.co_type = co_type  # 小区类型 :商品房
+        self.co_type = co_type  # 小区类型/物业类型 :商品房/商品房/别墅
+        self.co_build_type = co_build_type  # 建筑类型:独栋,小高层,高层多层
         self.co_green = co_green  # 绿化率
         self.co_is_build = co_is_build  # 竣工/是否在建 1 已经完成/竣工 0未完成/正在建立
         self.co_size = co_size  # 占地面的
@@ -42,7 +43,7 @@ class Comm:
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
         self.co_owner = co_owner  # 房产证/房屋所有权证
-        self.co_build_type = co_build_type  # 建筑结构：钢筋混泥土
+        self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
 
         self.time = datetime.datetime.now()
         self.coll = Mongo('192.168.0.235', 27017, 'gv', 'community').get_collection_object()
@@ -85,7 +86,7 @@ class House:
         self.bu_id = bu_id  # 楼栋id
         self.ho_num = ho_num  # 房号id
         self.ho_floor = ho_floor  # 楼层
-        self.ho_type = ho_type  # 房屋类型：普通住宅
+        self.ho_type = ho_type  # 房屋类型：普通住宅 / 车库仓库
         self.ho_room_type = ho_room_type  # 户型：一室一厅
         self.ho_build_size = ho_build_size  # 建筑面积
         self.ho_true_size = ho_true_size  # 预测套内面积,实际面积
