@@ -55,12 +55,11 @@ class Comm:
 
 
 class Building:
-    def __init__(self, co_index=None, co_id=None, bu_num=None, bu_id=None, bu_name=None, bu_all_house=None,
-                 bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None, ):
+    def __init__(self, co_index=None, co_id=None, bu_num=None, bu_id=None, bu_all_house=None, bu_floor=None,
+                 bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None, ):
         self.co_index = co_index  # 网站id
         self.co_id = co_id  # 小区id
         self.bu_id = bu_id  # 楼栋id
-        self.bu_name = bu_name  # 楼栋名称
         self.bu_num = bu_num  # 楼号 栋号
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
