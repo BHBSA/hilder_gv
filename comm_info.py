@@ -84,10 +84,11 @@ class Building:
 class House:
     def __init__(self, co_index=None, co_id=None, bu_id=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
-                 orientation=None, ):
+                 orientation=None, ho_name=None):
         self.co_index = co_index  # 网站id
         self.co_id = co_id  # 小区id
         self.bu_id = bu_id  # 楼栋id
+        self.ho_name = ho_name  # 房号：3单元403
         self.ho_num = ho_num  # 房号id
         self.ho_floor = ho_floor  # 楼层
         self.ho_type = ho_type  # 房屋类型：普通住宅 / 车库仓库
