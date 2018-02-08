@@ -59,7 +59,8 @@ class Comm:
 
 class Building:
     def __init__(self, co_index=None, co_id=None, bu_num=None, bu_id=None, bu_name=None, bu_all_house=None,
-                 bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None, ):
+                 bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
+                 bu_pre_sale=None, bu_pre_sale_date=None):
         self.co_index = co_index  # 网站id
         self.co_id = co_id  # 小区id
         self.bu_id = bu_id  # 楼栋id
@@ -71,6 +72,8 @@ class Building:
         self.bu_live_size = bu_live_size  # 住宅面积
         self.bu_not_live_size = bu_not_live_size  # 非住宅面积
         self.bu_price = bu_price  # 住宅价格
+        self.bu_pre_sale = bu_pre_sale  # 楼栋预售证书
+        self.bu_pre_sale_date = bu_pre_sale_date  # 楼栋预售证书日期
 
         self.time = datetime.datetime.now()
         self.coll = Mongo('192.168.0.235', 27017, 'gv', 'building').get_collection_object()
