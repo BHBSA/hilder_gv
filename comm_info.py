@@ -7,7 +7,7 @@ from lib.mongo import Mongo
 import datetime
 import yaml
 
-setting = yaml.load(open('config_local'))
+setting = yaml.load(open('config_local.yaml'))
 
 
 
