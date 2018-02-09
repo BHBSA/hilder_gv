@@ -5,6 +5,10 @@ House:房屋类型
 """
 from lib.mongo import Mongo
 import datetime
+import yaml
+
+setting = yaml.load(open('config_local'))
+
 
 
 def serialization_info(info):
@@ -49,7 +53,7 @@ class Comm:
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
 
         self.time = datetime.datetime.now()
-        self.coll = Mongo('192.168.0.235', 27017, 'gv', 'community').get_collection_object()
+        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['coll_comm']).get_collection_object()
 
     def insert_db(self):
         data = serialization_info(self)
@@ -76,7 +80,7 @@ class Building:
         self.bu_pre_sale_date = bu_pre_sale_date  # 楼栋预售证书日期
 
         self.time = datetime.datetime.now()
-        self.coll = Mongo('192.168.0.235', 27017, 'gv', 'building').get_collection_object()
+        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['building']).get_collection_object()
 
     def insert_db(self):
         data = serialization_info(self)
@@ -103,7 +107,7 @@ class House:
         self.orientation = orientation  # 朝向
 
         self.time = datetime.datetime.now()
-        self.coll = Mongo('192.168.0.235', 27017, 'gv', 'house').get_collection_object()
+        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['house']).get_collection_object()
 
     def insert_db(self):
         data = serialization_info(self)
