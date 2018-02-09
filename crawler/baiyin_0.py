@@ -2,6 +2,7 @@
 url: http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp
 city: 白银
 CO_INDEX: 0
+author: 吕三利
 """
 CO_INDEX = 0
 import requests
@@ -34,7 +35,11 @@ class Baiyin(Crawler):
                 if not href:
                     continue
                 href = href[0]
-                self.get_comm_detail(href, comm)
+                try:
+                    self.get_comm_detail(href, comm)
+                except Exception as e:
+                    co_id = int(href.split('=')[1])
+                    print('error,co_id', co_id)
 
     def get_comm_detail(self, href, comm):
         comm_detail_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + href
@@ -120,15 +125,6 @@ class Baiyin(Crawler):
 
     def start_crawler(self):
         self.baiyin_start()
-
-    def build_url_list(self):
-        pass
-
-    def comm_url_list(self):
-        pass
-
-    def house_url_list(self):
-        pass
 
 
 if __name__ == '__main__':

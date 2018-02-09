@@ -188,7 +188,11 @@ class Baise(Crawler):
         ho_true_size = tree.xpath('//tr[4]/td[4]/text()')[0].replace('M²', '')  # 预测套内面积
         ho_share_size = tree.xpath('//tr[5]/td[2]/text()')[0].replace('M²', '')  # 预测分摊面积
         orientation = tree.xpath('//tr[6]/td[2]/text()')[0]  # 朝向
-        ho_price = tree.xpath('//tr[6]/td[4]/text()')[0].replace('元/M²', '')  # 价格
+        ho_price = tree.xpath('//tr[6]/td[4]/text()')  # 价格
+        if ho_price:
+            ho_price = ho_price[0].replace('元/M²', '')
+        else:
+            return
         house.co_index = CO_INDEX
         house.co_id = co_id
         house.bu_id = bu_id
