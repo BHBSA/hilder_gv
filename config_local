@@ -1,0 +1,6 @@
+db: 192.168.0.235
+port: 27017
+db_name : gv_test
+coll_comm : community_test
+building : building_test
+house : house_test
