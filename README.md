@@ -6,11 +6,11 @@ Hilder Government Crawler
 --
 git pull git@192.168.0.27:DataProduct/hilder_gv.git
 
-What lib?
+**What lib?**
 --
 see lib <a href='http://192.168.0.27/DataProduct/lib/wikis/How-to-start-submodule%3F'>LIB WIKI</a> 
 
-How to run?
+**How to run?**
 --
 cd /hilder_gv/python run.py
 
