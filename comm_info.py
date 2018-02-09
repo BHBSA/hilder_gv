@@ -10,7 +10,6 @@ import yaml
 setting = yaml.load(open('config_local.yaml'))
 
 
-
 def serialization_info(info):
     """
 
@@ -29,7 +28,8 @@ class Comm:
     def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
-                 co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None):
+                 co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
+                 co_open_time=None,co_handed_time=None, co_all_house=None):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -46,14 +46,17 @@ class Comm:
         self.co_develops = co_develops  # 开发商
         self.co_pre_sale = co_pre_sale  # 预售证书
         self.co_pre_sale_date = co_pre_sale_date  # 预售证书日期
-
+        self.co_open_time = co_open_time  # 小区开盘时间
+        self.co_handed_time = co_handed_time  # 小区交房时间
+        self.co_all_house = co_all_house  # 小区总套数
         self.co_land_use = co_land_use  # 土地使用证
         self.co_volumetric = co_volumetric  # 容积率
         self.co_owner = co_owner  # 房产证/房屋所有权证
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
 
         self.time = datetime.datetime.now()
-        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['coll_comm']).get_collection_object()
+        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
+                          setting['coll_comm']).get_collection_object()
 
     def insert_db(self):
         data = serialization_info(self)
@@ -80,7 +83,8 @@ class Building:
         self.bu_pre_sale_date = bu_pre_sale_date  # 楼栋预售证书日期
 
         self.time = datetime.datetime.now()
-        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['building']).get_collection_object()
+        self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
+                          setting['building']).get_collection_object()
 
     def insert_db(self):
         data = serialization_info(self)
