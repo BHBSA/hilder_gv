@@ -2,6 +2,9 @@
 url = http://www.bsfcj.com/PubInfo/HouseSource.asp?page=1&xm_xzqy=&xm_xmmc=&xm_xmdz=&xm_kfs=&xm_fwhx=
 city: 百色
 CO_INDEX: 1
+author: 周彤云
+小区数：99
+time:2018-02-11
 """
 CO_INDEX = 1
 import requests
