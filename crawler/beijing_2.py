@@ -3,6 +3,7 @@ url: http://www.bjjs.gov.cn/eportal/ui?pageId=307678
 city: 北京
 CO_INDEX: 2
 author: 吕三利
+小区数量：4716   2018/2/11
 """
 from crawler_base import Crawler
 import requests
