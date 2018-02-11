@@ -4,8 +4,11 @@ city: 白银
 CO_INDEX: 0
 author: 吕三利
 小区个数：54962   2018/2/11
+
+city: 宝鸡
+co_index:1024
 """
-CO_INDEX = 0
+CO_INDEX = 1024
 import requests
 from lxml import etree
 import re
@@ -15,7 +18,9 @@ from retry import retry
 
 
 class Baiyin(Crawler):
-    url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp'
+    # url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp'
+    url = 'http://61.185.69.154/bit-xxzs/xmlpzs/webissue.asp?page=1'  # 宝鸡url
+    URL_FRONT = 'http://61.185.69.154/bit-xxzs/xmlpzs/'
 
     @retry(tries=3)
     def get_all_page(self):
@@ -32,6 +37,7 @@ class Baiyin(Crawler):
     @retry(tries=3)
     def baiyin_start(self):
         page = self.get_all_page()
+        print(page)
         for i in range(1, int(page) + 1):
             res = requests.get(self.url + '?page=' + str(i))
             html = res.content.decode('gbk')
@@ -50,23 +56,41 @@ class Baiyin(Crawler):
                     if not href:
                         continue
                     href = href[0]
-                    comm_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + href
+                    comm_url = self.URL_FRONT + href
                     print('小区错误：', comm_url)
+                    print(e)
+
+    @staticmethod
+    def regex_common(regex, html, group_num):
+        """
+        正则表达式
+        若果有返回结果结果
+        没有
+        :param regex: 正则表达式
+        :param html: 需要匹配的网页
+        :param group_num: 捕获组
+        :return:
+        """
+        if re.search(regex, html):
+            result = re.search(regex, html, ).group(group_num)
+            return result
+        else:
+            return None
 
     @retry(tries=3)
     def get_comm_detail(self, href, comm):
-        comm_detail_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + href
+        comm_detail_url = self.URL_FRONT + href
         response = requests.get(url=comm_detail_url)
         co_id = response.url
         co_id = int(co_id.split('=')[1])  # 小区id
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
-        co_name = re.search(r'项目名称(.*?)<td>(.*?)</td>', html).group(2)  # 小区名字
-        co_owner = re.search(r'房屋所有权证号(.*?)<td>(.*?)</td>', html).group(2)
-        certificate = re.search(r'房屋所有权证号(.*?)<td>(.*?)</td>', html).group(2)
-        approve_Times = re.search(r'批准时间(.*?)<td>(.*?)</td>', html).group(2)
-        use = re.search(r'用　　途(.*?)<td>(.*?)</td>', html).group(2)
-        co_type = re.search(r'项目类型(.*?)<td>(.*?)</td>', html).group(2)  # 小区类型
-        co_size = re.search(r'批准面积(.*?)<td>(.*?)</td>', html).group(2)  # 占地面积
+
+        co_name = self.regex_common(r'项目名称(.*?)<td>(.*?)</td>', html, 2) # 小区名字
+        co_owner = self.regex_common(r'房屋所有权证号(.*?)<td>(.*?)</td>', html, 2)
+        approve_Times = self.regex_common(r'批准时间(.*?)<td>(.*?)</td>', html, 2)
+        use = self.regex_common(r'用　　途(.*?)<td>(.*?)</td>', html, 2)
+        co_type = self.regex_common(r'项目类型(.*?)<td>(.*?)</td>', html, 2)  # 小区类型
+        co_size = self.regex_common(r'批准面积(.*?)<td>(.*?)</td>', html, 2)  # 占地面积
         comm.co_id = co_id
         comm.co_name = co_name
         comm.co_type = co_type
@@ -94,7 +118,8 @@ class Baiyin(Crawler):
                     co_build_type = data_dict['co_build_type']  # 竣工时间
                     if not co_build_end_time:
                         building.co_is_build = '1'
-                    bu_floor = self.get_house_detail(house_url)
+                    # todo
+                    # bu_floor = self.get_house_detail(house_url)
                     # 小区
                     comm.co_address = co_address
                     comm.co_build_end_time = co_build_end_time
@@ -103,7 +128,8 @@ class Baiyin(Crawler):
                     # 楼栋
                     building.bu_num = bu_num
                     building.bu_build_size = bu_build_size
-                    building.bu_floor = bu_floor
+                    # todo
+                    # building.bu_floor = bu_floor
                     building.bu_all_house = bu_all_house
                     building.bu_id = build_id
                     building.co_id = co_id
@@ -112,13 +138,13 @@ class Baiyin(Crawler):
                     # 插入
                     building.insert_db()
                 except Exception as e:
-                    build_detail_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + build_url
+                    build_detail_url = self.URL_FRONT + build_url
                     print('楼栋错误：', build_detail_url)
         comm.insert_db()
 
     @retry(tries=3)
     def get_build_detail(self, build_url):
-        build_detail_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + build_url
+        build_detail_url = self.URL_FRONT + build_url
         response = requests.get(url=build_detail_url)
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
         bu_num = re.search('销售楼号(.*?)<td>(.*?)</td>', html).group(2)  # 楼号
@@ -134,13 +160,13 @@ class Baiyin(Crawler):
         data_dict['co_build_type'] = co_build_type
         return data_dict
 
-    @retry(tries=3)
-    def get_house_detail(self, href):
-        url = 'http://61.178.148.157:8081' + href
-        response = requests.get(url)
-        html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
-        bu_floor = re.search(r'(\d)\[\d+套/([\d\.]+)平方米', html).group(1)
-        return bu_floor
+    # @retry(tries=3)
+    # def get_house_detail(self, href):
+    #     url = 'http://61.178.148.157:8081' + href
+    #     response = requests.get(url)
+    #     html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+    #     bu_floor = re.search(r'(\d)\[\d+套/([\d\.]+)平方米', html).group(1)
+    #     return bu_floor
 
     def start_crawler(self):
         self.baiyin_start()
