@@ -21,7 +21,8 @@ class Baiyin(Crawler):
     def get_all_page(self):
         try:
             res = requests.get(url=self.url)
-            html = res.content.decode('gb2312').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+
+            html = res.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             page = re.search(r'共有(.*?)页', html).group(1)
             print(page)
             return page
@@ -35,7 +36,7 @@ class Baiyin(Crawler):
             page = self.get_all_page()
             for i in range(1, int(page) + 1):
                 res = requests.get(self.url + '?page=' + str(i))
-                html = res.content.decode('gb2312')
+                html = res.content.decode('gbk')
                 tree = etree.HTML(html)
                 community_list = tree.xpath('//tr[@align="center"]')
                 for i in community_list:
@@ -56,8 +57,8 @@ class Baiyin(Crawler):
             response = requests.get(url=comm_detail_url)
             co_id = response.url
             co_id = int(co_id.split('=')[1])  # 小区id
-            html = response.content.decode('gb2312').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ',
-                                                                                                                   '')
+            html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ',
+                                                                                                                '')
             co_name = re.search(r'项目名称(.*?)<td>(.*?)</td>', html).group(2)  # 小区名字
             co_owner = re.search(r'房屋所有权证号(.*?)<td>(.*?)</td>', html).group(2)
             certificate = re.search(r'房屋所有权证号(.*?)<td>(.*?)</td>', html).group(2)
@@ -118,8 +119,7 @@ class Baiyin(Crawler):
         try:
             build_detail_url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/' + build_url
             response = requests.get(url=build_detail_url)
-            html = response.content.decode('gb2312').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ',
-                                                                                                                   '')
+            html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             bu_num = re.search('销售楼号(.*?)<td>(.*?)</td>', html).group(2)  # 楼号
             bu_build_size = re.search('建筑面积(.*?)<td>(.*?)</td>', html).group(2)  # 建筑面积
             co_address = re.search('楼盘座落(.*?)<td>(.*?)</td>', html).group(2)  # 小区地址
@@ -141,8 +141,7 @@ class Baiyin(Crawler):
         try:
             url = 'http://61.178.148.157:8081' + href
             response = requests.get(url)
-            html = response.content.decode('gb2312').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ',
-                                                                                                                   '')
+            html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             bu_floor = re.search(r'(\d)\[\d+套/([\d\.]+)平方米', html).group(1)
             return bu_floor
         except Exception as e:
