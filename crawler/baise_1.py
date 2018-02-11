@@ -9,17 +9,16 @@ time:2018-02-11
 CO_INDEX = 1
 import requests
 from lxml import etree
-from comm_info import Comm, Building ,House
+from comm_info import Comm, Building, House
 from crawler_base import Crawler
 import re
-
 
 
 class Baise(Crawler):
     url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'  # 类属性
 
     def start_crawler(self):
-        pass
+        self.baise_start()
 
     def get_all_page(self):
         res = requests.get(url=self.url)
