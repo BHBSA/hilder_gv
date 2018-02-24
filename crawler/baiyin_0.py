@@ -8,7 +8,6 @@ author: 吕三利
 city: 宝鸡
 co_index:1024
 """
-CO_INDEX = 1024
 import requests
 from lxml import etree
 import re
@@ -18,9 +17,14 @@ from retry import retry
 
 
 class Baiyin(Crawler):
+    def __init__(self, url, url_front, co_index):
+        self.url = url
+        self.URL_FRONT = url_front
+        self.CO_INDEX = co_index
+
     # url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp'
-    url = 'http://61.185.69.154/bit-xxzs/xmlpzs/webissue.asp?page=1'  # 宝鸡url
-    URL_FRONT = 'http://61.185.69.154/bit-xxzs/xmlpzs/'
+    # url = 'http://61.185.69.154/bit-xxzs/xmlpzs/webissue.asp?page=1'  # 宝鸡url
+    # URL_FRONT = 'http://61.185.69.154/bit-xxzs/xmlpzs/'
 
     @retry(tries=3)
     def get_all_page(self):
@@ -85,17 +89,17 @@ class Baiyin(Crawler):
         co_id = int(co_id.split('=')[1])  # 小区id
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
 
-        co_name = self.regex_common(r'项目名称(.*?)<td>(.*?)</td>', html, 2) # 小区名字
+        co_name = self.regex_common(r'项目名称(.*?)<td>(.*?)</td>', html, 2)  # 小区名字
         co_owner = self.regex_common(r'房屋所有权证号(.*?)<td>(.*?)</td>', html, 2)
-        approve_Times = self.regex_common(r'批准时间(.*?)<td>(.*?)</td>', html, 2)
-        use = self.regex_common(r'用　　途(.*?)<td>(.*?)</td>', html, 2)
+        # approve_Times = self.regex_common(r'批准时间(.*?)<td>(.*?)</td>', html, 2)
+        # use = self.regex_common(r'用　　途(.*?)<td>(.*?)</td>', html, 2)
         co_type = self.regex_common(r'项目类型(.*?)<td>(.*?)</td>', html, 2)  # 小区类型
         co_size = self.regex_common(r'批准面积(.*?)<td>(.*?)</td>', html, 2)  # 占地面积
         comm.co_id = co_id
         comm.co_name = co_name
         comm.co_type = co_type
         comm.co_size = co_size
-        comm.co_index = CO_INDEX
+        comm.co_index = self.CO_INDEX
         comm.co_owner = co_owner
         # 获取楼栋url列表
         build_url_list = re.findall(r"<td><ahref='(.*?)'", html)
@@ -107,7 +111,7 @@ class Baiyin(Crawler):
                     building = Building()
                     build_id = re.search(r'<td>(\d{2,6})</td>', html).group(1)  # 楼栋id
                     bu_all_house = re.search(r'<td>(\d{1,3})</td>', html).group(1)  # 总套数
-                    house_url = re.search(r'<td><ahref="(.*?)"', html).group(1)
+                    # house_url = re.search(r'<td><ahref="(.*?)"', html).group(1)
                     bu_price_demo = re.findall('<td>[\.\d]+</td>', html)[4]
                     bu_price = re.search('\d+', bu_price_demo).group()
                     data_dict = self.get_build_detail(build_url)
@@ -133,7 +137,7 @@ class Baiyin(Crawler):
                     building.bu_all_house = bu_all_house
                     building.bu_id = build_id
                     building.co_id = co_id
-                    building.co_index = CO_INDEX
+                    building.co_index = self.CO_INDEX
                     building.bu_price = bu_price
                     # 插入
                     building.insert_db()
