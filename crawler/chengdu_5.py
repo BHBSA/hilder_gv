@@ -10,7 +10,7 @@ from crawler_base import Crawler
 from lxml import etree
 from comm_info import Comm
 import requests
-
+from retry import retry
 CO_INDEX = 5
 
 
@@ -29,6 +29,7 @@ class Chengdu(Crawler):
         print(page)
         return page
 
+    @retry(retry(3))
     def start(self):
         page = self.get_all_page()
         for i in range(1, int(page) + 1):
@@ -48,6 +49,7 @@ class Chengdu(Crawler):
                 except Exception as e:
                     print('小区错误：', url)
 
+    @retry(retry(3))
     def get_comm_detail(self, url, comm):
         response = requests.get(url)
         html = response.text

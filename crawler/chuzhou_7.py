@@ -59,7 +59,6 @@ class Chuzhou(Crawler):
     def get_comm_info(self, comm_url, comm):
         response = requests.get(comm_url)
         html = response.content.decode('gbk').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
-        tree = etree.HTML(html)
         # 小区id
         co_id = re.search('projectID=(\d+?)&', comm_url).group(1)
         # 小区名称
@@ -85,6 +84,7 @@ class Chuzhou(Crawler):
         comm.co_build_size = co_build_size
         comm.insert_db()
 
+    @retry(retry(3))
     def get_build_info(self, co_id, co_name):
         url = 'http://www.czhome.com.cn/Presell.asp?projectID=' + co_id + '&projectname=' + co_name
         response = requests.get(url)
@@ -94,7 +94,10 @@ class Chuzhou(Crawler):
         for i in xpath_list[1:]:
             build_url = i.xpath('td[2]/a/@href')[0]
             url = 'http://www.czhome.com.cn/' + build_url
+            print(url)
             result = requests.get(url)
+            if result.status_code is not 200:
+                continue
             html = result.content.decode('gbk')
             tree = etree.HTML(html)
             # 总套数
@@ -108,7 +111,9 @@ class Chuzhou(Crawler):
                 bu_url = i.xpath('td[1]/a/@href')[0]
                 url = 'http://www.czhome.com.cn/' + bu_url
                 response = requests.get(url)
-                html = response.content.decode('gbk')
+                if response.status_code is not 200:
+                    continue
+                html = response.text
                 tree = etree.HTML(html)
                 # 楼层
                 bu_floor = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td[1]/u/text()')[-1]
@@ -124,8 +129,10 @@ class Chuzhou(Crawler):
                 building.co_index = CO_INDEX
                 building.insert_db()
 
+    @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, building_id):
         response = requests.get(house_url)
+        print(house_url)
         html = response.content.decode('gbk').replace('\t', '').replace('\n', '').replace('\r', '').replace(' ', '')
         if response.status_code is not 200:
             return
