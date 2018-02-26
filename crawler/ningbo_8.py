@@ -11,8 +11,10 @@ from lxml import etree
 from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
+import yaml
 from lib.mongo import Mongo
 
+setting = yaml.load(open('config_local.yaml'))
 CO_INDEX = 8
 CO_ID = 0
 
@@ -73,8 +75,8 @@ class Ningbo(Crawler):
     @retry(retry(3))
     def get_build_info(self, url, comm, building):
         try:
-            m = Mongo('192.168.0.235', 27017, 'gv_test', 'community_test')
-            coll = m.get_collection_object()
+            coll = Mongo(setting['db'], setting['port'], setting['db_name'],
+                         setting['coll_comm']).get_collection_object()
             response = requests.get(url)
             html = response.text
             tree = etree.HTML(html)
