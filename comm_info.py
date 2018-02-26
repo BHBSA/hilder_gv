@@ -20,6 +20,7 @@ def serialization_info(info):
     for key, value in vars(info).items():
         if key is 'coll':
             continue
+        # todo if key is 'co_index': int('coindex')
         data[key] = value
     return data
 
@@ -29,7 +30,7 @@ class Comm:
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
-                 co_open_time=None,co_handed_time=None, co_all_house=None):
+                 co_open_time=None, co_handed_time=None, co_all_house=None):
         self.co_index = co_index  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
