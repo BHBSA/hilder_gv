@@ -3,6 +3,7 @@ from lxml import etree
 import re
 from retry import retry
 import json
+from lib.rabbitmq import Rabbit
 
 
 def decode(result, encode):
@@ -57,9 +58,8 @@ class ProducerListUrl:
     根据列表页获取详情页的url
     """
 
-    def __init__(self, list_page_url, analyzer_rules_dict, data_type, current_url_rule=None, encode=None,
-                 request_type='get',
-                 headers=None, analyzer_type='regex', ):
+    def __init__(self, list_page_url, analyzer_rules_dict, current_url_rule=None, encode=None,
+                 request_type='get', headers=None, analyzer_type='regex', ):
         """
 
         :param list_page_url: 必填，列表页url ,必须是数组
@@ -79,7 +79,6 @@ class ProducerListUrl:
         self.analyzer_type = analyzer_type
         self.current_url_rule = current_url_rule
         self.analyzer_rules_dict = analyzer_rules_dict
-        self.data_type = data_type
 
     def get_list_page_url(self, html_str):
         # 判断解析方式
@@ -98,10 +97,10 @@ class ProducerListUrl:
             xpath_url_list = html_tree.xpath(self.current_url_rule)
             print(len(xpath_url_list))
             for url in xpath_url_list:
-                print(url)
+                # print(url)
                 url_list.append(url)
         # 解析page_list获取数组返回
-        print(url_list)
+        # print(url_list)
         return url_list
 
     def get_details(self):
@@ -114,37 +113,58 @@ class ProducerListUrl:
             print('list_url 必须是数组')
             return
 
+        r = Rabbit(host='192.168.0.190', port=5673)
+        all_list_page_url = []
         for i in self.list_page_url:
             try:
                 html_str = do_request(i, self.request_type, self.headers, self.encode)
                 body = {'html': html_str,
                         'analyzer_type': self.analyzer_type,
                         'analyzer_rules_dict': self.analyzer_rules_dict,
-                        'data_type': self.data_type}
-                # todo 放入队列 json.dumps(body)
-                print('---')
-                print(body)
+                        }
+                # 放入队列 json.dumps(body)
+                channel = r.get_channel()
+                channel.queue_declare(queue='hilder_gv')
+                channel.basic_publish(exchange='',
+                                      routing_key='hilder_gv',
+                                      body=json.dumps(body))
+                print(json.dumps(body))
+                print('已经放入队列')
                 if self.current_url_rule:
-                    list_page_url = self.get_list_page_url(html_str)
-                    return list_page_url
+                    current_page_list_url = self.get_list_page_url(html_str)
+                    all_list_page_url = all_list_page_url + current_page_list_url
             except Exception as e:
                 print(i, e)
                 continue
+        print(all_list_page_url)
+        return all_list_page_url
 
 
 if __name__ == '__main__':
     # list_url = ['http://www.czfdc.gov.cn/spf/gs.php']
-    list_url = ['baidu', 'baidu', 'http://www.czfdc.gov.cn/spf/gs.php']
+    list_url = ['http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                'http://www.czfdc.gov.cn/spf/gs.php',
+                ]
 
-    from comm_info import Comm, Building
+    from comm_info import Comm
 
     c = Comm('100')
-    c.co_name = 'blName=(.*?)\'>',
+    c.co_name = 'blName=(.*?)\'>'
 
     data_t = c.data_type
     data_list = c.to_dict()
 
     g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
                         current_url_rule='//td[@align="left"]/a/@href',
-                        analyzer_rules_dict=data_list, analyzer_type='xpath', data_type=data_t)
+                        analyzer_rules_dict=data_list, analyzer_type='xpath', )
     g.get_details()

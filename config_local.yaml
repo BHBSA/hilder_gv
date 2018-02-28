@@ -4,3 +4,5 @@ db_name : gv_test
 coll_comm : community_test
 building : building_test
 house : house_test
+rabbitmq_host : 192.168.0.190
+rabbitmq_port : 5673
