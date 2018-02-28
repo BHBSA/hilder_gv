@@ -2,6 +2,7 @@ import requests
 from lxml import etree
 import re
 from retry import retry
+import json
 
 
 def decode(result, encode):
@@ -12,6 +13,7 @@ def decode(result, encode):
     return html_content
 
 
+@retry(tries=3)
 def do_request(url, method, headers, analyzer, encode):
     """
 
@@ -19,17 +21,22 @@ def do_request(url, method, headers, analyzer, encode):
     :param method:'get', 'post'
     :return: html_tree
     """
-    if method is 'get':
-        result = requests.get(url, headers=headers)
-        if analyzer is 'xpath':
-            html_tree = decode(result, encode)
-            return etree.HTML(html_tree)
+    try:
+        if method is 'get':
+            result = requests.get(url, headers=headers, )
+            if analyzer is 'xpath':
+                html_tree = decode(result, encode)
+                return etree.HTML(html_tree)
+            else:
+                html_tree = decode(result, encode)
+                return html_tree
         else:
-            html_tree = decode(result, encode)
-            return html_tree
-    else:
-        # todo post
-        pass
+            # todo post
+            pass
+    except Exception as e:
+        print(e)
+        print('连接错误')
+        raise
 
 
 class AllListUrl:
@@ -72,73 +79,12 @@ class AllListUrl:
             return int(result)
 
 
-class GetDetailsUrl:
-    """
-    根据列表页获取详情页的url
-    """
-    def __init__(self, list_url, co_index, page_list, encode=None, request_method=None, headers=None, analyzer='regex',
-                 method='get', **kwargs):
-        """
-
-        :param list_url:
-        :param co_index:
-        :param page_list: 传递获取url的参数
-        :param encode:
-        :param request_method:
-        :param headers:
-        :param analyzer:
-        :param method:
-        :param kwargs:
-        """
-        self.list_url = list_url
-        self.kwargs = kwargs
-        self.encode = encode
-        self.request_method = request_method
-        self.headers = headers
-        self.analyzer = analyzer
-        self.method = method
-        self.co_index = co_index
-        self.page_list = page_list
-
-    @retry(tries=3)
-    def get_details(self):
-        for i in self.list_url:
-            try:
-                html_ = do_request(i, self.method, self.headers, self.analyzer, self.encode)
-                if self.page_list is not None:
-                    # todo put in rabbitmq
-                    """
-                        rabbitmq data: json
-                        {
-                            "html": "html",
-                            "co_index": "co_index",
-                            "regex_list": [
-                                {
-                                "co_name": "regex"
-                                }, 
-                                {
-                                "co_id": "id"
-                                }
-                            ]
-                        }
-                    
-                    """
-                    # 返回列表页url
-                    return
-                else:
-                    # 没有需要选取的url，返回
-                    print('没有需要选取的url，放入队列成功')
-            except Exception as e:
-                print(e)
-                raise
-
-
 if __name__ == '__main__':
-    # h = {
-    #     'Cache-Control': "no-cache",
-    #     'User-Agent':
-    #         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36'
-    # }
+    h = {
+        'Cache-Control': "no-cache",
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36'
+    }
 
     url = 'http://www.czfdc.gov.cn/spf/gs.php'
     b = AllListUrl(first_page_url=url,
