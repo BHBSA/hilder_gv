@@ -57,19 +57,20 @@ class ProducerListUrl:
     根据列表页获取详情页的url
     """
 
-    def __init__(self, list_page_url, analyzer_rules_dict_list, current_url_rule=None, encode=None, request_type='get',
+    def __init__(self, list_page_url, analyzer_rules_dict, data_type, current_url_rule=None, encode=None,
+                 request_type='get',
                  headers=None, analyzer_type='regex', ):
         """
 
         :param list_page_url: 必填，列表页url ,必须是数组
         ['www.google.com', 'www.github.com']
-        :param analyzer_rules_dict_list: 必填，解析表达式,必须是数组
+        :param analyzer_rules_dict: 必填，解析表达式,必须是数组
         [{'co_build_size': None, 'co_owner': None, 'co_build_type': None, 'co_build_end_time': None, 'co_green': None,}]
         :param current_url_rule: 获取当前页面的url的正则表达式/xpath
         :param encode: 编码方式：get，post
-        :param request_method: 默认get,可选get, post
+        :param request_type: 默认get,可选get, post
         :param headers: requests header {  'Cache-Control': "no-cache','User-Agent':'safari', }
-        :param analyzer: 默认未正则表达式
+        :param analyzer_type: 默认未正则表达式
         """
         self.list_page_url = list_page_url
         self.encode = encode
@@ -77,7 +78,8 @@ class ProducerListUrl:
         self.headers = headers
         self.analyzer_type = analyzer_type
         self.current_url_rule = current_url_rule
-        self.analyzer_rules_dict_list = analyzer_rules_dict_list
+        self.analyzer_rules_dict = analyzer_rules_dict
+        self.data_type = data_type
 
     def get_list_page_url(self, html_str):
         # 判断解析方式
@@ -111,16 +113,17 @@ class ProducerListUrl:
         if not isinstance(self.list_page_url, list):
             print('list_url 必须是数组')
             return
-        if not isinstance(self.analyzer_rules_dict_list, list):
-            print('analyzer_rules_dict_list 必须是数组')
-            return
 
         for i in self.list_page_url:
             try:
                 html_str = do_request(i, self.request_type, self.headers, self.encode)
-                body = {'html': html_str, 'regex_dict': self.analyzer_rules_dict_list}
+                body = {'html': html_str,
+                        'analyzer_type': self.analyzer_type,
+                        'analyzer_rules_dict': self.analyzer_rules_dict,
+                        'data_type': self.data_type}
                 # todo 放入队列 json.dumps(body)
-                # print(html_str)
+                print('---')
+                print(body)
                 if self.current_url_rule:
                     list_page_url = self.get_list_page_url(html_str)
                     return list_page_url
@@ -138,10 +141,10 @@ if __name__ == '__main__':
     c = Comm('100')
     c.co_name = 'blName=(.*?)\'>',
 
-    b = Building('100')
-    data_list = [c.to_dict(), b.to_dict()]
+    data_t = c.data_type
+    data_list = c.to_dict()
 
     g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
                         current_url_rule='//td[@align="left"]/a/@href',
-                        analyzer_rules_dict_list=data_list, analyzer_type='xpath')
+                        analyzer_rules_dict=data_list, analyzer_type='xpath', data_type=data_t)
     g.get_details()
