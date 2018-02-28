@@ -114,6 +114,8 @@ class ProducerListUrl:
             return
 
         r = Rabbit(host='192.168.0.190', port=5673)
+        channel = r.get_channel()
+        channel.queue_declare(queue='hilder_gv')
         all_list_page_url = []
         for i in self.list_page_url:
             try:
@@ -123,8 +125,6 @@ class ProducerListUrl:
                         'analyzer_rules_dict': self.analyzer_rules_dict,
                         }
                 # 放入队列 json.dumps(body)
-                channel = r.get_channel()
-                channel.queue_declare(queue='hilder_gv')
                 channel.basic_publish(exchange='',
                                       routing_key='hilder_gv',
                                       body=json.dumps(body))
@@ -137,34 +137,36 @@ class ProducerListUrl:
                 print(i, e)
                 continue
         print(all_list_page_url)
+        r.get_connection().close()
         return all_list_page_url
 
 
 if __name__ == '__main__':
     # list_url = ['http://www.czfdc.gov.cn/spf/gs.php']
-    list_url = ['http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                'http://www.czfdc.gov.cn/spf/gs.php',
-                ]
+    while True:
+        list_url = ['http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    'http://www.czfdc.gov.cn/spf/gs.php',
+                    ]
 
-    from comm_info import Comm
+        from comm_info import Comm
 
-    c = Comm('100')
-    c.co_name = 'blName=(.*?)\'>'
+        c = Comm('100')
+        c.co_name = '//td[@align="left"]/a/@href'
 
-    data_t = c.data_type
-    data_list = c.to_dict()
+        data_t = c.data_type
+        data_list = c.to_dict()
 
-    g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
-                        current_url_rule='//td[@align="left"]/a/@href',
-                        analyzer_rules_dict=data_list, analyzer_type='xpath', )
-    g.get_details()
+        g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
+                            current_url_rule='//td[@align="left"]/a/@href',
+                            analyzer_rules_dict=data_list, analyzer_type='xpath', )
+        g.get_details()
