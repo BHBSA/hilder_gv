@@ -69,6 +69,8 @@ class Consumer(object):
             for i in range(0, length):
                 obj = self.get_data_obj(data_type, co_index)
                 for key, value in info.items():
+                    if key == 'data_type':
+                        continue
                     setattr(obj, key, value[i])
                 obj.insert_db()
         ch.basic_ack(delivery_tag=method.delivery_tag)
