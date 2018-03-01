@@ -45,36 +45,33 @@ class AllListUrl:
     :return int(page_num)
     """
 
-    def __init__(self, first_page_url=None, encode=None, request_method=None, headers=None,
-                 analyzer='regex', **kwargs):
+    def __init__(self, page_count_rule, first_page_url=None, encode=None, request_method=None, headers=None,
+                 analyzer_type='regex', ):
         """
 
-        :param first_page_url:
-        :param method: 'get', 'post'
-        :param encode:
-        :param kwargs: {'page': page_regex,
-        :param kwargs: default regex, you can user xpath either
+        :param page_count_rule: 页码正则表达式/xpath的规则
+        :param first_page_url: url
+        :param encode: 'gbk'
+        :param request_method: 'get', 'post'
+        :param headers: http requests header
         """
         self.first_page_url = first_page_url
         self.encode = encode
-        self.kwargs = kwargs
         self.method = request_method
-        self.analyzer = analyzer
+        self.analyzer = analyzer_type
         self.headers = headers
+        self.page_count_rule = page_count_rule
 
     def get_page_count(self, ):
         html_ = do_request(self.first_page_url, self.method, self.headers, self.analyzer, self.encode)
         if self.analyzer is 'xpath':
             print('开始xpath')
-            page_xpath = self.kwargs.get('xpath')
-            result = html_.xpath(page_xpath)[0]
+            result = html_.xpath(self.page_count_rule)[0]
             print(int(result.text))
             return int(result.text)
         else:
             print('开始正则')
-            page_regex = self.kwargs.get('regex')
-            group_regex = self.kwargs.get('regex_group')
-            result = re.search(page_regex, html_, re.M | re.S).group(group_regex)
+            result = re.search(self.page_count_rule, html_, re.M | re.S)[0]
             print(int(result))
             return int(result)
 
@@ -89,8 +86,8 @@ if __name__ == '__main__':
     url = 'http://www.czfdc.gov.cn/spf/gs.php'
     b = AllListUrl(first_page_url=url,
                    request_method='get',
-                   analyzer='xpath',
+                   analyzer_type='xpath',
                    encode='gbk',
-                   xpath='//*[@id="page_list"]/a[5]/span',
+                   page_count_rule='//*[@id="page_list"]/a[5]/span',
                    )
     b.get_page_count()
