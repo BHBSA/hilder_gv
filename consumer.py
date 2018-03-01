@@ -1,13 +1,16 @@
-import pika
 import json
 from lxml import etree
 import re
 from comm_info import Comm, Building, House
+import yaml
+
+setting = yaml.load(open('config_local.yaml'))
+from lib.rabbitmq import Rabbit
 
 
 class Consumer(object):
-    connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.0.190', 5673))
-    channel = connection.channel()
+    r = Rabbit(host=setting['rabbitmq_host'], port=setting['rabbitmq_port'])
+    channel = r.get_channel()
     channel.queue_declare(queue='hilder_gv')
 
     def callback(self, ch, method, properties, body):
@@ -27,7 +30,8 @@ class Consumer(object):
                     continue
                 info_list = tree.xpath(analyzer_rules_dict[i])
                 info[i] = info_list
-            length = len(info['co_name'])
+            key = sorted(info.items())[0][0]
+            length = len(info[key])
             for i in range(0, length):
                 obj = self.get_data_obj(data_type, co_index)
                 for key, value in info.items():
@@ -42,7 +46,8 @@ class Consumer(object):
                     continue
                 info_list = re.findall(analyzer_rules_dict[i], html)
                 info[i] = info_list
-            length = len(info['co_name'])
+            key = sorted(info.items())[0][0]
+            length = len(info[key])
             for i in range(0, length):
                 obj = self.get_data_obj(data_type, co_index)
                 for key, value in info.items():
@@ -59,7 +64,8 @@ class Consumer(object):
                     continue
                 info_list = tree.xpath(analyzer_rules_dict[i])
                 info[i] = info_list
-            length = len(info['co_name'])
+            key = sorted(info.items())[0][0]
+            length = len(info[key])
             for i in range(0, length):
                 obj = self.get_data_obj(data_type, co_index)
                 for key, value in info.items():
