@@ -2,6 +2,8 @@ import pika
 import json
 from lxml import etree
 import re
+from comm_info import Comm, Building, House
+
 
 class Consumer(object):
     connection = pika.BlockingConnection(pika.ConnectionParameters('192.168.0.190', 5673))
@@ -21,45 +23,61 @@ class Consumer(object):
             for i in analyzer_rules_dict:
                 if not analyzer_rules_dict[i]:
                     continue
-                if i == 'co_index':
+                if i == 'co_index' or i == 'data_type':
                     continue
                 info_list = tree.xpath(analyzer_rules_dict[i])
                 info[i] = info_list
-            pass
-            # todo info入库
-
+            length = len(info['co_name'])
+            for i in range(0, length):
+                obj = self.get_data_obj(data_type, co_index)
+                for key, value in info.items():
+                    setattr(obj, key, value[i])
+                obj.insert_db()
         elif analyzer_type == 'regex':
-            html = html.replace('\r', '').replace('\n', '').replace('\t', '').replace(' ', '')
             info = {}
             for i in analyzer_rules_dict:
-                if not i:
+                if not analyzer_rules_dict[i]:
                     continue
-                info_list = re.findall(analyzer_rules_dict[i],html)
-
+                if i == 'co_index' or i == 'data_type':
+                    continue
+                info_list = re.findall(analyzer_rules_dict[i], html)
                 info[i] = info_list
+            length = len(info['co_name'])
+            for i in range(0, length):
+                obj = self.get_data_obj(data_type, co_index)
+                for key, value in info.items():
+                    setattr(obj, key, value[i])
+                obj.insert_db()
+
         elif analyzer_type == 'xml':
             tree = etree.XML(html)
-
-
-        if data_type is 'comm':
-            pass
-        elif data_type is 'build':
-            # todo build
-            pass
-        elif data_type is 'house':
-            # todo house
-            pass
-        tree = etree.HTML(html)
-
-
+            info = {}
+            for i in analyzer_rules_dict:
+                if not analyzer_rules_dict[i]:
+                    continue
+                if i == 'co_index' or i == 'data_type':
+                    continue
+                info_list = tree.xpath(analyzer_rules_dict[i])
+                info[i] = info_list
+            length = len(info['co_name'])
+            for i in range(0, length):
+                obj = self.get_data_obj(data_type, co_index)
+                for key, value in info.items():
+                    setattr(obj, key, value[i])
+                obj.insert_db()
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
+    def get_data_obj(self, data_type, co_index):
+        if data_type == 'comm':
+            return Comm(co_index)
+        elif data_type == 'build':
+            return Building(co_index)
+        elif data_type == 'house':
+            return House(co_index)
 
     def consume_queue(self):
         self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(self.callback,
-                                   queue='hilder_gv')
-
+        self.channel.basic_consume(self.callback, queue='hilder_gv')
         self.channel.start_consuming()
 
 
