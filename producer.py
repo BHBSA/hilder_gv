@@ -4,6 +4,9 @@ import re
 from retry import retry
 import json
 from lib.rabbitmq import Rabbit
+import yaml
+
+setting = yaml.load(open('config_local.yaml'))
 
 
 def decode(result, encode):
@@ -113,7 +116,7 @@ class ProducerListUrl:
             print('list_url 必须是数组')
             return
 
-        r = Rabbit(host='192.168.0.190', port=5673)
+        r = Rabbit(host=setting['rabbitmq_host'], port=setting['rabbitmq_port'])
         channel = r.get_channel()
         channel.queue_declare(queue='hilder_gv')
         all_list_page_url = []
@@ -161,12 +164,11 @@ if __name__ == '__main__':
         from comm_info import Comm
 
         c = Comm('100')
-        c.co_name = '//td[@align="left"]/a/@href'
+        c.co_name = '//*[@id="right"]/table/tr/td/div/table/tr/td/table/tr[1]/td[3]'
 
-        data_t = c.data_type
         data_list = c.to_dict()
-
+        current_url_rule = '//*[@id="right"]/table/tr/td/div/table/tr/td[1]/table/tr[1]/td[1]/a/@href'
         g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
-                            current_url_rule='//td[@align="left"]/a/@href',
+                            current_url_rule=current_url_rule,
                             analyzer_rules_dict=data_list, analyzer_type='xpath', )
         g.get_details()

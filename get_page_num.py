@@ -71,7 +71,7 @@ class AllListUrl:
             return int(result.text)
         else:
             print('开始正则')
-            result = re.search(self.page_count_rule, html_, re.M | re.S)[0]
+            result = re.search(self.page_count_rule, html_, re.M | re.S).group(1)
             print(int(result))
             return int(result)
 
