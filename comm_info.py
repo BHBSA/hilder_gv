@@ -29,7 +29,7 @@ class Comm:
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
-                 co_open_time=None, co_handed_time=None, co_all_house=None, data_type = 'comm'):
+                 co_open_time=None, co_handed_time=None, co_all_house=None, data_type='comm'):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -72,7 +72,8 @@ class Comm:
 class Building:
     def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
-                 bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type = 'build'):
+                 bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type='build', size=None, bo_develops=None,
+                 bo_build_start_time=None, bo_build_end_time=None):
         self.co_index = int(co_index)  # 网站id
         self.co_id = co_id  # 小区id
         self.co_name = co_name  # 小区名称
@@ -80,12 +81,16 @@ class Building:
         self.bu_num = bu_num  # 楼号 栋号
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
+        self.size = size  # 占地面积
         self.bu_build_size = bu_build_size  # 建筑面积
         self.bu_live_size = bu_live_size  # 住宅面积
         self.bu_not_live_size = bu_not_live_size  # 非住宅面积
         self.bu_price = bu_price  # 住宅价格
         self.bu_pre_sale = bu_pre_sale  # 楼栋预售证书
         self.bu_pre_sale_date = bu_pre_sale_date  # 楼栋预售证书日期
+        self.bo_develops = bo_develops  # 开发商
+        self.bo_build_start_time = bo_build_start_time  # 开工时间
+        self.bo_build_end_time = bo_build_end_time  # 竣工时间
 
         # self.time = datetime.datetime.now()
         self.data_type = data_type
@@ -105,7 +110,7 @@ class Building:
 class House:
     def __init__(self, co_index, co_id=None, bu_id=None, bu_num=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
-                 orientation=None, ho_name=None, data_type = 'house'):
+                 orientation=None, ho_name=None, data_type='house'):
         self.co_index = int(co_index)  # 网站id
         self.bu_num = bu_num  # 楼号 栋号
         self.co_id = co_id  # 小区id
