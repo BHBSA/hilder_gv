@@ -61,13 +61,13 @@ class ProducerListUrl:
     根据列表页获取详情页的url
     """
 
-    def __init__(self, list_page_url, analyzer_rules_dict, current_url_rule=None, encode=None,
+    def __init__(self, list_page_url, analyzer_rules_dict=None, current_url_rule=None, encode=None,
                  request_type='get', headers=None, analyzer_type='regex', ):
         """
 
         :param list_page_url: 必填，列表页url ,必须是数组
         ['www.google.com', 'www.github.com']
-        :param analyzer_rules_dict: 必填，解析表达式,必须是数组
+        :param analyzer_rules_dict: 解析表达式,必须是数组
         [{'co_build_size': None, 'co_owner': None, 'co_build_type': None, 'co_build_end_time': None, 'co_green': None,}]
         :param current_url_rule: 获取当前页面的url的正则表达式/xpath
         :param encode: 编码方式：get，post
@@ -106,6 +106,26 @@ class ProducerListUrl:
         # print(url_list)
         return url_list
 
+    def get_current_page_url(self):
+        """
+        本方法仅仅返回当前页面的url，不放入队列
+        :return:
+        """
+        if not self.current_url_rule:
+            print('缺少参数current_url_rule')
+            return
+        all_list_page_url = []
+        for i in self.list_page_url:
+            try:
+                html_str = do_request(i, self.request_type, self.headers, self.encode)
+                current_page_list_url = self.get_list_page_url(html_str)
+                all_list_page_url = all_list_page_url + current_page_list_url
+            except Exception as e:
+                print(i, e)
+                continue
+        print('数组长度是', len(all_list_page_url))
+        return all_list_page_url
+
     def get_details(self):
         """
         把网页放入队列
@@ -131,7 +151,7 @@ class ProducerListUrl:
                 channel.basic_publish(exchange='',
                                       routing_key='hilder_gv',
                                       body=json.dumps(body))
-                print(json.dumps(body))
+                # print(json.dumps(body))
                 print('已经放入队列')
                 if self.current_url_rule:
                     current_page_list_url = self.get_list_page_url(html_str)
@@ -141,6 +161,7 @@ class ProducerListUrl:
                 continue
         print(all_list_page_url)
         r.get_connection().close()
+        print('数组长度是', len(all_list_page_url))
         return all_list_page_url
 
 
