@@ -8,6 +8,7 @@ url = 'http://www.gyfc.net.cn/2_proInfo/index.aspx'
 co_index = '13'
 city = '贵阳'
 
+
 class Guiyang(Crawler):
     def __init__(self):
         self.headers = {
@@ -48,9 +49,8 @@ class Guiyang(Crawler):
                             list_page_url=house_url_list,
                             analyzer_type='regex',
                             request_type='get',
-                            encode='gbk',)
+                            encode='gbk', )
         p.get_details()
-
 
     def get_build_detail(self, all_house_detail_url):
         b = Building(co_index)
