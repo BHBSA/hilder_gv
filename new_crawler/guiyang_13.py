@@ -1,3 +1,7 @@
+"""
+毕节和贵阳是相同的网站
+"""
+
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
