@@ -15,7 +15,6 @@ import yaml
 from lib.mongo import Mongo
 
 setting = yaml.load(open('config_local.yaml'))
-CO_INDEX = 8
 CO_ID = 0
 
 
@@ -40,7 +39,7 @@ class Ningbo(Crawler):
         tree = etree.HTML(html)
         comm_url_list = tree.xpath('//ul[@class="NewsList"]/li/a/@href')
         for i in comm_url_list:
-            comm = Comm()
+            comm = Comm(8)
             comm_url = 'http://www.cxsfdcglzx.com/touming/' + i
             print(comm_url)
             self.get_comm_info(comm_url, comm)
@@ -57,14 +56,13 @@ class Ningbo(Crawler):
             co_build_end_time = tree.xpath('//*[@id="PageB_FinishDate"]/text()')[0]  # 竣工时间
             co_build_size = tree.xpath('//*[@id="PageB_BuildArea"]/text()')[0]  # 建筑面积
             build_url_list = tree.xpath('//*[@id="Content"]/div[3]/div/div[4]/div[3]/table[2]/tr/td[1]/a/@href')
-            comm.co_index = CO_INDEX
             comm.co_address = co_address
             comm.co_develops = co_develops
             comm.co_pre_sale = co_pre_sale
             comm.co_build_end_time = co_build_end_time
             comm.co_build_size = co_build_size
             for i in build_url_list:
-                building = Building()
+                building = Building(8)
                 url = 'http://www.cxsfdcglzx.com/touming/' + i
                 print(url)
                 self.get_build_info(url, comm, building)
@@ -92,7 +90,6 @@ class Ningbo(Crawler):
             bu_price = tree.xpath('//*[@id="lb_buildavg"]/text()')
             bu_price = self.is_none(bu_price)  # 住宅价格
             bu_id = re.search('\?(\d+)$', url).group(1)  # 楼栋id
-            building.co_index = CO_INDEX
             building.co_id = CO_ID
             building.bu_name = bu_name
             building.bu_num = bu_num
@@ -104,7 +101,7 @@ class Ningbo(Crawler):
             building.bu_id = bu_id
             house_info_list = tree.xpath('//td[@oncontextmenu="return false"]/*/text()')
             count = 0
-            house = House()
+            house = House(8)
             for i in house_info_list:
                 if count % 4 == 0:
                     ho_name = i.replace('<', '').replace('>', '')
@@ -118,10 +115,9 @@ class Ningbo(Crawler):
                 count += 1
                 if count % 4 == 0:
                     house.co_id = CO_ID
-                    house.co_index = CO_INDEX
                     house.bu_id = bu_id
                     house.insert_db()
-                    house = House()
+                    house = House(8)
             comm_list = coll.find_one({'co_name': co_name})
             if not comm_list:
                 global CO_ID

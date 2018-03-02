@@ -12,7 +12,6 @@ from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
 
-CO_INDEX = 7
 building_id = 0
 
 
@@ -51,7 +50,7 @@ class Chuzhou(Crawler):
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//*[@id="Table8"]/tr/td[2]/a/@href')
             for i in comm_url_list:
-                comm = Comm()
+                comm = Comm(7)
                 comm_url = 'http://www.czhome.com.cn/' + i
                 self.get_comm_info(comm_url, comm)
 
@@ -75,7 +74,6 @@ class Chuzhou(Crawler):
             # 建筑面积
             co_build_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
             self.get_build_info(co_id, co_name)
-            comm.co_index = CO_INDEX
             comm.co_id = co_id
             comm.co_name = co_name
             comm.co_address = co_address
@@ -106,7 +104,7 @@ class Chuzhou(Crawler):
                 # 总套数
                 bu_xpath = tree.xpath('/html/body/table/tr/td/table/tr/td/table/tr')[1:]
                 for i in bu_xpath:
-                    building = Building()
+                    building = Building(7)
                     global building_id
                     building_id += 1
                     building.bu_id = building_id
@@ -122,14 +120,13 @@ class Chuzhou(Crawler):
                     bu_floor = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td[1]/u/text()')[-1]
                     house_url_list = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td/a/@href')
                     for i in house_url_list:
-                        house = House()
+                        house = House(7)
                         house_url = 'http://www.czhome.com.cn/' + i
                         self.get_house_info(house_url, house, co_id, building_id)
                     building.bu_all_house = bu_all_house
                     building.bu_floor = bu_floor
                     building.bu_id = building_id
                     building.co_id = co_id
-                    building.co_index = CO_INDEX
                     building.insert_db()
         except Exception as e:
             print(e)
@@ -157,7 +154,6 @@ class Chuzhou(Crawler):
             ho_true_size = re.search('预测套内面积<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 分摊面积
             ho_share_size = re.search('预测分摊面积<(.*?)<(.*?)>(.*?)<', html).group(3)
-            house.co_index = CO_INDEX
             house.co_id = co_id
             house.bu_id = building_id
             house.ho_num = ho_num
