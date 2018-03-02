@@ -12,12 +12,15 @@ import math
 from comm_info import Comm, Building, House
 from retry import retry
 
-CO_INDEX = 2
-
 
 class Beijing(Crawler):
     def __init__(self):
         self.url = 'http://www.bjjs.gov.cn/eportal/ui?pageId=307678'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+            'Referer': 'http://www.bjjs.gov.cn/eportal/ui?pageId=307678',
+            'Cookie': 'JSESSIONID=A522CA97CD3A946632840E8636A58657; Hm_lvt_9ac0f18d7ef56c69aaf41ca783fcb10c=1518315836,1519631516,1519961932,1519962558; Hm_lpvt_9ac0f18d7ef56c69aaf41ca783fcb10c=1519962569'
+        }
 
     def start_crawler(self):
         self.start()
@@ -25,7 +28,7 @@ class Beijing(Crawler):
     @retry(tries=3)
     def get_all_page(self):
         try:
-            response = requests.post(url=self.url)
+            response = requests.post(url=self.url, headers=self.headers)
             if response.status_code is 200:
                 html = response.text
                 page_num = re.search('总记录数:(\d+),', html).group(1)
@@ -43,7 +46,7 @@ class Beijing(Crawler):
             page = self.get_all_page()
             for page in range(1, int(page) + 1):
                 params = {'currentPage': page}
-                response = requests.post(url=self.url, params=params)
+                response = requests.post(url=self.url, params=params, headers=self.headers)
                 html = response.text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
                 self.get_comm_info(html)
         except Exception as e:
@@ -55,14 +58,14 @@ class Beijing(Crawler):
         comm_list = re.findall(
             '<td(.*?)ahref="(.*?)">(.*?)</a(.*?)<ahref="(.*?)">(.*?)</a></td><td(.*?)>(.*?)</td></tr>', html_info)
         for i in comm_list:
-            comm = Comm()
+            comm = Comm(2)
             url = 'http://www.bjjs.gov.cn/' + i[1]
             self.get_comm_detail(url, comm)
 
     @retry(tries=3)
     def get_comm_detail(self, url, comm):
         try:
-            response = requests.get(url=url)
+            response = requests.get(url=url, headers=self.headers)
             comm_html = response.text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             co_id = re.search('projectID=(\d+)&', url).group(1)  # 小区id
             co_name = re.search('id="项目名称(.*?)>(.*?)<', comm_html).group(2)  # 小区名称
@@ -71,7 +74,6 @@ class Beijing(Crawler):
             co_build_size = re.search('id="准许销售面积(.*?)>(.*?)<', comm_html).group(2)  # 建筑面积
             co_develops = re.search('id="开发企业(.*?)>(.*?)<', comm_html).group(2)  # 建筑面积
             co_pre_sale_date = re.search('id="发证日期(.*?)>(.*?)<', comm_html).group(2)  # 发证日期
-            comm.co_index = CO_INDEX
             comm.co_id = co_id
             comm.co_name = co_name
             comm.co_address = co_address
@@ -86,7 +88,7 @@ class Beijing(Crawler):
                 print('没有房屋信息')
             else:
                 for i in build_info_list:
-                    building = Building()
+                    building = Building(2)
                     bu_name = i[1]  # 楼栋名称
                     bu_num = bu_name.split('#')[0]  # 楼号
                     bu_all_house = i[3]  # 总套数
@@ -99,7 +101,6 @@ class Beijing(Crawler):
                     building.bu_build_size = bu_build_size
                     building.bu_price = bu_price
                     building.co_id = co_id  # 小区id
-                    building.co_index = CO_INDEX  # 网站id
 
                     build_html = re.search(r'楼盘表(.*?)个楼栋信息', comm_html).group(1)
                     build_url = re.search(r'<ahref="(.*?)">查看信息<', build_html).group(1)
@@ -107,7 +108,6 @@ class Beijing(Crawler):
                     bu_floor = self.get_build_info(build_url, co_id)
                     building.bu_id = build_id  # 楼栋id
                     building.bu_floor = bu_floor  # 楼层
-
                     building.insert_db()
             comm.insert_db()
         except Exception as e:
@@ -118,13 +118,13 @@ class Beijing(Crawler):
     def get_build_info(self, build_url, co_id):
         try:
             url = 'http://www.bjjs.gov.cn' + build_url
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.text.replace('\n', '').replace('\t', '').replace('\r', '').replace(' ', '')
             house_url_list = re.findall(r'■(.*?)<ahref="(.*?)">(.*?)</a>', html)
             bu_id = re.search(r'buildingId=(.*?)$', build_url).group(1)
             bu_floor = re.search(r'地上:(\d+)层', html).group(1)
             for i in house_url_list:
-                house = House()
+                house = House(2)
                 house_url = i[1]
                 house_data = self.get_house_info(house_url, house)
                 house_data.co_id = co_id
@@ -139,7 +139,7 @@ class Beijing(Crawler):
     def get_house_info(self, house_url, house):
         try:
             url = 'http://www.bjjs.gov.cn' + house_url
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.text.replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             ho_name = re.search('houseNo=(.*?)&', house_url).group(1)  # 房号：3单元403
             ho_type = re.search('规划设计用途</td><(.*?)>(.*?)<', html).group(2)  # 房屋类型：普通住宅 / 车库仓库
@@ -148,9 +148,8 @@ class Beijing(Crawler):
             ho_true_size = re.search('>套内面积</td><(.*?)>(.*?)平方米<', html).group(2)  # 预测套内面积,实际面积
             ho_price = re.search('>按建筑面积拟售单价</td><(.*?)>(.*?)元/平方米<', html).group(2)  # 价格
             ho_share_size = float(ho_build_size) - float(ho_true_size)  # 分摊面积
-            ho_floor = re.search('\d', ho_name).group()  # 楼层
+            ho_floor = re.search('\d+', ho_name).group()  # 楼层
             ho_num = re.search('houseId=(.*?)&', house_url).group(1)  # 房号id
-            house.co_index = CO_INDEX
             house.ho_name = ho_name
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type

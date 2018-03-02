@@ -11,7 +11,7 @@ from lxml import etree
 from comm_info import Comm
 import requests
 from retry import retry
-CO_INDEX = 5
+
 
 
 class Chengdu(Crawler):
@@ -39,7 +39,7 @@ class Chengdu(Crawler):
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//dt[@class="clearfix"]/h2/a/@href')
             for i in comm_url_list:
-                comm = Comm()
+                comm = Comm(5)
                 i = i.split(';')
                 if i:
                     i = i[0]
@@ -115,7 +115,6 @@ class Chengdu(Crawler):
             co_all_house = co_all_house[0]
         else:
             co_all_house = None
-        comm.co_index = 5
         comm.co_name = co_name
         comm.co_address = co_address
         comm.co_type = co_type

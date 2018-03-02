@@ -6,14 +6,12 @@ author: 吕三利
 小区数量：14页    2018/2/27
 """
 
-from base import AllListUrl
+from get_page_num import AllListUrl
 from crawler_base import Crawler
 from lxml import etree
 from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
-
-CO_INDEX = 11
 
 
 class Fuzhou(Crawler):
@@ -30,9 +28,9 @@ class Fuzhou(Crawler):
     def start(self):
         b = AllListUrl(first_page_url=self.url,
                        request_method='get',
+                       analyzer_type='regex',
                        encode='gbk',
-                       regex_group=1,
-                       regex='共(.*?)页', )
+                       page_count_rule='共(.*?)页', )
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             response = requests.get(url=self.url, headers=self.headers)
@@ -40,7 +38,7 @@ class Fuzhou(Crawler):
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//*[@id="houseList0"]/dt/a/@href')
             for i in comm_url_list:
-                comm = Comm()
+                comm = Comm(11)
                 url = 'http://www.fzfgj.cn/' + i
                 self.get_comm_info(url, comm)
 
@@ -69,7 +67,6 @@ class Fuzhou(Crawler):
             # 占地面的
             co_size = tree.xpath('//*[@id="ctl00_CPH_M_sm_spfBox3"]/div/table/tr[5]/td[2]/text()')[0].strip()
             co_id = re.search('home/(.*?).html', url).group(1)
-            comm.co_index = CO_INDEX
             comm.co_name = co_name
             comm.co_address = co_address
             comm.co_build_start_time = co_build_start_time
@@ -81,7 +78,7 @@ class Fuzhou(Crawler):
             comm.co_id = co_id
             build_info_list = tree.xpath('//*[@id="ctl00_CPH_M_sm_spfBox1"]/div/table/tr[@class="hobuild"]')
             for i in build_info_list:
-                build = Building()
+                build = Building(11)
                 # 楼栋名称
                 bu_name = i.xpath('string(td[1])')
                 # 楼栋id
@@ -90,7 +87,6 @@ class Fuzhou(Crawler):
                 # 建筑面积
                 bu_build_size = i.xpath('string(td[3])').replace('�O', '')
                 self.get_build_info(bu_id, co_id)
-                build.co_index = CO_INDEX
                 build.co_id = co_id
                 build.bu_id = bu_id
                 build.bu_name = bu_name
@@ -99,7 +95,6 @@ class Fuzhou(Crawler):
             comm.insert_db()
         except BaseException as e:
             print(e)
-
 
     @retry(retry(3))
     def get_build_info(self, bu_id, co_id):
@@ -115,7 +110,7 @@ class Fuzhou(Crawler):
             tree_2 = etree.XML(xml_2)
             house_info_list = tree_2.xpath('T_HOUSE')
             for i in house_info_list:
-                house = House()
+                house = House(11)
                 ho_num = i.xpath('//HOUSE_NUMBER/text()')[0]
                 ho_name = i.xpath('//ROOM_NUMBER/text()')[0]
                 ho_build_size = i.xpath('//BUILD_AREA/text()')[0]
@@ -123,7 +118,6 @@ class Fuzhou(Crawler):
                 ho_share_size = i.xpath('//BUILD_AREA_SHARE/text()')[0]
                 ho_floor = i.xpath('//FLOOR_REALRIGHT/text()')[0]
                 ho_type = i.xpath('//USE_FACT/text()')[0]
-                house.co_index = CO_INDEX
                 house.co_id = co_id
                 house.bu_id = bu_id
                 house.ho_build_size = ho_build_size
@@ -136,4 +130,3 @@ class Fuzhou(Crawler):
                 house.insert_db()
         except BaseException as e:
             print(e)
-

@@ -29,14 +29,11 @@ class Consumer(object):
                 if i == 'co_index' or i == 'data_type':
                     continue
                 info_list = tree.xpath(analyzer_rules_dict[i])
-                info[i] = info_list
-            key = sorted(info.items())[0][0]
-            length = len(info[key])
-            for i in range(0, length):
-                obj = self.get_data_obj(data_type, co_index)
-                for key, value in info.items():
-                    setattr(obj, key, value[i])
-                obj.insert_db()
+                if info_list:
+                    info[i] = info_list
+            if not info:
+                print('\n\n没有获得任何信息\n\n')
+            self.put_database(info, data_type, co_index)
         elif analyzer_type == 'regex':
             info = {}
             for i in analyzer_rules_dict:
@@ -44,15 +41,12 @@ class Consumer(object):
                     continue
                 if i == 'co_index' or i == 'data_type':
                     continue
-                info_list = re.findall(analyzer_rules_dict[i], html)
-                info[i] = info_list
-            key = sorted(info.items())[0][0]
-            length = len(info[key])
-            for i in range(0, length):
-                obj = self.get_data_obj(data_type, co_index)
-                for key, value in info.items():
-                    setattr(obj, key, value[i])
-                obj.insert_db()
+                info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
+                if info_list:
+                    info[i] = info_list
+            if not info:
+                print('\n\n没有获得任何信息\n\n')
+            self.put_database(info, data_type, co_index)
 
         elif analyzer_type == 'xml':
             tree = etree.XML(html)
@@ -63,18 +57,25 @@ class Consumer(object):
                 if i == 'co_index' or i == 'data_type':
                     continue
                 info_list = tree.xpath(analyzer_rules_dict[i])
-                info[i] = info_list
-            key = sorted(info.items())[0][0]
-            length = len(info[key])
-            for i in range(0, length):
-                obj = self.get_data_obj(data_type, co_index)
-                for key, value in info.items():
-                    if key == 'data_type':
-                        continue
-                    setattr(obj, key, value[i])
-                obj.insert_db()
+                if info_list:
+                    info[i] = info_list
+            if not info:
+                print('\n\n没有获得任何信息\n\n')
+            self.put_database(info, data_type, co_index)
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
+    # 遍历字典放入数据库
+    def put_database(self, info, data_type, co_index):
+        key = sorted(info.items())[0][0]
+        length = len(info[key])
+        for i in range(0, length):
+            obj = self.get_data_obj(data_type, co_index)
+            for key, value in info.items():
+                if value:
+                    setattr(obj, key, value[i].strip())
+            obj.insert_db()
+
+    # 创建对象（data_type是什么类型是就创建什么对象）
     def get_data_obj(self, data_type, co_index):
         if data_type == 'comm':
             return Comm(co_index)

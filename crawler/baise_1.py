@@ -6,7 +6,7 @@ author: 周彤云
 小区数：99
 time:2018-02-11
 """
-CO_INDEX = 1
+
 import requests
 from lxml import etree
 from comm_info import Comm, Building, House
@@ -42,7 +42,7 @@ class Baise(Crawler):
                 com_list = re.findall(r'height="25"><a href="(.+)">', html)
 
                 for i in com_list:
-                    comm = Comm()
+                    comm = Comm(1)
                     href = 'http://www.bsfcj.com/PubInfo/' + i
                     # href = 'http://www.bsfcj.com/PubInfo/' + 'lpxx.asp?qyxmbm=DBDHDADCDADADADFDDDBDCDJ000001'
                     if not href:
@@ -116,7 +116,6 @@ class Baise(Crawler):
                 html).group(1).rstrip('<br/>').split('<br/>')  # 预售证书日期
             if not co_pre_sale_date:
                 return comm
-            comm.co_index = CO_INDEX
             comm.co_id = co_id
             comm.co_name = co_name
             comm.co_adress = co_adress
@@ -143,8 +142,8 @@ class Baise(Crawler):
                 for i in build_url_list:
                     build_url = i.xpath('p/a/@href')[0]
                     building_url = 'http://www.bsfcj.com/PubInfo/' + build_url
-                    building = Building()
-                    building_obj = self.get_build_detail(building_url, building, co_id, CO_INDEX)
+                    building = Building(1)
+                    building_obj = self.get_build_detail(building_url, building, co_id,)
                     building_obj.insert_db()
                 return comm
         except Exception as e:
@@ -153,7 +152,7 @@ class Baise(Crawler):
 
 
     @retry(tries=3)
-    def get_build_detail(self, building_url, building, co_id, CO_INDEX):
+    def get_build_detail(self, building_url, building, co_id):
         try:
             res = requests.get(url=building_url)
             html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
@@ -178,7 +177,6 @@ class Baise(Crawler):
             bu_pre_sale_date = re.search(r'售许可证发证日期：</td><tdalign="left"class="padingleft3px">(.*?)</td>', html).group(1)  # 楼栋预售证书日期
             bu_price = re.search(r'拟销住宅价格：</td><tdbackground="images/trbg3.gif"></td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right"bgcolor="#FFFFFF"></td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right">拟销商业门面价格'
                                  , html).group(1).split('元')[0]  # 住宅价格
-            building.co_index = CO_INDEX
             building.co_id = co_id
             building.bu_id = bu_id
             building.bu_name = bu_name
@@ -193,8 +191,8 @@ class Baise(Crawler):
             house_url_list = re.findall(r"window.open\('(.+?)'\)", html)
             for i in house_url_list:
                 house_url = 'http://www.bsfcj.com/PubInfo/'+i
-                house = House()
-                house_obj = self.get_house_detail(house_url, house, co_id, CO_INDEX, bu_id)
+                house = House(1)
+                house_obj = self.get_house_detail(house_url, house, co_id, bu_id)
                 house_obj.insert_db()
             return building
         except Exception as e:
@@ -202,7 +200,7 @@ class Baise(Crawler):
             raise
 
     @retry(tries=3)
-    def get_house_detail(self, house_url, house, co_id, CO_INDEX, bu_id):
+    def get_house_detail(self, house_url, house, co_id, bu_id):
         try:
             res = requests.get(url=house_url)
             html = res.content.decode('gb2312', 'ignore')
@@ -220,7 +218,6 @@ class Baise(Crawler):
                 ho_price = ho_price[0].replace('元/M²', '')
             else:
                 return house
-            house.co_index = CO_INDEX
             house.co_id = co_id
             house.bu_id = bu_id
             house.ho_num = ho_num

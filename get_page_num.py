@@ -83,11 +83,11 @@ if __name__ == '__main__':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36'
     }
 
-    url = 'http://www.czfdc.gov.cn/spf/gs.php'
+    url = 'http://www.gafdc.cn/newhouse/houselist.aspx?hou=0-0-0-0-0-0-&page=1'
     b = AllListUrl(first_page_url=url,
                    request_method='get',
-                   analyzer_type='xpath',
-                   encode='gbk',
-                   page_count_rule='//*[@id="page_list"]/a[5]/span',
+                   analyzer_type='regex',
+                   encode='utf-8',
+                   page_count_rule='pageCount = (.*?);',
                    )
     b.get_page_count()

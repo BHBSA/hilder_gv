@@ -12,8 +12,6 @@ from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
 
-CO_INDEX = 9
-
 
 class Dongwan(Crawler):
     def __init__(self):

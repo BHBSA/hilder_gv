@@ -64,7 +64,6 @@ class ProducerListUrl:
     def __init__(self, list_page_url, analyzer_rules_dict, current_url_rule=None, encode=None,
                  request_type='get', headers=None, analyzer_type='regex', ):
         """
-
         :param list_page_url: 必填，列表页url ,必须是数组
         ['www.google.com', 'www.github.com']
         :param analyzer_rules_dict: 必填，解析表达式,必须是数组

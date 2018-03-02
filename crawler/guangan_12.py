@@ -9,11 +9,8 @@ from crawler_base import Crawler
 from lxml import etree
 from comm_info import Comm, Building, House
 import requests, re
-from retry import retry
 from producer import ProducerListUrl, do_request
 from get_page_num import AllListUrl
-
-CO_INDEX = 12
 
 
 class Guangan(Crawler):
@@ -38,7 +35,7 @@ class Guangan(Crawler):
             tree = etree.HTML(html)
             comm_detail_list = tree.xpath('//div[@class="newexleft"]/div/ul[2]/li[1]/a/@href')
             for i in comm_detail_list:
-                c = Comm('12')
+                c = Comm(12)
                 i = i.replace('index', 'base')
                 comm_url = 'http://www.gafdc.cn/newhouse/' + i
                 c.co_id = re.search('id=(.*?)$', comm_url).group(1)
