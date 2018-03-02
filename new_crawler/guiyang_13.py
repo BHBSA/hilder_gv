@@ -7,6 +7,8 @@ from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 from producer import ProducerListUrl
 import requests
+from urllib import parse
+import re
 
 url = 'http://www.gyfc.net.cn/2_proInfo/index.aspx'
 co_index = '13'
@@ -37,15 +39,16 @@ class Guiyang(Crawler):
         all_house_detail_url = self.get_build_detail_url(build_list_url)
         house_url_list = self.get_build_detail(all_house_detail_url)
 
-        p = ProducerListUrl(co_index)
-        ture_house_url_list = p.get_current_page_url(house_url_list)
+        ture_house_url_list = self.get_true_house_url(house_url_list)
+
         self.get_house_detail(ture_house_url_list)
         print('小区数据入库成功')
 
     def get_house_detail(self, house_url_list):
         h = House(co_index)
-        h.bu_id = '<title>.*?[(.*?)].*?</title>'
-        h.ho_num = ''
+        h.bu_id = 'yszh=(.*?)".*?id'
+        h.ho_num = 'span class=\'.*?>(.*?)<'
+        h.info = 'title=\'(.*?)\'>.*?<span'
 
         data_list = h.to_dict()
         p = ProducerListUrl(headers=self.headers,
@@ -56,6 +59,23 @@ class Guiyang(Crawler):
                             encode='gbk', )
         p.get_details()
 
+    def get_true_house_url(self, complete_url_list):
+        p = ProducerListUrl(current_url_rule="src='(index/floorView\.aspx.*?)'",
+                            list_page_url=complete_url_list,
+                            headers=self.headers,
+                            analyzer_type='regex',
+                            request_type='get',
+                            encode='gbk',
+                            )
+        url_list = p.get_current_page_url()
+        new_url_list = []
+        for i in url_list:
+            qu = re.findall('qu=(.*?)&', i)[0]
+            url_encode = parse.quote(qu)
+            replace_str = re.sub(qu, url_encode, url)
+            new_url_list.append('http://www.gyfc.net.cn/pro_query/' + replace_str)
+        return new_url_list
+
     def get_build_detail(self, all_house_detail_url):
         b = Building(co_index)
         b.bu_id = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 楼栋id，预(销)售证号
@@ -65,6 +85,7 @@ class Guiyang(Crawler):
         b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
         b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
         b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
+        b.co_id =
 
         current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
 
