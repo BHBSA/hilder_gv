@@ -25,12 +25,12 @@ def serialization_info(info):
 
 
 class Comm:
-    def __init__(self, co_index=None, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
+    def __init__(self, co_index, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
-                 co_open_time=None,co_handed_time=None, co_all_house=None):
-        self.co_index = co_index  # 网站id
+                 co_open_time=None, co_handed_time=None, co_all_house=None, data_type = 'comm'):
+        self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
         self.co_address = co_address  # 小区地址
@@ -54,9 +54,14 @@ class Comm:
         self.co_owner = co_owner  # 房产证/房屋所有权证
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
 
-        self.time = datetime.datetime.now()
+        # self.time = datetime.datetime.now()
+        self.data_type = data_type
         self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
                           setting['coll_comm']).get_collection_object()
+
+    def to_dict(self):
+        data = serialization_info(self)
+        return data
 
     def insert_db(self):
         data = serialization_info(self)
@@ -65,13 +70,13 @@ class Comm:
 
 
 class Building:
-    def __init__(self, co_index=None, co_id=None, bu_num=None, bu_id=None, bu_name=None, bu_all_house=None,
+    def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
-                 bu_pre_sale=None, bu_pre_sale_date=None):
-        self.co_index = co_index  # 网站id
+                 bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type = 'build'):
+        self.co_index = int(co_index)  # 网站id
         self.co_id = co_id  # 小区id
+        self.co_name = co_name  # 小区名称
         self.bu_id = bu_id  # 楼栋id
-        self.bu_name = bu_name  # 楼栋名称
         self.bu_num = bu_num  # 楼号 栋号
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
@@ -82,9 +87,14 @@ class Building:
         self.bu_pre_sale = bu_pre_sale  # 楼栋预售证书
         self.bu_pre_sale_date = bu_pre_sale_date  # 楼栋预售证书日期
 
-        self.time = datetime.datetime.now()
+        # self.time = datetime.datetime.now()
+        self.data_type = data_type
         self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
                           setting['building']).get_collection_object()
+
+    def to_dict(self):
+        data = serialization_info(self)
+        return data
 
     def insert_db(self):
         data = serialization_info(self)
@@ -93,10 +103,11 @@ class Building:
 
 
 class House:
-    def __init__(self, co_index=None, co_id=None, bu_id=None, ho_num=None, ho_floor=None, ho_type=None,
+    def __init__(self, co_index, co_id=None, bu_id=None, bu_num=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
-                 orientation=None, ho_name=None):
-        self.co_index = co_index  # 网站id
+                 orientation=None, ho_name=None, data_type = 'house'):
+        self.co_index = int(co_index)  # 网站id
+        self.bu_num = bu_num  # 楼号 栋号
         self.co_id = co_id  # 小区id
         self.bu_id = bu_id  # 楼栋id
         self.ho_name = ho_name  # 房号：3单元403
@@ -110,8 +121,13 @@ class House:
         self.ho_price = ho_price  # 价格
         self.orientation = orientation  # 朝向
 
-        self.time = datetime.datetime.now()
+        # self.time = datetime.datetime.now()
+        self.data_type = data_type
         self.coll = Mongo(setting['db'], setting['port'], setting['db_name'], setting['house']).get_collection_object()
+
+    def to_dict(self):
+        data = serialization_info(self)
+        return data
 
     def insert_db(self):
         data = serialization_info(self)
@@ -120,7 +136,6 @@ class House:
 
 
 if __name__ == '__main__':
-    c = Comm()
-    c.co_index = '1100'
+    c = Comm('1100')
     c.co_name = 'mingzi'
     c.insert_db()
