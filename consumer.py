@@ -56,9 +56,11 @@ class Consumer(object):
                 if analyzer_type == 'regex':
                     info = {}
                     co_id = re.findall(analyzer_rules_dict[analyzer]['co_id'], html, re.M | re.S)
+                    co_name = re.findall(analyzer_rules_dict[analyzer]['co_name'], html, re.M | re.S)
                     if co_id:
                         co_id = co_id[0]
-                        info['co_id'] = co_id
+                    if co_name:
+                        co_name = co_name[0]
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
                             continue
@@ -70,14 +72,16 @@ class Consumer(object):
                     if not info:
                         print('\n\n没有获得任何信息\n\n')
                         continue
-                    self.put_database(info, analyzer, co_index)
+                    self.put_database(info, analyzer, co_index, co_id, co_name)
                 elif analyzer == 'xpath':
                     tree = etree.HTML(html)
                     info = {}
                     co_id = tree.xpath(analyzer_rules_dict[analyzer]['co_id'])
+                    co_name = tree.xpath(analyzer_rules_dict[analyzer]['co_name'])
                     if co_id:
                         co_id = co_id[0]
-                        info['co_id'] = co_id
+                    if co_name:
+                        co_name = co_name[0]
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
                             continue
@@ -89,7 +93,7 @@ class Consumer(object):
                     if not info:
                         print('\n\n没有获得任何信息\n\n')
                         continue
-                    self.put_database(info, analyzer, co_index)
+                    self.put_database(info, analyzer, co_index, co_id, co_name)
                 elif analyzer_type == 'xml':
                     pass
 
@@ -97,9 +101,11 @@ class Consumer(object):
                 if analyzer_type == 'regex':
                     info = {}
                     bu_id = re.findall(analyzer_rules_dict[analyzer]['bu_id'], html, re.M | re.S)
+                    bu_num = re.findall(analyzer_rules_dict[analyzer]['bu_num'], html, re.M | re.S)
                     if bu_id:
                         bu_id = bu_id[0]
-                        info['bu_id'] = bu_id
+                    if bu_num:
+                        bu_num = bu_num[0]
                     info.bu_id = analyzer_rules_dict[analyzer]['bu_id']
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
@@ -112,14 +118,16 @@ class Consumer(object):
                     if not info:
                         print('\n\n没有获得任何信息\n\n')
                         continue
-                    self.put_database(info, analyzer, co_index)
+                    self.put_database(info, analyzer, co_index, bu_id, bu_num)
                 elif analyzer_type == 'xpath':
                     tree = etree.HTML(html)
                     info = {}
                     bu_id = tree.xpath(analyzer_rules_dict[analyzer]['bu_id'])
+                    bu_num = tree.xpath(analyzer_rules_dict[analyzer]['bu_num'])
                     if bu_id:
                         bu_id = bu_id[0]
-                        info['bu_id'] = bu_id
+                    if bu_num:
+                        bu_num = bu_num[0]
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
                             continue
@@ -131,12 +139,12 @@ class Consumer(object):
                     if not info:
                         print('\n\n没有获得任何信息\n\n')
                         continue
-                    self.put_database(info, analyzer, co_index)
+                    self.put_database(info, analyzer, co_index, bu_id, bu_num)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     # 遍历字典放入数据库
-    def put_database(self, info, analyzer, co_index):
+    def put_database(self, info, analyzer, co_index, bu_id=None, bu_num=None, co_id=None, co_name=None):
         key = sorted(info.items())[0][0]
         length = len(info[key])
         for i in range(0, length):
@@ -148,17 +156,15 @@ class Consumer(object):
                 obj.insert_db()
             elif analyzer == 'build':
                 for key, value in info.items():
-                    if key == 'co_id':
-                        setattr(obj, key, value.strip())
-                        continue
+                    setattr(obj, 'co_id', co_id.strip())
+                    setattr(obj, 'co_name', co_name.strip())
                     if value:
                         setattr(obj, key, value[i].strip())
                 obj.update_db()
             elif analyzer == 'house':
                 for key, value in info.items():
-                    if key == 'bu_id':
-                        setattr(obj, key, value.strip())
-                        continue
+                    setattr(obj, 'bu_id', bu_id.strip())
+                    setattr(obj, 'bu_num', bu_num.strip())
                     if value:
                         setattr(obj, key, value[i].strip())
                 obj.update_db()
