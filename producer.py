@@ -33,7 +33,7 @@ def get_html_dom(html_str, ):
 
 
 @retry(tries=3)
-def do_request(url, request_type, headers, encode):
+def do_request(url, request_type, headers, encode, post_data=None):
     """
 
     :param url
@@ -48,8 +48,9 @@ def do_request(url, request_type, headers, encode):
             html_str = decode(result, encode)
             return html_str
         else:
-            # todo post
-            pass
+            result = requests.post(url, data=post_data, headers=headers, )
+            html_str = decode(result, encode)
+            return html_str
     except Exception as e:
         print(e)
         print('连接错误')
@@ -62,7 +63,7 @@ class ProducerListUrl:
     """
 
     def __init__(self, list_page_url, analyzer_rules_dict=None, current_url_rule=None, encode=None,
-                 request_type='get', headers=None, analyzer_type='regex', ):
+                 request_type='get', headers=None, post_data=None, analyzer_type='regex', ):
         """
         :param list_page_url: 必填，列表页url ,必须是数组
         ['www.google.com', 'www.github.com']
@@ -81,6 +82,7 @@ class ProducerListUrl:
         self.analyzer_type = analyzer_type
         self.current_url_rule = current_url_rule
         self.analyzer_rules_dict = analyzer_rules_dict
+        self.post_data = post_data
 
     def get_list_page_url(self, html_str):
         # 判断解析方式
