@@ -62,7 +62,7 @@ class ProducerListUrl:
     根据列表页获取详情页的url
     """
 
-    def __init__(self, list_page_url, analyzer_rules_dict=None, current_url_rule=None, encode=None,
+    def __init__(self, page_url, analyzer_rules_dict=None, current_url_rule=None, encode=None,
                  request_type='get', headers=None, post_data=None, analyzer_type='regex', ):
         """
         :param list_page_url: 必填，列表页url ,必须是数组
@@ -75,7 +75,7 @@ class ProducerListUrl:
         :param headers: requests header {  'Cache-Control': "no-cache','User-Agent':'safari', }
         :param analyzer_type: 默认未正则表达式
         """
-        self.list_page_url = list_page_url
+        self.page_url = page_url
         self.encode = encode
         self.request_type = request_type
         self.headers = headers
@@ -115,17 +115,12 @@ class ProducerListUrl:
         if not self.current_url_rule:
             print('缺少参数current_url_rule')
             return
-        all_list_page_url = []
-        for i in self.list_page_url:
-            try:
-                html_str = do_request(i, self.request_type, self.headers, self.encode)
-                current_page_list_url = self.get_list_page_url(html_str)
-                all_list_page_url = all_list_page_url + current_page_list_url
-            except Exception as e:
-                print(i, e)
-                continue
-        print('数组长度是', len(all_list_page_url))
-        return all_list_page_url
+        try:
+            html_str = do_request(self.page_url, self.request_type, self.headers, self.encode)
+            current_page_list_url = self.get_list_page_url(html_str)
+            return current_page_list_url
+        except Exception as e:
+            print(self.page_url, e)
 
     def get_details(self):
         """
@@ -133,37 +128,27 @@ class ProducerListUrl:
         如果有list_page_url，返回url列表
         :return:
         """
-        if not isinstance(self.list_page_url, list):
-            print('list_url 必须是数组')
-            return
-
         r = Rabbit(host=setting['rabbitmq_host'], port=setting['rabbitmq_port'])
         channel = r.get_channel()
         channel.queue_declare(queue='hilder_gv')
-        all_list_page_url = []
-        for i in self.list_page_url:
-            try:
-                html_str = do_request(i, self.request_type, self.headers, self.encode)
-                body = {'html': html_str,
-                        'analyzer_type': self.analyzer_type,
-                        'analyzer_rules_dict': self.analyzer_rules_dict,
-                        }
-                # 放入队列 json.dumps(body)
-                channel.basic_publish(exchange='',
-                                      routing_key='hilder_gv',
-                                      body=json.dumps(body))
-                # print(json.dumps(body))
-                print('已经放入队列')
-                if self.current_url_rule:
-                    current_page_list_url = self.get_list_page_url(html_str)
-                    all_list_page_url = all_list_page_url + current_page_list_url
-            except Exception as e:
-                print(i, e)
-                continue
-        print(all_list_page_url)
-        r.get_connection().close()
-        print('数组长度是', len(all_list_page_url))
-        return all_list_page_url
+
+        try:
+            html_str = do_request(self.page_url, self.request_type, self.headers, self.encode)
+            body = {'html': html_str,
+                    'analyzer_type': self.analyzer_type,
+                    'analyzer_rules_dict': self.analyzer_rules_dict,
+                    }
+            # 放入队列 json.dumps(body)
+            channel.basic_publish(exchange='',
+                                  routing_key='hilder_gv',
+                                  body=json.dumps(body))
+            # print(json.dumps(body))
+            print('已经放入队列')
+            if self.current_url_rule:
+                current_page_list_url = self.get_current_page_url()
+                return current_page_list_url
+        except Exception as e:
+            print(self.page_url, e)
 
 
 if __name__ == '__main__':

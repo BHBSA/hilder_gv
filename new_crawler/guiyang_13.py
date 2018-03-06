@@ -6,7 +6,6 @@ from crawler_base import Crawler
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 from producer import ProducerListUrl
-import requests
 from urllib import parse
 import re
 
@@ -60,6 +59,8 @@ class Guiyang(Crawler):
         p.get_details()
 
     def get_true_house_url(self, complete_url_list):
+        b = Building(co_index)
+        b.co_id = 'NewLouPan/(.*?)_'
         p = ProducerListUrl(current_url_rule="src='(index/floorView\.aspx.*?)'",
                             list_page_url=complete_url_list,
                             headers=self.headers,
@@ -67,7 +68,7 @@ class Guiyang(Crawler):
                             request_type='get',
                             encode='gbk',
                             )
-        url_list = p.get_current_page_url()
+        url_list = p.get_details()
         new_url_list = []
         for i in url_list:
             qu = re.findall('qu=(.*?)&', i)[0]
@@ -85,7 +86,6 @@ class Guiyang(Crawler):
         b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
         b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
         b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
-        b.co_id =
 
         current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
 
