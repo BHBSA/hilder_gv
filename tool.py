@@ -1,5 +1,6 @@
 import requests
 from lxml import etree
+from urllib import parse
 
 
 class Tool:
@@ -20,16 +21,26 @@ class Tool:
                 '__EVENTVALIDATION': html_tree.xpath(event_validation)[0]}
 
     @classmethod
-    def url_quote(cls, url, encoding):
+    def url_quote(cls, url, encode=None):
         """
-        todo 把url里面的中文转码
-        :return:
+        把url里面的中文转码
+        :param url: str
+        :param encode: default utf-8
+        :return: str
         """
-        pass
+        url_encode = ''
+        for ch in url:
+            if '\u4e00' <= ch <= '\u9fff':
+                ch = parse.quote(ch, encoding=encode)
+            url_encode = (str(url_encode) + str(ch))
+        return url_encode
 
 
 if __name__ == '__main__':
-    view_dict = Tool.get_view_state('http://www.jscsfc.com/NewHouse/',
-                                    view_state='//*[@id="__VIEWSTATE"]/@value',
-                                    event_validation='//*[@id="__EVENTVALIDATION"]/@value')
-    print(view_dict)
+    # view_dict = Tool.get_view_state('http://www.jscsfc.com/NewHouse/',
+    #                                 view_state='//*[@id="__VIEWSTATE"]/@value',
+    #                                 event_validation='//*[@id="__EVENTVALIDATION"]/@value')
+    # print(view_dict)
+
+    result = Tool.url_quote('www.//百度.com测试', )
+    print(result)
