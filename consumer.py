@@ -113,6 +113,26 @@ class Consumer(object):
                         print('\n\n没有获得任何信息\n\n')
                         continue
                     self.put_database(info, analyzer, co_index)
+                elif analyzer_type == 'xpath':
+                    tree = etree.HTML(html)
+                    info = {}
+                    bu_id = tree.xpath(analyzer_rules_dict[analyzer]['bu_id'])
+                    if bu_id:
+                        bu_id = bu_id[0]
+                        info['bu_id'] = bu_id
+                    for i in analyzer_rules_dict[analyzer]:
+                        if not analyzer_rules_dict[analyzer][i]:
+                            continue
+                        if i == 'co_index' or i == 'data_type' or i == 'bu_id':
+                            continue
+                        info_list = tree.xpath(analyzer_rules_dict[analyzer][i])
+                        if info_list:
+                            info[i] = info_list
+                    if not info:
+                        print('\n\n没有获得任何信息\n\n')
+                        continue
+                    self.put_database(info, analyzer, co_index)
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     # 遍历字典放入数据库
