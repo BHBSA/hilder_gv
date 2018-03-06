@@ -36,7 +36,20 @@ class Consumer(object):
                         continue
                     self.put_database(info, analyzer, co_index)
                 elif analyzer_type == 'xpath':
-                    pass
+                    tree = etree.HTML(html)
+                    info = {}
+                    for i in analyzer_rules_dict[analyzer]:
+                        if not analyzer_rules_dict[analyzer][i]:
+                            continue
+                        if i == 'co_index' or i == 'data_type':
+                            continue
+                        info_list = tree.xpath(analyzer_rules_dict[analyzer][i])
+                        if info_list:
+                            info[i] = info_list
+                    if not info:
+                        print('\n\n没有获得任何信息\n\n')
+                        continue
+                    self.put_database(info, analyzer, co_index)
                 elif analyzer_type == 'xml':
                     pass
             elif analyzer == 'build':
@@ -46,7 +59,6 @@ class Consumer(object):
                     if co_id:
                         co_id = co_id[0]
                         info['co_id'] = co_id
-                        continue
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
                             continue
@@ -66,8 +78,6 @@ class Consumer(object):
                     if co_id:
                         co_id = co_id[0]
                         info['co_id'] = co_id
-                    else:
-                        continue
                     for i in analyzer_rules_dict[analyzer]:
                         if not analyzer_rules_dict[analyzer][i]:
                             continue
