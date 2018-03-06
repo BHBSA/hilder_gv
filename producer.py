@@ -153,29 +153,20 @@ class ProducerListUrl:
 
 if __name__ == '__main__':
     # list_url = ['http://www.czfdc.gov.cn/spf/gs.php']
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36'
+    }
     while True:
-        list_url = ['http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    'http://www.czfdc.gov.cn/spf/gs.php',
-                    ]
-
+        page_url = 'http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/BeianDetail.aspx?id=4262&vc=525be7ae'
         from comm_info import Comm
 
-        c = Comm('100')
-        c.co_name = '//*[@id="right"]/table/tr/td/div/table/tr/td/table/tr[1]/td[3]'
-
-        data_list = c.to_dict()
-        current_url_rule = '//*[@id="right"]/table/tr/td/div/table/tr/td[1]/table/tr[1]/td[1]/a/@href'
-        g = ProducerListUrl(list_page_url=list_url, request_type='get', encode='gbk',
-                            current_url_rule=current_url_rule,
+        c = Comm('123')
+        c.co_name = '//*[@id="content_1"]/div[3]/text()'
+        data_list = {
+            'comm': c.to_dict()
+        }
+        # current_url_rule = 'align="center".*?target="_blank"(.*?)target="_blank"'
+        g = ProducerListUrl(page_url=page_url, request_type='get', encode='utf-8',
+                            headers=headers,
                             analyzer_rules_dict=data_list, analyzer_type='xpath', )
         g.get_details()
