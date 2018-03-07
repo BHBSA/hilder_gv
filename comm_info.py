@@ -6,7 +6,7 @@ House:房屋类型
 from lib.mongo import Mongo
 import datetime
 import yaml
-
+from city_dict import dict_city
 setting = yaml.load(open('config_local.yaml'))
 
 
@@ -29,7 +29,7 @@ class Comm:
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
-                 co_open_time=None, co_handed_time=None, co_all_house=None, data_type='comm'):
+                 co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm'):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -54,6 +54,8 @@ class Comm:
         self.co_owner = co_owner  # 房产证/房屋所有权证
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
 
+        self.area = area  # 地区
+
         # self.time = datetime.datetime.now()
         self.data_type = data_type
         self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
@@ -66,6 +68,9 @@ class Comm:
     def insert_db(self):
         data = serialization_info(self)
         print(data)
+        co_index = data['co_index']
+        city = dict_city[str(co_index)]
+        data['city'] = city
         self.coll.insert_one(data)
 
 
@@ -73,12 +78,12 @@ class Building:
     def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
                  bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type='build', size=None, bo_develops=None,
-                 bo_build_start_time=None, bo_build_end_time=None, bo_address=None, bu_type=None):
+                 bo_build_start_time=None, bo_build_end_time=None, bo_address=None, bu_type=None, area=None):
         self.co_index = int(co_index)  # 网站id
         self.co_id = co_id  # 小区id
         self.co_name = co_name  # 小区名称
         self.bu_id = bu_id  # 楼栋id
-        self.bu_type = bu_type # 小区类型/物业类型 :商品房/商品房/别墅
+        self.bu_type = bu_type  # 小区类型/物业类型 :商品房/商品房/别墅
         self.bu_num = bu_num  # 楼号 栋号/楼栋名称（用来和房号做对应）
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
@@ -94,6 +99,8 @@ class Building:
         self.bo_build_end_time = bo_build_end_time  # 竣工时间
         self.bu_address = bo_address  # 楼栋坐落位置
 
+        self.area = area  # 地区
+
         # self.time = datetime.datetime.now()
         self.data_type = data_type
         self.coll = Mongo(setting['db'], setting['port'], setting['db_name'],
@@ -106,13 +113,23 @@ class Building:
     def insert_db(self):
         data = serialization_info(self)
         print(data)
+        co_index = data['co_index']
+        city = dict_city[str(co_index)]
+        data['city'] = city
         self.coll.insert_one(data)
+
+    def update_db(self):
+        data = serialization_info(self)
+        print(data)
+        co_id = data['co_id']
+
+        self.coll.update({'co_id': co_id}, {'$set': data}, True)
 
 
 class House:
     def __init__(self, co_index, co_id=None, bu_id=None, bu_num=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
-                 orientation=None, ho_name=None, data_type='house', info=None):
+                 orientation=None, ho_name=None, data_type='house', info=None, area=None, ):
         self.co_index = int(co_index)  # 网站id
         self.bu_num = bu_num  # 楼号 栋号
         self.co_id = co_id  # 小区id
@@ -128,6 +145,7 @@ class House:
         self.ho_price = ho_price  # 价格
         self.orientation = orientation  # 朝向
         self.info = info  # 无法判断是什么的数据
+        self.area = area  # 地区
 
         # self.time = datetime.datetime.now()
         self.data_type = data_type
@@ -140,7 +158,16 @@ class House:
     def insert_db(self):
         data = serialization_info(self)
         print(data)
+        co_index = data['co_index']
+        city = dict_city[str(co_index)]
+        data['city'] = city
         self.coll.insert_one(data)
+
+    def update_db(self):
+        data = serialization_info(self)
+        print(data)
+        bu_id = data['bu_id']
+        self.coll.update({'bu_id': bu_id}, {'$set': data}, True)
 
 
 if __name__ == '__main__':

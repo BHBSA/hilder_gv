@@ -32,7 +32,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index)
             elif analyzer_type == 'xpath':
                 tree = etree.HTML(html)
@@ -46,7 +48,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index)
             elif analyzer_type == 'xml':
                 pass
@@ -74,7 +78,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index, co_id, co_name)
             elif analyzer_type == 'xpath':
                 tree = etree.HTML(html)
@@ -100,7 +106,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index, co_id, co_name)
             elif analyzer_type == 'xml':
                 pass
@@ -130,7 +138,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index, bu_id, bu_num)
             elif analyzer_type == 'xpath':
                 tree = etree.HTML(html)
@@ -156,7 +166,9 @@ class Consumer(object):
                     if info_list:
                         info[i] = info_list
                 if not info:
-                    print('\n\n没有获得任何信息\n\n')
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    print('\n\n没有选取到任何信息\n\n')
+                    return
                 self.put_database(info, data_type, co_index, bu_id, bu_num)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
