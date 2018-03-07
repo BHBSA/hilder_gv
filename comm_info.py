@@ -73,12 +73,13 @@ class Building:
     def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
                  bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type='build', size=None, bo_develops=None,
-                 bo_build_start_time=None, bo_build_end_time=None):
+                 bo_build_start_time=None, bo_build_end_time=None, bo_address=None, bu_type=None):
         self.co_index = int(co_index)  # 网站id
         self.co_id = co_id  # 小区id
         self.co_name = co_name  # 小区名称
         self.bu_id = bu_id  # 楼栋id
-        self.bu_num = bu_num  # 楼号 栋号
+        self.bu_type = bu_type # 小区类型/物业类型 :商品房/商品房/别墅
+        self.bu_num = bu_num  # 楼号 栋号/楼栋名称（用来和房号做对应）
         self.bu_all_house = bu_all_house  # 总套数
         self.bu_floor = bu_floor  # 楼层
         self.size = size  # 占地面积
@@ -91,6 +92,7 @@ class Building:
         self.bo_develops = bo_develops  # 开发商
         self.bo_build_start_time = bo_build_start_time  # 开工时间
         self.bo_build_end_time = bo_build_end_time  # 竣工时间
+        self.bu_address = bo_address  # 楼栋坐落位置
 
         # self.time = datetime.datetime.now()
         self.data_type = data_type
