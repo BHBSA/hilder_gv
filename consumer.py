@@ -17,129 +17,147 @@ class Consumer(object):
         body = json.loads(body.decode())
         analyzer_rules_dict = body['analyzer_rules_dict']
         analyzer_type = body['analyzer_type']
-        for analyzer in analyzer_rules_dict:
-            co_index = analyzer_rules_dict[analyzer]['co_index']
-            html = body['html']
-            if analyzer == 'comm':
-                if analyzer_type == 'regex':
-                    info = {}
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type':
-                            continue
-                        info_list = re.findall(analyzer_rules_dict[analyzer][i], html, re.M | re.S)
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+        co_index = analyzer_rules_dict['co_index']
+        data_type = analyzer_rules_dict['data_type']
+        html = body['html']
+        if data_type == 'comm':
+            if analyzer_type == 'regex':
+                info = {}
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
                         continue
-                    self.put_database(info, analyzer, co_index)
-                elif analyzer_type == 'xpath':
-                    tree = etree.HTML(html)
-                    info = {}
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type':
-                            continue
-                        info_list = tree.xpath(analyzer_rules_dict[analyzer][i])
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+                    if i == 'co_index' or i == 'data_type':
                         continue
-                    self.put_database(info, analyzer, co_index)
-                elif analyzer_type == 'xml':
-                    pass
-            elif analyzer == 'build':
-                if analyzer_type == 'regex':
-                    info = {}
-                    co_id = re.findall(analyzer_rules_dict[analyzer]['co_id'], html, re.M | re.S)
-                    co_name = re.findall(analyzer_rules_dict[analyzer]['co_name'], html, re.M | re.S)
+                    info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index)
+            elif analyzer_type == 'xpath':
+                tree = etree.HTML(html)
+                info = {}
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
+                        continue
+                    if i == 'co_index' or i == 'data_type':
+                        continue
+                    info_list = tree.xpath(analyzer_rules_dict[i])
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index)
+            elif analyzer_type == 'xml':
+                pass
+        elif data_type == 'build':
+            if analyzer_type == 'regex':
+                info = {}
+                if analyzer_rules_dict['co_id']:
+                    co_id = re.findall(analyzer_rules_dict['co_id'], html, re.M | re.S)
                     if co_id:
                         co_id = co_id[0]
+                else:
+                    co_id = None
+                if analyzer_rules_dict['co_name']:
+                    co_name = re.findall(analyzer_rules_dict['co_name'], html, re.M | re.S)
                     if co_name:
                         co_name = co_name[0]
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type' or i == 'co_id':
-                            continue
-                        info_list = re.findall(analyzer_rules_dict[analyzer][i], html, re.M | re.S)
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+                else:
+                    co_name = None
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
                         continue
-                    self.put_database(info, analyzer, co_index, co_id, co_name)
-                elif analyzer == 'xpath':
-                    tree = etree.HTML(html)
-                    info = {}
-                    co_id = tree.xpath(analyzer_rules_dict[analyzer]['co_id'])
-                    co_name = tree.xpath(analyzer_rules_dict[analyzer]['co_name'])
+                    if i == 'co_index' or i == 'data_type' or i == 'co_id':
+                        continue
+                    info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index, co_id, co_name)
+            elif analyzer_type == 'xpath':
+                tree = etree.HTML(html)
+                info = {}
+                if analyzer_rules_dict['co_id']:
+                    co_id = tree.xpath(analyzer_rules_dict['co_id'])
                     if co_id:
                         co_id = co_id[0]
+                else:
+                    co_id = None
+                if analyzer_rules_dict['co_name']:
+                    co_name = tree.xpath(analyzer_rules_dict['co_name'])
                     if co_name:
                         co_name = co_name[0]
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type' or i == 'co_id':
-                            continue
-                        info_list = tree.xpath(analyzer_rules_dict[analyzer][i])
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+                else:
+                    co_name = None
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
                         continue
-                    self.put_database(info, analyzer, co_index, co_id, co_name)
-                elif analyzer_type == 'xml':
-                    pass
+                    if i == 'co_index' or i == 'data_type' or i == 'co_id':
+                        continue
+                    info_list = tree.xpath(analyzer_rules_dict[i])
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index, co_id, co_name)
+            elif analyzer_type == 'xml':
+                pass
 
-            elif analyzer == 'house':
-                if analyzer_type == 'regex':
-                    info = {}
-                    bu_id = re.findall(analyzer_rules_dict[analyzer]['bu_id'], html, re.M | re.S)
-                    bu_num = re.findall(analyzer_rules_dict[analyzer]['bu_num'], html, re.M | re.S)
+        elif data_type == 'house':
+            if analyzer_type == 'regex':
+                info = {}
+                if analyzer_rules_dict['bu_id']:
+                    bu_id = re.findall(analyzer_rules_dict['bu_id'], html, re.M | re.S)
                     if bu_id:
                         bu_id = bu_id[0]
+                else:
+                    bu_id = None
+                if analyzer_rules_dict['bu_num']:
+                    bu_num = re.findall(analyzer_rules_dict['bu_num'], html, re.M | re.S)
                     if bu_num:
                         bu_num = bu_num[0]
-                    info.bu_id = analyzer_rules_dict[analyzer]['bu_id']
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type' or i == 'bu_id':
-                            continue
-                        info_list = re.findall(analyzer_rules_dict[analyzer][i], html, re.M | re.S)
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+                else:
+                    bu_num = None
+                info.bu_id = analyzer_rules_dict['bu_id']
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
                         continue
-                    self.put_database(info, analyzer, co_index, bu_id, bu_num)
-                elif analyzer_type == 'xpath':
-                    tree = etree.HTML(html)
-                    info = {}
-                    bu_id = tree.xpath(analyzer_rules_dict[analyzer]['bu_id'])
-                    bu_num = tree.xpath(analyzer_rules_dict[analyzer]['bu_num'])
+                    if i == 'co_index' or i == 'data_type' or i == 'bu_id':
+                        continue
+                    info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index, bu_id, bu_num)
+            elif analyzer_type == 'xpath':
+                tree = etree.HTML(html)
+                info = {}
+                if analyzer_rules_dict['bu_id']:
+                    bu_id = tree.xpath(analyzer_rules_dict['bu_id'])
                     if bu_id:
                         bu_id = bu_id[0]
+                else:
+                    bu_id = None
+                if analyzer_rules_dict['bu_num']:
+                    bu_num = tree.xpath(analyzer_rules_dict['bu_num'])
                     if bu_num:
                         bu_num = bu_num[0]
-                    for i in analyzer_rules_dict[analyzer]:
-                        if not analyzer_rules_dict[analyzer][i]:
-                            continue
-                        if i == 'co_index' or i == 'data_type' or i == 'bu_id':
-                            continue
-                        info_list = tree.xpath(analyzer_rules_dict[analyzer][i])
-                        if info_list:
-                            info[i] = info_list
-                    if not info:
-                        print('\n\n没有获得任何信息\n\n')
+                else:
+                    bu_num = None
+                for i in analyzer_rules_dict:
+                    if not analyzer_rules_dict[i]:
                         continue
-                    self.put_database(info, analyzer, co_index, bu_id, bu_num)
+                    if i == 'co_index' or i == 'data_type' or i == 'bu_id':
+                        continue
+                    info_list = tree.xpath(analyzer_rules_dict[i])
+                    if info_list:
+                        info[i] = info_list
+                if not info:
+                    print('\n\n没有获得任何信息\n\n')
+                self.put_database(info, data_type, co_index, bu_id, bu_num)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
@@ -156,18 +174,18 @@ class Consumer(object):
                 obj.insert_db()
             elif analyzer == 'build':
                 for key, value in info.items():
-                    setattr(obj, 'co_id', co_id.strip())
-                    setattr(obj, 'co_name', co_name.strip())
+                    setattr(obj, 'co_id', co_id)
+                    setattr(obj, 'co_name', co_name)
                     if value:
                         setattr(obj, key, value[i].strip())
-                obj.update_db()
+                obj.insert_db()
             elif analyzer == 'house':
                 for key, value in info.items():
-                    setattr(obj, 'bu_id', bu_id.strip())
-                    setattr(obj, 'bu_num', bu_num.strip())
+                    setattr(obj, 'bu_id', bu_id)
+                    setattr(obj, 'bu_num', bu_num)
                     if value:
                         setattr(obj, key, value[i].strip())
-                obj.update_db()
+                obj.insert_db()
 
     # 创建对象（data_type是什么类型是就创建什么对象）
     def get_data_obj(self, analyzer, co_index):
