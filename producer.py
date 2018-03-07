@@ -142,6 +142,7 @@ class ProducerListUrl:
             channel.basic_publish(exchange='',
                                   routing_key='hilder_gv',
                                   body=json.dumps(body))
+            r.connection.close()
             # print(json.dumps(body))
             print('已经放入队列')
             if self.current_url_rule:
