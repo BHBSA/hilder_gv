@@ -49,7 +49,7 @@ class Baiyin(Crawler):
             community_list = tree.xpath('//tr[@align="center"]')
             for i in community_list:
                 try:
-                    comm = Comm()
+                    comm = Comm(self.CO_INDEX)
                     href = i.xpath('td/a/@href')
                     if not href:
                         continue
@@ -99,7 +99,6 @@ class Baiyin(Crawler):
         comm.co_name = co_name
         comm.co_type = co_type
         comm.co_size = co_size
-        comm.co_index = self.CO_INDEX
         comm.co_owner = co_owner
         # 获取楼栋url列表
         build_url_list = re.findall(r"<td><ahref='(.*?)'", html)
@@ -108,7 +107,7 @@ class Baiyin(Crawler):
         else:
             for build_url in build_url_list:
                 try:
-                    building = Building()
+                    building = Building(self.CO_INDEX)
                     build_id = re.search(r'<td>(\d{2,6})</td>', html).group(1)  # 楼栋id
                     bu_all_house = re.search(r'<td>(\d{1,3})</td>', html).group(1)  # 总套数
                     # house_url = re.search(r'<td><ahref="(.*?)"', html).group(1)
@@ -137,7 +136,6 @@ class Baiyin(Crawler):
                     building.bu_all_house = bu_all_house
                     building.bu_id = build_id
                     building.co_id = co_id
-                    building.co_index = self.CO_INDEX
                     building.bu_price = bu_price
                     # 插入
                     building.insert_db()
