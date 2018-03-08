@@ -20,6 +20,7 @@ class Baiyin(Crawler):
     def __init__(self, url, url_front, co_index):
         self.url = url
         self.URL_FRONT = url_front
+        self.URL_FRONT = url_front
         self.CO_INDEX = co_index
 
     # url = 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp'
@@ -47,13 +48,17 @@ class Baiyin(Crawler):
             html = res.content.decode('gbk')
             tree = etree.HTML(html)
             community_list = tree.xpath('//tr[@align="center"]')
-            for i in community_list:
+            for i in community_list[1:]:
                 try:
                     comm = Comm(self.CO_INDEX)
                     href = i.xpath('td/a/@href')
-                    if not href:
-                        continue
+                    area = i.xpath('td[1]/text()')
+                    if not area:
+                        area = None
+                    else:
+                        area = area[0]
                     href = href[0]
+                    comm.area = area
                     self.get_comm_detail(href, comm)
                 except Exception as e:
                     href = i.xpath('td/a/@href')
@@ -65,19 +70,18 @@ class Baiyin(Crawler):
                     print(e)
 
     @staticmethod
-    def regex_common(regex, html, group_num):
+    def regex_common(regex, html):
         """
         正则表达式
         若果有返回结果结果
         没有
         :param regex: 正则表达式
         :param html: 需要匹配的网页
-        :param group_num: 捕获组
         :return:
         """
-        if re.search(regex, html):
-            result = re.search(regex, html, ).group(group_num)
-            return result
+        if re.findall(regex, html):
+            result = re.findall(regex, html)
+            return result[0]
         else:
             return None
 
@@ -89,17 +93,33 @@ class Baiyin(Crawler):
         co_id = int(co_id.split('=')[1])  # 小区id
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
 
-        co_name = self.regex_common(r'项目名称(.*?)<td>(.*?)</td>', html, 2)  # 小区名字
-        co_owner = self.regex_common(r'房屋所有权证号(.*?)<td>(.*?)</td>', html, 2)
-        # approve_Times = self.regex_common(r'批准时间(.*?)<td>(.*?)</td>', html, 2)
-        # use = self.regex_common(r'用　　途(.*?)<td>(.*?)</td>', html, 2)
-        co_type = self.regex_common(r'项目类型(.*?)<td>(.*?)</td>', html, 2)  # 小区类型
-        co_size = self.regex_common(r'批准面积(.*?)<td>(.*?)</td>', html, 2)  # 占地面积
+        co_name = self.regex_common(r'项目名称.*?<td.*?>(.*?)</td>', html)  # 小区名字
+        co_owner = self.regex_common(r'房屋所有权证号.*?<td.*?>(.*?)</td>', html)
+        co_use = self.regex_common(r'用　　途.*?<td.*?>(.*?)</td>', html)
+        co_develops = self.regex_common(r'开 发 商.*?<td.*?>(.*?)</td>', html)
+        co_address = self.regex_common(r'项目位置.*?<td.*?>(.*?)</td>', html)
+        co_pre_sale = self.regex_common(r'预售证号.*?<td.*?>(.*?)</td>', html)
+        co_land_use = self.regex_common(r'土地使用权证.*?<td.*?>(.*?)</td>', html)
+        co_land_type = self.regex_common(r'土地权证类型.*?<td.*?>(.*?)</td>', html)
+        co_handed_time = self.regex_common(r'终止日期.*?<td.*?>(.*?)</td>', html)
+        co_plan_pro = self.regex_common(r'规划许可证.*?<td.*?>(.*?)</td>', html)
+        co_work_pro = self.regex_common(r'施工许可证.*?<td.*?>(.*?)</td>', html)
+        co_type = self.regex_common(r'项目类型.*?<td.*?>(.*?)</td>', html)  # 小区类型
+        co_size = self.regex_common(r'批准面积.*?<td.*?>(.*?)</td>', html)  # 占地面积
         comm.co_id = co_id
         comm.co_name = co_name
         comm.co_type = co_type
         comm.co_size = co_size
         comm.co_owner = co_owner
+        comm.co_use = co_use
+        comm.co_develops = co_develops
+        comm.co_address = co_address
+        comm.co_pre_sale = co_pre_sale
+        comm.co_land_use = co_land_use
+        comm.co_land_type = co_land_type
+        comm.co_handed_time = co_handed_time
+        comm.co_plan_pro = co_plan_pro
+        comm.co_work_pro = co_work_pro
         # 获取楼栋url列表
         build_url_list = re.findall(r"<td><ahref='(.*?)'", html)
         if not build_url_list:
