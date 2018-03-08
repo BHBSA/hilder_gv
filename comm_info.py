@@ -7,6 +7,7 @@ from lib.mongo import Mongo
 import datetime
 import yaml
 from city_dict import dict_city
+
 setting = yaml.load(open('config_local.yaml'))
 
 
@@ -29,7 +30,8 @@ class Comm:
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
-                 co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm'):
+                 co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm', co_use=None,
+                 co_land_type=None,co_plan_pro=None,co_work_pro=None):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -50,10 +52,13 @@ class Comm:
         self.co_handed_time = co_handed_time  # 小区交房时间
         self.co_all_house = co_all_house  # 小区总套数
         self.co_land_use = co_land_use  # 土地使用证
+        self.co_land_type = co_land_type  # 土地使用证类型
         self.co_volumetric = co_volumetric  # 容积率
         self.co_owner = co_owner  # 房产证/房屋所有权证
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
-
+        self.co_use = co_use  # 用途
+        self.co_plan_pro = co_plan_pro  # 规划许可证
+        self.co_work_pro = co_work_pro  # 施工许可证
         self.area = area  # 地区
 
         # self.time = datetime.datetime.now()
