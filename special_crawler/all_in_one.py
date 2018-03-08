@@ -100,7 +100,7 @@ class Baiyin(Crawler):
         co_address = self.regex_common(r'项目位置.*?<td.*?>(.*?)</td>', html)
         co_pre_sale = self.regex_common(r'预售证号.*?<td.*?>(.*?)</td>', html)
         co_land_use = self.regex_common(r'土地使用权证.*?<td.*?>(.*?)</td>', html)
-        co_land_type = self.regex_common(r'土地权证类型.*?<td.*?>(.*?)</td>', html)
+        co_land_type = self.regex_common(r'土地权证类型.*?<td.*?><td.*?>(.*?)</td>', html)
         co_handed_time = self.regex_common(r'终止日期.*?<td.*?>(.*?)</td>', html)
         co_plan_pro = self.regex_common(r'规划许可证.*?<td.*?>(.*?)</td>', html)
         co_work_pro = self.regex_common(r'施工许可证.*?<td.*?>(.*?)</td>', html)
