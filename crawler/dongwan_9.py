@@ -30,10 +30,12 @@ class Dongwan(Crawler):
         all_building_url_list = self.get_all_first_page_url(town_list, view_dict)
         print(all_building_url_list)
         house_url_list = self.get_build_detail(all_building_url_list)
+
         self.get_house_detail(house_url_list)
 
     @staticmethod
     def get_house_detail(house_url_list):
+        print(house_url_list)
         for i in house_url_list:
             h = House(9)
             h.bu_num = '项目名称.*?>(.*?)（<'  # 项目名称
@@ -44,6 +46,7 @@ class Dongwan(Crawler):
                                 analyzer_rules_dict=h.to_dict(),
                                 analyzer_type='regex', )
             p.get_details()
+            break
         print('房号放入完成')
 
     @staticmethod
@@ -63,7 +66,11 @@ class Dongwan(Crawler):
                                 current_url_rule='//*[@id="houseTable_1"]/tr[2]/td[2]/a/@href',
                                 analyzer_rules_dict=b.to_dict(), analyzer_type='xpath', )
             url_list = p.get_details()
-            house_url_list.append(url_list)
+            complete_url = []
+            for k in url_list:
+                complete_url.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k)
+            house_url_list = complete_url + house_url_list
+            break
         return house_url_list
 
     @staticmethod
