@@ -1,47 +1,115 @@
 """
 url = http://www.tmsf.com/newhouse/property_searchall.htm
-city: 百色
+city：杭州
 CO_INDEX: 15
-author: 周彤云
-小区数：2065
-time:2018-03-02
+小区数：2066
 """
 
-CO_INDEX = 15
-import requests
-from lxml import etree
-from comm_info import Comm, Building, House
 from crawler_base import Crawler
-import re
-from retry import retry
+from comm_info import Comm, Building, House
+from get_page_num import AllListUrl
+from producer import ProducerListUrl
+import requests, re
+
+url = 'http://www.tmsf.com/newhouse/property_searchall.htm'
+co_index = '24'
+city = '杭州'
 
 
 class Hangzhou(Crawler):
     def __init__(self):
-        self.url = 'http://www.tmsf.com/newhouse/property_searchall.htm?searchkeyword=&keyword=&sid=&districtid=&areaid=&dealprice=&propertystate=&propertytype=&ordertype=&priceorder=&openorder=&view720data=&page=1&bbs=&avanumorder=&comnumorder='
+        self.headers = {
+            'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36'
+        }
 
     def start_crawler(self):
-        self.start()
+        b = AllListUrl(first_page_url=url,
+                       request_method='get',
+                       analyzer_type='regex',
+                       encode='utf-8',
+                       page_count_rule='green1">1/(.*?)<',
+                       )
+        page = b.get_page_count()
+        for i in range(1, int(page) + 1):
+            all_url = 'http://www.tmsf.com/newhouse/property_searchall.htm?&page=' + str(i)
+            p = ProducerListUrl(page_url=all_url,
+                                request_type='get', encode='utf-8',
+                                analyzer_rules_dict=None,
+                                current_url_rule='build_word01" onclick="toPropertyInfo\((.*?)\);',
+                                analyzer_type='regex',
+                                headers=self.headers)
+            comm_url_list = p.get_current_page_url()
+            self.get_comm_info(comm_url_list)
 
-    @retry(tries=3)
-    def get_all_page(self):
-        try:
-            res = requests.get(url=self.url)
-            html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\t', '').replace('\r', '').replace(' ', '')
-            page = re.search(r'class="green1">1/(\d+)</font>', html).group(1)
-            # print(page)
-            return page
-        except Exception as e:
-            print('retry')
-            raise
+    def get_comm_info(self, comm_url_list):
+        for i in comm_url_list:
+            code = i.split(',')
+            comm_url = 'http://www.tmsf.com/newhouse/property_' + code[0] + '_' + code[1] + '_info.htm'
+            comm = Comm(co_index)
+            comm.co_name = 'buidname.*?>(.*?)<'
+            comm.co_address = '地块地址：<.*?<.*?>(.*?)<'
+            comm.co_build_type = '建筑形式：<.*?>(.*?)<'
+            comm.co_develops = '项目公司：<.*?>(.*?)<'
+            comm.co_volumetric = '容 积 率：</span>(.*?)<'
+            comm.co_green = '绿 化 率：</span>(.*?)<'
+            comm.co_size = '占地面积：</span>(.*?)<'
+            comm.co_build_size = '总建筑面积：</span>(.*?)<'
+            comm.co_all_house = '总户数：</span>(.*?)<'
+            comm.co_id = 'id="sid" value="(.*?)"'
+            p = ProducerListUrl(page_url=comm_url,
+                                request_type='get', encode='utf-8',
+                                analyzer_rules_dict=comm.to_dict(),
+                                current_url_rule='一房一价<.*?href="(.*?)"',
+                                analyzer_type='regex',
+                                headers=self.headers)
+            build_all_url = p.get_details()
+            self.get_build_info(build_all_url)
 
-    @retry(tries=3)
-    def start(self):
-        page = self.get_all_page()
-        for i in range(1, int(page)+1):
-            res = requests.get()
+    def get_build_info(self, build_all_url):
+        bu_all_url_list = {}
+        for i in build_all_url:
+            build_url = 'http://www.tmsf.com/' + i
+            response = requests.get(build_url)
+            html = response.text
+            build_code_list = re.findall("javascript:doPresell\('(.*?)'\)", html)
+            co_id = re.findall('id="sid" value="(.*?)"', html)
+            if not co_id:
+                continue
+            for i in build_code_list:
+                build = Building(co_index)
+                build_num_url = 'http://www.tmsf.com/newhouse/property_330184_10442053_control.htm?presellid=' + i
+                build.co_id = 'id="sid" value="(.*?)"'
+                build.bu_num = 'javascript:doBuilding.*?>(.*?)<'
+                p_2 = ProducerListUrl(page_url=build_num_url,
+                                      request_type='get', encode='utf-8',
+                                      analyzer_rules_dict=build.to_dict(),
+                                      current_url_rule="javascript:doBuilding\('(.*?)'",
+                                      analyzer_type='regex',
+                                      headers=self.headers)
+                build_num_list = p_2.get_details()
+                for i in build_num_list:
+                    bu_all_url_list[i] = co_id[0]
+        self.get_house_info(bu_all_url_list)
 
-
+    def get_house_info(self, bu_all_url_list):
+        for i in bu_all_url_list:
+            house_url = 'http://www.tmsf.com/newhouse/NewPropertyHz_showbox.jspx?buildingid='+i+'&sid='+bu_all_url_list[i]
+            house = House(co_index)
+            house.bu_id = 'buildingid":(.*?),'
+            house.co_build_size = 'builtuparea":(.*?),'
+            house.ho_price = 'declarationofroughprice":(.*?),'
+            house.ho_name = 'houseno":(.*?),'
+            house.ho_num = 'houseid":(.*?),'
+            house.ho_true_size = 'setinsidefloorarea":(.*?),'
+            house.ho_share_size = 'poolconstructionarea":(.*?),'
+            house.ho_type = 'houseusage":(.*?),'
+            p_2 = ProducerListUrl(page_url=house_url,
+                                  request_type='get', encode='utf-8',
+                                  analyzer_rules_dict=house.to_dict(),
+                                  analyzer_type='regex',
+                                  headers=self.headers)
+            p_2.get_details()
 
 
 if __name__ == '__main__':
