@@ -128,7 +128,6 @@ class Consumer(object):
                         bu_num = bu_num[0]
                 else:
                     bu_num = None
-                info.bu_id = analyzer_rules_dict['bu_id']
                 for i in analyzer_rules_dict:
                     if not analyzer_rules_dict[i]:
                         continue
