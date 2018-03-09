@@ -4,6 +4,9 @@ city : 东莞
 CO_INDEX : 9
 author: 吕三利
 小区数量 : 60    2018/2/24
+
+2018/3/9 少区域
+
 """
 from crawler_base import Crawler
 from lxml import etree
@@ -29,6 +32,7 @@ class Dongwan(Crawler):
         # print(town_list)
         all_building_url_list = self.get_all_first_page_url(town_list, view_dict)
         print(all_building_url_list)
+
         house_url_list = self.get_build_detail(all_building_url_list)
 
         self.get_house_detail(house_url_list)
@@ -46,7 +50,6 @@ class Dongwan(Crawler):
                                 analyzer_rules_dict=h.to_dict(),
                                 analyzer_type='regex', )
             p.get_details()
-            break
         print('房号放入完成')
 
     @staticmethod
@@ -70,7 +73,6 @@ class Dongwan(Crawler):
             for k in url_list:
                 complete_url.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k)
             house_url_list = complete_url + house_url_list
-            break
         return house_url_list
 
     @staticmethod
@@ -89,6 +91,9 @@ class Dongwan(Crawler):
                 complete_url_list = []
                 for k in url_list:
                     complete_url_list.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k)
+                    # url = 'http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k
+                    # complete_url_list.append({i: url})
+                    # complete_url_list.append({'town': i, 'url':url})
                 all_building_url_list = all_building_url_list + complete_url_list
             except Exception as e:
                 print(e)
