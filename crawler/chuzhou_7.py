@@ -50,9 +50,13 @@ class Chuzhou(Crawler):
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//*[@id="Table8"]/tr/td[2]/a/@href')
             for i in comm_url_list:
-                comm = Comm(7)
-                comm_url = 'http://www.czhome.com.cn/' + i
-                self.get_comm_info(comm_url, comm)
+                try:
+                    comm = Comm(7)
+                    comm_url = 'http://www.czhome.com.cn/' + i
+                    self.get_comm_info(comm_url, comm)
+                except BaseException as e:
+                    print(e)
+
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
@@ -82,9 +86,10 @@ class Chuzhou(Crawler):
             comm.co_size = co_size
             comm.co_build_size = co_build_size
             comm.insert_db()
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
+
+
     @retry(retry(3))
     def get_build_info(self, co_id, co_name):
         try:
@@ -130,7 +135,7 @@ class Chuzhou(Crawler):
                     building.insert_db()
         except Exception as e:
             print(e)
-            raise
+
 
     @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, building_id):
@@ -147,7 +152,7 @@ class Chuzhou(Crawler):
             ho_room_type = re.search('房型<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 楼层
             ho_floor = re.search('名义层/实际层<(.*?)<(.*?)>(.*?)<', html).group(3)
-            ho_floor = re.search('/(.*?)$',ho_floor).group(1)
+            ho_floor = re.search('/(.*?)$', ho_floor).group(1)
             # 建筑面积
             ho_build_size = re.search('预测建筑面积<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 预测套内面积
@@ -166,4 +171,4 @@ class Chuzhou(Crawler):
             house.insert_db()
         except Exception as e:
             print(e)
-            raise
+

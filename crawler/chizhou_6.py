@@ -40,15 +40,18 @@ class Chizhou(Crawler):
     def start(self):
         page = self.get_all_page()
         for i in range(1, int(page) + 1):
-            url = 'http://www.czfdc.gov.cn/spf/gs.php?pageid=' + str(i)
-            response = requests.get(url)
-            html = response.content.decode('gbk')
-            tree = etree.HTML(html)
-            comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
-            for i in comm_url_list:
-                comm = Comm(6)
-                comm_url = 'http://www.czfdc.gov.cn/spf/' + i
-                self.get_comm_info(comm_url, comm)
+            try:
+                url = 'http://www.czfdc.gov.cn/spf/gs.php?pageid=' + str(i)
+                response = requests.get(url)
+                html = response.content.decode('gbk')
+                tree = etree.HTML(html)
+                comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
+                for i in comm_url_list:
+                    comm = Comm(6)
+                    comm_url = 'http://www.czfdc.gov.cn/spf/' + i
+                    self.get_comm_info(comm_url, comm)
+            except BaseException as e:
+                print(e)
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
@@ -89,9 +92,8 @@ class Chizhou(Crawler):
             self.get_build_info(build_url, co_id)
             # 插入数据库
             comm.insert_db()
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
 
     @retry(retry(3))
     def get_build_info(self, build_url, co_id):
@@ -108,36 +110,38 @@ class Chizhou(Crawler):
                 building.co_id = co_id
                 # 插入数据库
                 building.insert_db()
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
 
     @retry(retry(3))
     def get_build_detail_info(self, bu_detail_url, building, co_id):
-        response = requests.get(bu_detail_url)
-        html = response.content.decode('gbk')
-        tree = etree.HTML(html)
-        # 楼层
-        bu_floor = tree.xpath('/html/body/table[4]/tr/td/table[2]/tr[2]/td[1]/text()')
-        bu_floor = self.is_none(bu_floor).strip()
-        # 总套数
-        bu_all_house = tree.xpath('/html/body/table[2]/tr/td[1]/table[1]/tr[3]/td[1]/text()')
-        bu_all_house = self.is_none(bu_all_house).replace('套(间)', '')
-        # 楼栋名称
-        bu_name = tree.xpath('/html/body/table[3]/tr/*/*/*/*/option[@selected]/text()')
-        bu_name = self.is_none(bu_name)
-        # 楼栋id
-        bu_id = re.search('buildid=(\d+?)&', bu_detail_url).group(1)
-        building.bu_floor = bu_floor
-        building.bu_all_house = bu_all_house
-        building.bu_name = bu_name
-        building.bu_id = bu_id
-        house_url_list = tree.xpath('/html/body/table[4]/tr/td/table[2]/tr/td[not(@bgcolor="#ffffff")]/a/@href')
-        for i in house_url_list:
-            house = House(6)
-            house_url = 'http://www.czfdc.gov.cn/spf/' + i
-            self.get_house_info(house_url, house, co_id, bu_id)
-        return building
+        try:
+            response = requests.get(bu_detail_url)
+            html = response.content.decode('gbk')
+            tree = etree.HTML(html)
+            # 楼层
+            bu_floor = tree.xpath('/html/body/table[4]/tr/td/table[2]/tr[2]/td[1]/text()')
+            bu_floor = self.is_none(bu_floor).strip()
+            # 总套数
+            bu_all_house = tree.xpath('/html/body/table[2]/tr/td[1]/table[1]/tr[3]/td[1]/text()')
+            bu_all_house = self.is_none(bu_all_house).replace('套(间)', '')
+            # 楼栋名称
+            bu_name = tree.xpath('/html/body/table[3]/tr/*/*/*/*/option[@selected]/text()')
+            bu_name = self.is_none(bu_name)
+            # 楼栋id
+            bu_id = re.search('buildid=(\d+?)&', bu_detail_url).group(1)
+            building.bu_floor = bu_floor
+            building.bu_all_house = bu_all_house
+            building.bu_name = bu_name
+            building.bu_id = bu_id
+            house_url_list = tree.xpath('/html/body/table[4]/tr/td/table[2]/tr/td[not(@bgcolor="#ffffff")]/a/@href')
+            for i in house_url_list:
+                house = House(6)
+                house_url = 'http://www.czfdc.gov.cn/spf/' + i
+                self.get_house_info(house_url, house, co_id, bu_id)
+            return building
+        except BaseException as e:
+            print(e)
 
     @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, bu_id):
@@ -171,9 +175,8 @@ class Chizhou(Crawler):
             house.ho_share_size = ho_share_size
             house.ho_room_type = ho_room_type
             house.insert_db()
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
 
 
 if __name__ == '__main__':

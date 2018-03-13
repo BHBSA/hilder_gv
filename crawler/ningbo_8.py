@@ -66,9 +66,9 @@ class Ningbo(Crawler):
                 url = 'http://www.cxsfdcglzx.com/touming/' + i
                 print(url)
                 self.get_build_info(url, comm, building)
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
+
 
     @retry(retry(3))
     def get_build_info(self, url, comm, building):
@@ -127,6 +127,6 @@ class Ningbo(Crawler):
                 comm.co_id = CO_ID
                 comm.insert_db()
             building.insert_db()
-        except Exception as e:
+        except BaseException as e:
             print(e)
-            raise
+
