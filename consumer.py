@@ -72,7 +72,7 @@ class Consumer(object):
                 for i in analyzer_rules_dict:
                     if not analyzer_rules_dict[i]:
                         continue
-                    if i == 'co_index' or i == 'data_type' or i == 'co_id':
+                    if i == 'co_index' or i == 'data_type' or i == 'co_id' or i == 'co_name':
                         continue
                     info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
                     if info_list:
@@ -100,7 +100,7 @@ class Consumer(object):
                 for i in analyzer_rules_dict:
                     if not analyzer_rules_dict[i]:
                         continue
-                    if i == 'co_index' or i == 'data_type' or i == 'co_id':
+                    if i == 'co_index' or i == 'data_type' or i == 'co_id' or i == 'co_name':
                         continue
                     info_list = tree.xpath(analyzer_rules_dict[i])
                     if info_list:
@@ -131,7 +131,7 @@ class Consumer(object):
                 for i in analyzer_rules_dict:
                     if not analyzer_rules_dict[i]:
                         continue
-                    if i == 'co_index' or i == 'data_type' or i == 'bu_id':
+                    if i == 'co_index' or i == 'data_type' or i == 'bu_id' or i == 'bu_num':
                         continue
                     info_list = re.findall(analyzer_rules_dict[i], html, re.M | re.S)
                     if info_list:
@@ -159,7 +159,7 @@ class Consumer(object):
                 for i in analyzer_rules_dict:
                     if not analyzer_rules_dict[i]:
                         continue
-                    if i == 'co_index' or i == 'data_type' or i == 'bu_id':
+                    if i == 'co_index' or i == 'data_type' or i == 'bu_id' or i == 'bu_num':
                         continue
                     info_list = tree.xpath(analyzer_rules_dict[i])
                     if info_list:
@@ -185,15 +185,19 @@ class Consumer(object):
                 obj.insert_db()
             elif analyzer == 'build':
                 for key, value in info.items():
-                    setattr(obj, 'co_id', co_id)
-                    setattr(obj, 'co_name', co_name)
+                    if co_id:
+                        setattr(obj, 'co_id', co_id)
+                    if co_name:
+                        setattr(obj, 'co_name', co_name)
                     if value:
                         setattr(obj, key, value[i].strip())
                 obj.insert_db()
             elif analyzer == 'house':
                 for key, value in info.items():
-                    setattr(obj, 'bu_id', bu_id)
-                    setattr(obj, 'bu_num', bu_num)
+                    if bu_id:
+                        setattr(obj, 'bu_id', bu_id.strip())
+                    if bu_num:
+                        setattr(obj, 'bu_num', bu_num.strip())
                     if value:
                         setattr(obj, key, value[i].strip())
                 obj.insert_db()
