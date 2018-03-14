@@ -79,8 +79,8 @@ class Baiyin(Crawler):
         :param html: 需要匹配的网页
         :return:
         """
-        if re.findall(regex, html):
-            result = re.findall(regex, html)
+        if re.findall(regex, html, re.M | re.S):
+            result = re.findall(regex, html, re.M | re.S)
             return result[0]
         else:
             return None
@@ -91,7 +91,7 @@ class Baiyin(Crawler):
         response = requests.get(url=comm_detail_url)
         co_id = response.url
         co_id = int(co_id.split('=')[1])  # 小区id
-        html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
+        html = response.content.decode('gbk')
 
         co_name = self.regex_common(r'项目名称.*?<td.*?>(.*?)</td>', html)  # 小区名字
         co_owner = self.regex_common(r'房屋所有权证号.*?<td.*?>(.*?)</td>', html)
@@ -121,17 +121,17 @@ class Baiyin(Crawler):
         comm.co_plan_pro = co_plan_pro
         comm.co_work_pro = co_work_pro
         # 获取楼栋url列表
-        build_url_list = re.findall(r"<td><ahref='(.*?)'", html)
+        build_url_list = re.findall(r"<td><a href='(.*?)'", html, re.M | re.S)
         if not build_url_list:
             return
         else:
             for build_url in build_url_list:
                 try:
                     building = Building(self.CO_INDEX)
-                    build_id = re.search(r'<td>(\d{2,6})</td>', html).group(1)  # 楼栋id
-                    bu_all_house = re.search(r'<td>(\d{1,3})</td>', html).group(1)  # 总套数
+                    build_id = re.search(r'<td>(\d{2,6})</td>', html, re.M | re.S).group(1)  # 楼栋id
+                    bu_all_house = re.search(r'<td>(\d{1,3})</td>', html, re.M | re.S).group(1)  # 总套数
                     # house_url = re.search(r'<td><ahref="(.*?)"', html).group(1)
-                    bu_price_demo = re.findall('<td>[\.\d]+</td>', html)[4]
+                    bu_price_demo = re.findall('<td>[\.\d]+</td>', html, re.M | re.S)[4]
                     bu_price = re.search('\d+', bu_price_demo).group()
                     data_dict = self.get_build_detail(build_url)
                     bu_num = data_dict['bu_num']  # 楼号
@@ -169,11 +169,11 @@ class Baiyin(Crawler):
         build_detail_url = self.URL_FRONT + build_url
         response = requests.get(url=build_detail_url)
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
-        bu_num = re.search('销售楼号(.*?)<td>(.*?)</td>', html).group(2)  # 楼号
-        bu_build_size = re.search('建筑面积(.*?)<td>(.*?)</td>', html).group(2)  # 建筑面积
-        co_address = re.search('楼盘座落(.*?)<td>(.*?)</td>', html).group(2)  # 小区地址
-        co_build_end_time = re.search('完工日期(.*?)<td>(.*?)</td>', html).group(2)  # 竣工时间
-        co_build_type = re.search('楼盘结构(.*?)<td>(.*?)</td>', html).group(2)  # 建筑结构
+        bu_num = re.search('销售楼号(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 楼号
+        bu_build_size = re.search('建筑面积(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 建筑面积
+        co_address = re.search('楼盘座落(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 小区地址
+        co_build_end_time = re.search('完工日期(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 竣工时间
+        co_build_type = re.search('楼盘结构(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 建筑结构
         data_dict = {}
         data_dict['bu_num'] = bu_num
         data_dict['bu_build_size'] = bu_build_size
