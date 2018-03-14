@@ -16,7 +16,7 @@ from retry import retry
 
 class Fuzhou(Crawler):
     def __init__(self):
-        self.url = 'http://www.fzfgj.cn/website/search/q.html?type=spf&page=1'
+        self.url = 'http://www.fzfgj.cn/website/search/q.html?type=spf'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
         }
@@ -33,7 +33,8 @@ class Fuzhou(Crawler):
                        page_count_rule='共(.*?)页', )
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
-            response = requests.get(url=self.url, headers=self.headers)
+            all_page_url = self.url + '&page=' + str(i)
+            response = requests.get(url=all_page_url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//*[@id="houseList0"]/dt/a/@href')
