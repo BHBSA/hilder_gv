@@ -37,11 +37,14 @@ class Fuzhou(Crawler):
             response = requests.get(url=all_page_url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
-            comm_url_list = tree.xpath('//*[@id="houseList0"]/dt/a/@href')
+            comm_url_list = tree.xpath('//dt[@class="name"]/a/@href')
             for i in comm_url_list:
-                comm = Comm(11)
-                url = 'http://www.fzfgj.cn/' + i
-                self.get_comm_info(url, comm)
+                try:
+                    comm = Comm(11)
+                    url = 'http://www.fzfgj.cn/' + i
+                    self.get_comm_info(url, comm)
+                except BaseException as e:
+                    print(e)
 
     @retry(retry(3))
     def get_comm_info(self, url, comm):
@@ -77,6 +80,7 @@ class Fuzhou(Crawler):
             comm.co_green = co_green
             comm.co_size = co_size
             comm.co_id = co_id
+            comm.insert_db()
             build_info_list = tree.xpath('//*[@id="ctl00_CPH_M_sm_spfBox1"]/div/table/tr[@class="hobuild"]')
             for i in build_info_list:
                 build = Building(11)
@@ -93,7 +97,6 @@ class Fuzhou(Crawler):
                 build.bu_name = bu_name
                 build.bu_build_size = bu_build_size
                 build.insert_db()
-            comm.insert_db()
         except BaseException as e:
             print(e)
 
@@ -112,13 +115,13 @@ class Fuzhou(Crawler):
             house_info_list = tree_2.xpath('T_HOUSE')
             for i in house_info_list:
                 house = House(11)
-                ho_num = i.xpath('//HOUSE_NUMBER/text()')[0]
-                ho_name = i.xpath('//ROOM_NUMBER/text()')[0]
-                ho_build_size = i.xpath('//BUILD_AREA/text()')[0]
-                ho_true_size = i.xpath('//BUILD_AREA_INSIDE/text()')[0]
-                ho_share_size = i.xpath('//BUILD_AREA_SHARE/text()')[0]
-                ho_floor = i.xpath('//FLOOR_REALRIGHT/text()')[0]
-                ho_type = i.xpath('//USE_FACT/text()')[0]
+                ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
+                ho_name = i.xpath('ROOM_NUMBER/text()')[0]
+                ho_build_size = i.xpath('BUILD_AREA/text()')[0]
+                ho_true_size = i.xpath('BUILD_AREA_INSIDE/text()')[0]
+                ho_share_size = i.xpath('BUILD_AREA_SHARE/text()')[0]
+                ho_floor = i.xpath('FLOOR_REALRIGHT/text()')[0]
+                ho_type = i.xpath('USE_FACT/text()')[0]
                 house.co_id = co_id
                 house.bu_id = bu_id
                 house.ho_build_size = ho_build_size
