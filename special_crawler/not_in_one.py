@@ -1,8 +1,9 @@
 """
-url: http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp
-city: 本溪，呼和浩特，景德镇，临沂，渭南，西宁，许昌，白银，宝鸡，
-author: 吕三利
+莱芜
+http://www.lwfccs.com/bit-xxzs/xmlpzs/prewebissue.asp?
+1029
 """
+
 import requests
 from lxml import etree
 import re
@@ -11,17 +12,22 @@ from crawler_base import Crawler
 from retry import retry
 
 
-class AllInOne(Crawler):
+class NotAllInOne(Crawler):
     def __init__(self, url, url_front, co_index):
         self.url = url
         self.URL_FRONT = url_front
         self.URL_FRONT = url_front
         self.CO_INDEX = co_index
+        self.headers = {
+            'Cache-Control': "no-cache",
+            'Postman-Token': "e9615d95-a441-ebd4-d0a4-5ae9513e0212",
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
+        }
 
     @retry(tries=3)
     def get_all_page(self):
         try:
-            res = requests.get(url=self.url)
+            res = requests.get(url=self.url, headers=self.headers)
             html = res.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
             page = re.search(r'共有(.*?)页', html).group(1)
             print(page)
@@ -35,7 +41,7 @@ class AllInOne(Crawler):
         page = self.get_all_page()
         print(page)
         for i in range(1, int(page) + 1):
-            res = requests.get(self.url + '?page=' + str(i))
+            res = requests.get(self.url + '?page=' + str(i), headers=self.headers)
             html = res.content.decode('gbk')
             tree = etree.HTML(html)
             community_list = tree.xpath('//tr[@align="center"]')
@@ -79,7 +85,7 @@ class AllInOne(Crawler):
     @retry(tries=3)
     def get_comm_detail(self, href, comm):
         comm_detail_url = self.URL_FRONT + href
-        response = requests.get(url=comm_detail_url)
+        response = requests.get(url=comm_detail_url, headers=self.headers)
         co_id = response.url
         co_id = int(co_id.split('=')[1])  # 小区id
         html = response.content.decode('gbk')
@@ -152,7 +158,7 @@ class AllInOne(Crawler):
     @retry(tries=3)
     def get_build_detail(self, build_url):
         build_detail_url = self.URL_FRONT + build_url
-        response = requests.get(url=build_detail_url)
+        response = requests.get(url=build_detail_url, headers=self.headers)
         html = response.content.decode('gbk').replace('\n', '').replace('\r', '').replace('\t', '').replace(' ', '')
         bu_num = re.search('销售楼号(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 楼号
         bu_build_size = re.search('建筑面积(.*?)<td>(.*?)</td>', html, re.M | re.S).group(2)  # 建筑面积
@@ -173,38 +179,11 @@ class AllInOne(Crawler):
 
 if __name__ == '__main__':
     sp_list_no_p = [
-        # 本溪
-        {'url': 'http://gs.bxfdc.cn/xmlpzs/webissue.asp?',
-         'url_front': 'http://gs.bxfdc.cn/xmlpzs/', 'co_index': '1025', },
-        # 呼和浩特
-        {'url': 'http://60.31.254.197/bit-xxzs/xmlpzs/webissue.asp',
-         'url_front': 'http://60.31.254.197/bit-xxzs/xmlpzs/', 'co_index': '1027', },
-        # 景德镇
-        {'url': 'http://www.jdzfgj.cn/bit-xxzs/xmlpzs/nowwebissue.asp',
-         'url_front': 'http://www.jdzfgj.cn/bit-xxzs/xmlpzs/', 'co_index': '1028', },
-        # 临沂
-        {'url': 'http://lyfdc.gov.cn:88/bit-xxzs/xmlpzs/webissue.asp?',
-         'url_front': 'http://lyfdc.gov.cn:88/bit-xxzs/xmlpzs/', 'co_index': '1030', },
-        # 渭南
-        {'url': 'http://www.wnfdc.com/bit-xxzs/xmlpzs/webissue.asp',
-         'url_front': 'http://www.wnfdc.com/bit-xxzs/xmlpzs/', 'co_index': '1031', },
-        # 西宁
-        {'url': 'http://www.xnfcxx.com/bit-xxzs/xmlpzs/webissue.asp',
-         'url_front': 'http://www.xnfcxx.com/bit-xxzs/xmlpzs/', 'co_index': '1032', },
-        # 许昌
-        {'url': 'http://222.89.166.137/bit-xxzs/xmlpzs/webissue.asp',
-         'url_front': 'http://222.89.166.137/bit-xxzs/xmlpzs/', 'co_index': '1033', },
-        # 白银
-        {'url': 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/nowwebissue.asp',
-         'url_front': 'http://61.178.148.157:8081/bit-xxzs/xmlpzs/', 'co_index': '0', },
-        # 宝鸡
-        {'url': 'http://61.185.69.154/bit-xxzs/xmlpzs/webissue.asp?',
-         'url_front': 'http://61.185.69.154/bit-xxzs/xmlpzs/', 'co_index': '1024'},
-        # 东营
-        {'url': 'http://www.dyfc.gov.cn/bit-xxzs/xmlpzs/nowwebissue.asp?',
-         'url_front': 'http://www.dyfc.gov.cn/bit-xxzs/xmlpzs/', 'co_index': '1026', },
+        # 莱芜
+        {'url': 'http://www.lwfccs.com/bit-xxzs/xmlpzs/prewebissue.asp?',
+         'url_front': 'http://www.lwfccs.com/bit-xxzs/xmlpzs/', 'co_index': '1029', },
     ]
 
     # for i in sp_list_no_p:
-    #     baiyin = Baiyin(url=i['url'], url_front=i['url_front'], co_index=i['co_index'], )
-    #     Process(target=baiyin.start_crawler).start()
+    #     baiyin = NotAllInOne(url=i['url'], url_front=i['url_front'], co_index=i['co_index'], )
+    #     baiyin.start_crawler()
