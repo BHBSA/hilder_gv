@@ -18,7 +18,7 @@ setting = yaml.load(open('config_local.yaml'))
 CO_ID = 0
 
 
-class Ningbo(Crawler):
+class Cixi(Crawler):
     def __init__(self):
         self.url = 'http://www.cxsfdcglzx.com/touming/wangShangHouse.aspx'
 
