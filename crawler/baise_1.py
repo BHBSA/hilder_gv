@@ -16,7 +16,7 @@ from retry import retry
 
 
 class Baise(Crawler):
-    url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'  # 类属性
+    url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'
 
     def start_crawler(self):
         self.baise_start()
@@ -179,10 +179,6 @@ class Baise(Crawler):
             bu_not_live_size = re.search(
                 r'非住宅面积：</td><tdalign="left"class="padingleft3px">(.*)?M&sup2;</td></tr><tr><tdheight="25"align="right">预'
                 , html).group(1)  # 非住宅面积
-            bu_pre_sale = re.search(r'售许可证：</td><tdalign="left"class="padingleft3px">(.*?)</td>', html).group(
-                1)  # 楼栋预售证书
-            bu_pre_sale_date = re.search(r'售许可证发证日期：</td><tdalign="left"class="padingleft3px">(.*?)</td>', html).group(
-                1)  # 楼栋预售证书日期
             bu_price = re.search(
                 r'拟销住宅价格：</td><tdbackground="images/trbg3.gif"></td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right"bgcolor="#FFFFFF"></td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right">拟销商业门面价格'
                 , html).group(1).split('元')[0]  # 住宅价格
