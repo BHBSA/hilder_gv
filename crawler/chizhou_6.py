@@ -50,7 +50,7 @@ class Chizhou(Crawler):
                     comm = Comm(6)
                     comm_url = 'http://www.czfdc.gov.cn/spf/' + i
                     self.get_comm_info(comm_url, comm)
-            except BaseException as e:
+            except Exception as e:
                 print(e)
 
     @retry(retry(3))
@@ -92,7 +92,7 @@ class Chizhou(Crawler):
             self.get_build_info(build_url, co_id)
             # 插入数据库
             comm.insert_db()
-        except BaseException as e:
+        except Exception as e:
             print(e)
 
     @retry(retry(3))
@@ -110,7 +110,7 @@ class Chizhou(Crawler):
                 building.co_id = co_id
                 # 插入数据库
                 building.insert_db()
-        except BaseException as e:
+        except Exception as e:
             print(e)
 
     @retry(retry(3))
@@ -140,7 +140,7 @@ class Chizhou(Crawler):
                 house_url = 'http://www.czfdc.gov.cn/spf/' + i
                 self.get_house_info(house_url, house, co_id, bu_id)
             return building
-        except BaseException as e:
+        except Exception as e:
             print(e)
 
     @retry(retry(3))
@@ -175,7 +175,7 @@ class Chizhou(Crawler):
             house.ho_share_size = ho_share_size
             house.ho_room_type = ho_room_type
             house.insert_db()
-        except BaseException as e:
+        except Exception as e:
             print(e)
 
 
