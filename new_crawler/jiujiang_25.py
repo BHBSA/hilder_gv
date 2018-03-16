@@ -52,6 +52,7 @@ class Jiujiang(Crawler):
             response = requests.get(build_url)
             html = response.text
             build = Building(co_index)
+            build.bu_id = pid
             build.bu_num = re.search('楼栋座落.*?<td.*?>(.*?)<',html, re.S | re.M).group(1)
             build.bu_pre_sale = re.search('预售证号.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
             build.bu_pre_sale_date = re.search('时间.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
@@ -71,6 +72,8 @@ class Jiujiang(Crawler):
             ho_true_size = re.findall('<PAREA>(.*?)</PAREA>',html_,re.S|re.M)
 
             for index in range(len(ho_name_list)):
+                house.bu_id = build.bu_id
+                house.bu_num = build.bu_num
                 house.ho_name = ho_name_list[index]
                 house.ho_num = ho_id_list[index]
                 house.ho_build_size = ho_buil_size[index]
