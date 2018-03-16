@@ -38,13 +38,17 @@ class Fuzhou(Crawler):
             html = response.text
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//dt[@class="name"]/a/@href')
-            for i in comm_url_list:
+            area_list = tree.xpath('//dl[@class="houseList_n"]/dd[3]/text()')
+            for i in range(len(comm_url_list)):
                 try:
                     comm = Comm(11)
-                    url = 'http://www.fzfgj.cn/' + i
+                    comm.area = area_list[i]
+                    url = 'http://www.fzfgj.cn/' + comm_url_list[i]
                     self.get_comm_info(url, comm)
                 except BaseException as e:
                     print(e)
+                    continue
+
 
     @retry(retry(3))
     def get_comm_info(self, url, comm):
@@ -83,20 +87,23 @@ class Fuzhou(Crawler):
             comm.insert_db()
             build_info_list = tree.xpath('//*[@id="ctl00_CPH_M_sm_spfBox1"]/div/table/tr[@class="hobuild"]')
             for i in build_info_list:
-                build = Building(11)
-                # 楼栋名称
-                bu_name = i.xpath('string(td[1])')
-                # 楼栋id
-                bu_id = i.xpath('td[1]/strong/a/@href')[0]
-                bu_id = re.search('building_id=(.*?)$', bu_id).group(1)
-                # 建筑面积
-                bu_build_size = i.xpath('string(td[3])').replace('�O', '')
-                self.get_build_info(bu_id, co_id)
-                build.co_id = co_id
-                build.bu_id = bu_id
-                build.bu_name = bu_name
-                build.bu_build_size = bu_build_size
-                build.insert_db()
+                try:
+                    build = Building(11)
+                    # 楼栋名称
+                    bu_name = i.xpath('string(td[1])')
+                    # 楼栋id
+                    bu_id = i.xpath('td[1]/strong/a/@href')[0]
+                    bu_id = re.search('building_id=(.*?)$', bu_id).group(1)
+                    # 建筑面积
+                    bu_build_size = i.xpath('string(td[3])').replace('�O', '')
+                    self.get_build_info(bu_id, co_id)
+                    build.co_id = co_id
+                    build.bu_id = bu_id
+                    build.bu_name = bu_name
+                    build.bu_build_size = bu_build_size
+                    build.insert_db()
+                except Exception as e:
+                    continue
         except BaseException as e:
             print(e)
 
@@ -109,28 +116,33 @@ class Fuzhou(Crawler):
             tree = etree.XML(xml)
             logo = tree.xpath('//LOGICBUILDING_ID/text()')[0]
             url_2 = 'http://www.fzfgj.cn/website/presale/home/HouseTableControl/GetData.aspx?LogicBuilding_ID=' + logo
-            result = requests.get(url_2)
+            result = requests.get(url_2, self.headers)
             xml_2 = result.text
             tree_2 = etree.XML(xml_2)
             house_info_list = tree_2.xpath('T_HOUSE')
             for i in house_info_list:
-                house = House(11)
-                ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
-                ho_name = i.xpath('ROOM_NUMBER/text()')[0]
-                ho_build_size = i.xpath('BUILD_AREA/text()')[0]
-                ho_true_size = i.xpath('BUILD_AREA_INSIDE/text()')[0]
-                ho_share_size = i.xpath('BUILD_AREA_SHARE/text()')[0]
-                ho_floor = i.xpath('FLOOR_REALRIGHT/text()')[0]
-                ho_type = i.xpath('USE_FACT/text()')[0]
-                house.co_id = co_id
-                house.bu_id = bu_id
-                house.ho_build_size = ho_build_size
-                house.ho_true_size = ho_true_size
-                house.ho_share_size = ho_share_size
-                house.ho_floor = ho_floor
-                house.ho_num = ho_num
-                house.ho_name = ho_name
-                house.ho_type = ho_type
-                house.insert_db()
+                try:
+                    house = House(11)
+                    ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
+                    ho_name = i.xpath('ROOM_NUMBER/text()')[0]
+                    ho_build_size = i.xpath('BUILD_AREA/text()')[0]
+                    ho_true_size = i.xpath('BUILD_AREA_INSIDE/text()')[0]
+                    ho_share_size = i.xpath('BUILD_AREA_SHARE/text()')[0]
+                    ho_floor = i.xpath('FLOOR_REALRIGHT/text()')[0]
+                    ho_type = i.xpath('USE_FACT/text()')[0]
+                    house.co_id = co_id
+                    house.bu_id = bu_id
+                    house.ho_build_size = ho_build_size
+                    house.ho_true_size = ho_true_size
+                    house.ho_share_size = ho_share_size
+                    house.ho_floor = ho_floor
+                    house.ho_num = ho_num
+                    house.ho_name = ho_name
+                    house.ho_type = ho_type
+                    house.insert_db()
+                except Exception as e:
+                    print(e)
+                    print('房号入库错误')
+                    continue
         except BaseException as e:
             print(e)

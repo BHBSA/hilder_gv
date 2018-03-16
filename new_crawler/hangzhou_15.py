@@ -12,7 +12,7 @@ from producer import ProducerListUrl
 import requests, re
 
 url = 'http://www.tmsf.com/newhouse/property_searchall.htm'
-co_index = '24'
+co_index = '15'
 city = '杭州'
 
 

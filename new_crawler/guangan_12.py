@@ -1,10 +1,13 @@
+'''
+楼栋数据加载不出来
+'''
+
 """
 url = http://www.gafdc.cn/newhouse/houselist.aspx?hou=0-0-0-0-0-0-&page=1
 city : 广安
 CO_INDEX : 12
 author: 吕三利
 小区数量：14页    2018/3/1\
-楼栋数据加载不出来
 """
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
