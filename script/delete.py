@@ -17,5 +17,5 @@ if __name__ == '__main__':
     client = MongoClient('192.168.0.235', 27017)
     db = client['gv']
 
-    index_list = [1027]
+    index_list = [8]
     delete(index_list)

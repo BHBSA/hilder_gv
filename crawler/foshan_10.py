@@ -50,6 +50,9 @@ class Foshan(Crawler):
             response = requests.get(url)
             html = response.text
             tree = etree.HTML(html)
+            # 地区
+            co_area = tree.xpath('//*[@id="content"]/div[2]/div[1]/div[2]/table/tr[3]/td[2]/text()')[0]
+
             # 小区名称
             co_name = tree.xpath('//*[@id="content"]/div[2]/div[1]/div[2]/table/tr[1]/td/strong/span/text()')[0]
             # 小区地址
@@ -87,7 +90,9 @@ class Foshan(Crawler):
             comm.co_volumetric = co_volumetric
             comm.co_pre_sale = co_pre_sale
             comm.co_build_size = co_build_size
+            comm.area = co_area
             comm.insert_db()
+
         except BaseException as e:
             print(e)
 

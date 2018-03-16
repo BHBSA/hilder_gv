@@ -91,9 +91,6 @@ class Dongwan(Crawler):
                 complete_url_list = []
                 for k in url_list:
                     complete_url_list.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k)
-                    # url = 'http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k
-                    # complete_url_list.append({i: url})
-                    # complete_url_list.append({'town': i, 'url':url})
                 all_building_url_list = all_building_url_list + complete_url_list
             except Exception as e:
                 print(e)

@@ -18,9 +18,6 @@ from retry import retry
 class Baise(Crawler):
     url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'
 
-    def start_crawler(self):
-        self.baise_start()
-
     @retry(tries=3)
     def get_all_page(self):
         try:
@@ -30,27 +27,34 @@ class Baise(Crawler):
             page = re.search(r'/(\d+)</strong>页', html).group(1)
             return page
         except Exception as e:
+            print(e)
             print('retry')
             raise
 
     @retry(tries=3)
-    def baise_start(self):
+    def start_crawler(self):
         try:
             page = self.get_all_page()
             for i in range(1, int(page) + 1):
                 res = requests.get(self.url + '?page=' + str(i))
                 html = res.content.decode('gb2312', 'ignore')
+                comm_area = re.findall(r'height="25"><.*?center.*?center">(.*?)<', html, re.S | re.M)
                 com_list = re.findall(r'height="25"><a href="(.+)">', html)
 
-                for i in com_list:
-                    comm = Comm(1)
-                    href = 'http://www.bsfcj.com/PubInfo/' + i
-                    # href = 'http://www.bsfcj.com/PubInfo/' + 'lpxx.asp?qyxmbm=DBDHDADCDADADADFDDDBDCDJ000001'
-                    if not href:
+                for i in range(len(com_list)):
+                    try:
+                        comm = Comm(1)
+                        comm.area = comm_area[i]
+                        href = 'http://www.bsfcj.com/PubInfo/' + com_list[i]
+                        # href = 'http://www.bsfcj.com/PubInfo/' + 'lpxx.asp?qyxmbm=DBDHDADCDADADADFDDDBDCDJ000001'
+                        if not href:
+                            continue
+                        comm = self.get_comm_detail(href, comm)
+                        comm.insert_db()
+                    except Exception as e:
                         continue
-                    comm = self.get_comm_detail(href, comm)
-                    comm.insert_db()
         except Exception as e:
+            print(e)
             print('retry')
 
     @retry(tries=3)
@@ -142,13 +146,17 @@ class Baise(Crawler):
                 return comm
             else:
                 for i in build_url_list:
-                    build_url = i.xpath('p/a/@href')[0]
-                    building_url = 'http://www.bsfcj.com/PubInfo/' + build_url
-                    building = Building(1)
-                    building_obj = self.get_build_detail(building_url, building, co_id, )
-                    building_obj.insert_db()
+                    try:
+                        build_url = i.xpath('p/a/@href')[0]
+                        building_url = 'http://www.bsfcj.com/PubInfo/' + build_url
+                        building = Building(1)
+                        building_obj = self.get_build_detail(building_url, building, co_id, )
+                        building_obj.insert_db()
+                    except Exception as e:
+                        continue
                 return comm
         except Exception as e:
+            print(e)
             print('retry')
 
     @retry(tries=3)
@@ -195,12 +203,17 @@ class Baise(Crawler):
             # 获取房号超链接
             house_url_list = re.findall(r"window.open\('(.+?)'\)", html)
             for i in house_url_list:
-                house_url = 'http://www.bsfcj.com/PubInfo/' + i
-                house = House(1)
-                house_obj = self.get_house_detail(house_url, house, co_id, bu_id)
-                house_obj.insert_db()
+                try:
+                    house_url = 'http://www.bsfcj.com/PubInfo/' + i
+                    house = House(1)
+                    house_obj = self.get_house_detail(house_url, house, co_id, bu_id)
+                    house_obj.insert_db()
+                except Exception as e:
+                    print('continue', e)
+                    continue
             return building
         except Exception as e:
+            print(e)
             print('retry')
 
     @retry(tries=3)
@@ -235,6 +248,7 @@ class Baise(Crawler):
             house.ho_price = ho_price
             return house
         except Exception as e:
+            print(e)
             print('retry')
 
 

@@ -1,6 +1,6 @@
 """
 url = http://www.cxsfdcglzx.com/touming/wangShangHouse.aspx
-city : 慈溪（宁波）
+city : 慈溪
 CO_INDEX : 8
 author: 吕三利
 小区数量 : 1901    2018/2/24
@@ -38,9 +38,11 @@ class Cixi(Crawler):
         html = response.text
         tree = etree.HTML(html)
         comm_url_list = tree.xpath('//ul[@class="NewsList"]/li/a/@href')
-        for i in comm_url_list:
+        # comm_area = tree.xpath('//*[@id="Content"]/div[2]/div[4]/table/tr/td[2]/a/text()')
+        for i in range(len(comm_url_list)):
             comm = Comm(8)
-            comm_url = 'http://www.cxsfdcglzx.com/touming/' + i
+            # comm.area = comm_area[i]
+            comm_url = 'http://www.cxsfdcglzx.com/touming/' + comm_url_list[i]
             print(comm_url)
             self.get_comm_info(comm_url, comm)
 
