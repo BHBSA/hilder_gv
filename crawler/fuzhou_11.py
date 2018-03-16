@@ -49,7 +49,6 @@ class Fuzhou(Crawler):
                     print(e)
                     continue
 
-
     @retry(retry(3))
     def get_comm_info(self, url, comm):
         try:
@@ -116,7 +115,7 @@ class Fuzhou(Crawler):
             tree = etree.XML(xml)
             logo = tree.xpath('//LOGICBUILDING_ID/text()')[0]
             url_2 = 'http://www.fzfgj.cn/website/presale/home/HouseTableControl/GetData.aspx?LogicBuilding_ID=' + logo
-            result = requests.get(url_2, self.headers)
+            result = requests.get(url_2, headers=self.headers)
             xml_2 = result.text
             tree_2 = etree.XML(xml_2)
             house_info_list = tree_2.xpath('T_HOUSE')
