@@ -2,19 +2,140 @@
 url = http://www.jscsfc.com/NewHouse/
 city: 常熟
 CO_INDEX: 4
-抓不了原因：viewstate中存的数据只能在声明该变量的页面中使用，需要解析js文件
-"""
-import requests
 
-url = 'http://www.jscsfc.com/NewHouse/'
-data = {
-    '__EVENTVALIDATION': '/wEWBwLdiPahBALRkMe9DwLVocPIBwL4jejxCAK5rYfdAQLCqvWuBQKtn+aLBb1zEA+ladq+wq5kV+mxAy4HJwhF',
-    '__EVENTTARGET': 'ctl00$ContentPlaceHolder1$PageNavigator_NewHouse1$LnkBtnNext',
-    '__VIEWSTATE': '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',
-}
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
-    'Referer': 'http://www.jscsfc.com/NewHouse/'
-}
-response = requests.post(url, data=data, headers=headers)
-print(response.text)
+"""
+from crawler_base import Crawler
+from comm_info import Comm, Building, House
+from get_page_num import AllListUrl
+from producer import ProducerListUrl
+import requests, re
+from lxml import etree
+
+co_index = "4"
+city = '常熟'
+
+
+class Changshu(Crawler):
+
+    def __init__(self):
+        self.url = 'http://www.jscsfc.com/NewHouse/'
+
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+            'Referer': 'http://www.jscsfc.com/NewHouse/',
+            # 'Cookie':'UM_distinctid=162292d7c2963c-0327a1123131c1-444a012d-1fa400-162292d7c2a2d6; CNZZDATA2499568=cnzz_eid%3D1244283227-1521108356-%26ntime%3D1521180043'
+        }
+
+    def start_crawler(self):
+        b = AllListUrl(first_page_url=self.url,
+                       request_method='get',
+                       analyzer_type='regex',
+                       encode='utf-8',
+                       page_count_rule='ount">(\d+)</span></b>页',
+                       )
+        page = b.get_page_count()
+        list_formdata = {}
+        for i in range(1, int(page) + 1):
+
+            response = requests.post(self.url, data=list_formdata, headers=self.headers)
+            con = etree.HTML(response.text)
+
+            href_list = con.xpath("//strong/a/@href")
+            view_state = con.xpath("//input[@id='__VIEWSTATE']/@value")[0]
+            valid = con.xpath("//input[@id='__EVENTVALIDATION']/@value")[0]
+            list_formdata["__VIEWSTATE"] = view_state  # 保存当前页的信息作为下一页请求参数
+            list_formdata["__EVENTVALIDATION"] = valid
+            list_formdata["ctl00$ContentPlaceHolder1$PageNavigator_NewHouse1$txtNewPageIndex"] = i
+            list_formdata["__EVENTTARGET"] = "ctl00$ContentPlaceHolder1$PageNavigator_NewHouse1$LnkBtnGoto"
+
+            for href in href_list:
+                new_url = self.url + href
+
+                res = requests.get(new_url, headers=self.headers)
+                comm_con = res.text
+
+                detail_url = re.search('楼盘明细：.*?"(.*?)"', comm_con).group(1)
+                detail_url = self.url + detail_url
+                response = requests.get(detail_url)
+                html = etree.HTML(response.text)
+                comm_url_list = html.xpath("//div[@class='Search_results_box']//td/a/@href")
+
+                for comm_url in comm_url_list:
+                    commurl = self.url + comm_url
+                    comm_res = requests.get(commurl, headers=self.headers)
+                    comm_con = comm_res.text
+                    bo_develops = re.search('开发企业.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                    if bo_develops is None:
+                        continue
+                    else:
+                        try:
+                            co = Comm(co_index)
+                            co.co_name = re.search('<h1>(.*?)<span>', comm_con, re.S | re.M).group(1)
+                            co.co_develops = bo_develops
+                            co.co_id = re.search('MID=(\d+)', comm_url).group(1)
+                            co.co_use = re.search('规划用途.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_address = re.search('项目坐落.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_build_start_time = re.search('开工时间.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_build_end_time = re.search('竣工时间.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_size = re.search('土地面积.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_build_size = re.search('建筑面积.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.co_all_house = re.findall('#eff6ff">(.*?)</td>', comm_con, re.S | re.M)[0]
+                            co.area = re.search('所属区域.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
+                            co.insert_db()
+                        except:
+                            continue
+                        self.build_crawler(co.co_id, co.co_name, comm_con)
+
+    def build_crawler(self, co_id, co_name, comm_con):
+
+        bu = Building(co_index, co_id=co_id, co_name=co_name)
+        build_list = re.search('查看楼盘表.*?<tr>(.*?)</table>', comm_con, re.S | re.M).group(1)
+        build = re.findall('<tr>(.*?)</tr>', build_list, re.S | re.M)
+
+        for bul in build:
+            try:
+                bul_html = etree.HTML(bul)
+                buli = bul_html.xpath("//td/text()")
+
+                bu.bu_num = bu_num = buli[1]
+                bu.bu_all_house = buli[2]
+                bu.size = buli[3]
+                house_url = re.search(r'"(.*?)" t', bul, ).group(1)
+                bu.bu_id = bu_id = re.search('-(\d+)', house_url).group(1)
+
+                bu.insert_db()
+            except:
+                continue
+            self.house_crawler(house_url, bu_num, co_id, bu_id)
+
+    def house_crawler(self, house_url, bu_num, co_id, bu_id):
+        ho = House(co_index, bu_num=bu_num, co_id=co_id, bu_id=bu_id)
+
+        url = self.url + house_url
+        con = requests.get(url, headers=self.headers)
+        tr = con.text
+        ho_name = re.findall('室号：(.*?)户', tr, re.S | re.M)  # 房号：3单元403
+        ho_num = re.findall('_td(\d+)"', tr)  # 房号id
+        ho_floor = re.findall('(\d+)层', tr)  # 楼层
+        ho_type = re.findall('房屋属性：(.*?)"', tr, re.S | re.M)  # 房屋类型：普通住宅 / 车库仓库
+        ho_room_type = re.findall('户型：(.*?)所', tr, re.S | re.M)  # 户型
+        ho_build_size = re.findall('建筑面积：(.*?)房', tr, re.S | re.M)  # 建筑面积
+
+        for floor in ho_floor:
+            try:
+                ho.ho_floor = floor
+                for index in range(1, len(ho_name) + 1):
+                    ho.ho_name = ho_name[index]
+                    ho.ho_type = ho_type[index]
+                    ho.ho_room_type = ho_room_type[index]
+                    ho.ho_build_size = ho_build_size[index]
+                    ho.ho_num = ho_num[index]
+
+                    ho.insert_db()
+            except:
+                continue
+
+
+if __name__ == '__main__':
+    a = Changshu()
+    a.start_crawler()
