@@ -17,11 +17,14 @@ from retry import retry
 
 class Baise(Crawler):
     url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+    }
 
     @retry(tries=3)
     def get_all_page(self):
         try:
-            res = requests.get(url=self.url)
+            res = requests.get(url=self.url, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\t', '').replace('\r', '').replace(
                 ' ', '')
             page = re.search(r'/(\d+)</strong>页', html).group(1)
@@ -36,7 +39,7 @@ class Baise(Crawler):
         try:
             page = self.get_all_page()
             for i in range(1, int(page) + 1):
-                res = requests.get(self.url + '?page=' + str(i))
+                res = requests.get(self.url + '?page=' + str(i), headers=self.headers)
                 html = res.content.decode('gb2312', 'ignore')
                 comm_area = re.findall(r'height="25"><.*?center.*?center">(.*?)<', html, re.S | re.M)
                 com_list = re.findall(r'height="25"><a href="(.+)">', html)
@@ -60,7 +63,7 @@ class Baise(Crawler):
     @retry(tries=3)
     def get_comm_detail(self, href, comm):
         try:
-            res = requests.get(url=href)
+            res = requests.get(url=href, headers=self.headers)
             co_id = res.url
             co_id = co_id.split('=')[1]  # 小区id
             html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\t', '').replace('\r', '').replace(
@@ -138,7 +141,7 @@ class Baise(Crawler):
             comm.co_land_use = co_land_use
             comm.co_pre_sale_date = co_pre_sale_date
             # 获取楼栋超链接
-            res = requests.get(url=href)
+            res = requests.get(url=href, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore')
             tree = etree.HTML(html)
             build_url_list = tree.xpath('//tr[@bgcolor="#FFFFFF"]/td[7]')
@@ -162,7 +165,7 @@ class Baise(Crawler):
     @retry(tries=3)
     def get_build_detail(self, building_url, building, co_id):
         try:
-            res = requests.get(url=building_url)
+            res = requests.get(url=building_url, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\r', '').replace('\t', '').replace(
                 ' ', '')
             bu_id = building_url.split('=')[1].split('&')[0]  # 楼栋id
@@ -219,7 +222,7 @@ class Baise(Crawler):
     @retry(tries=3)
     def get_house_detail(self, house_url, house, co_id, bu_id):
         try:
-            res = requests.get(url=house_url)
+            res = requests.get(url=house_url, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore')
             tree = etree.HTML(html)
             ho_num = tree.xpath('//td[@width="82"]/text()')[0]  # 房号

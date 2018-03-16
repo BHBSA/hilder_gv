@@ -17,6 +17,9 @@ from retry import retry
 class Foshan(Crawler):
     def __init__(self):
         self.url = 'http://fsfc.fsjw.gov.cn/search/index.do'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+        }
 
     def start_crawler(self):
         self.start()
@@ -32,7 +35,7 @@ class Foshan(Crawler):
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             url = 'http://fsfc.fsjw.gov.cn/search/index.do?p=' + str(i)
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//*[@id="content"]/div[2]/div[1]/dl/dd/h3/a/@value')
@@ -47,7 +50,7 @@ class Foshan(Crawler):
     @retry(retry(3))
     def get_comm_info(self, url, comm):
         try:
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             # 地区
@@ -102,7 +105,7 @@ class Foshan(Crawler):
     @retry(retry(3))
     def get_build_info(self, url, co_id, bu_id):
         try:
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             json_html = response.json()
             for i in json_html:
                 try:

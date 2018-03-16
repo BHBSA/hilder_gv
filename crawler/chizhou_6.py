@@ -16,13 +16,16 @@ from retry import retry
 class Chizhou(Crawler):
     def __init__(self):
         self.url = 'http://www.czfdc.gov.cn/spf/gs.php'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+        }
 
     def start_crawler(self):
         self.start()
 
     @retry(retry(3))
     def get_all_page(self):
-        response = requests.get(url=self.url)
+        response = requests.get(url=self.url, headers=self.headers)
         html = response.text
         tree = etree.HTML(html)
         page = tree.xpath('//div[@id="page_list"]/a/span/text()')[-1]
@@ -42,7 +45,7 @@ class Chizhou(Crawler):
         for i in range(1, int(page) + 1):
             try:
                 url = 'http://www.czfdc.gov.cn/spf/gs.php?pageid=' + str(i)
-                response = requests.get(url)
+                response = requests.get(url, headers=self.headers)
                 html = response.content.decode('gbk')
                 tree = etree.HTML(html)
                 comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
@@ -56,7 +59,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
         try:
-            response = requests.get(comm_url)
+            response = requests.get(comm_url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
             # 小区id
@@ -98,7 +101,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def get_build_info(self, build_url, co_id):
         try:
-            response = requests.get(build_url)
+            response = requests.get(build_url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
             bu_detail_url = tree.xpath('/html/body/table/tr/td/table/tr/td/table[1]/tr/td[1]/input/@onclick')
@@ -116,7 +119,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def get_build_detail_info(self, bu_detail_url, building, co_id):
         try:
-            response = requests.get(bu_detail_url)
+            response = requests.get(bu_detail_url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
             # 楼层
@@ -146,7 +149,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, bu_id):
         try:
-            response = requests.get(house_url)
+            response = requests.get(house_url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
             ho_num = tree.xpath('/html/body/table/tr[2]/td[4]/text()')
