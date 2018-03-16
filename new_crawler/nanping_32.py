@@ -18,7 +18,7 @@ co_index = '32'
 city = '南平'
 
 
-class Nanchang(object):
+class Nanping(object):
     def __init__(self):
         self.headers = {
             'User-Agent':
