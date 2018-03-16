@@ -83,6 +83,7 @@ class Guiyang(Crawler):
         house_url = []
         for i in all_house_detail_url:
             b = Building(co_index)
+            b.co_name = '项目名称：<span.*?">(.*?)</span>'
             b.bu_id = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 楼栋id，预(销)售证号
             b.bu_build_size = '1_info_all1_listJZMJ">(.*?)</span>'  # 建筑面积
             b.size = '1_info_all1_litZDMJ">(.*?)</span>'  # 占地面积
@@ -113,14 +114,13 @@ class Guiyang(Crawler):
         bu_url = []
         for i in build_list_url:
             p = ProducerListUrl(
-                current_url_rule='//*[@id="proInfodetail_panResult"]/table/tr/td/div[1]/table/tr/td[3]/a/@href',
+                current_url_rule='//*[@id="proInfodetail_panResult"]/table/tr/td/div/table/tr/td[1]/table/tr[1]/td[3]/a/@href',
                 analyzer_type='xpath',
                 headers=self.headers,
                 encode='gbk',
                 page_url=i)
             all_build_detail_url = p.get_current_page_url()
             bu_url = bu_url + all_build_detail_url
-
         return bu_url
 
     def get_comm_info(self, all_url_list):
@@ -141,5 +141,4 @@ class Guiyang(Crawler):
                                 headers=self.headers)
             current_url_list = p.get_details()
             url_list = current_url_list + url_list
-
         return url_list
