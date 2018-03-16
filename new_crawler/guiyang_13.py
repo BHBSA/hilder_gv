@@ -27,6 +27,7 @@ class Guiyang(Crawler):
                              request_method='get',
                              headers=self.headers,
                              encode='gbk')
+        # 所有分页
         page_count = all_url.get_page_count()
         all_url_list = []
         for i in range(1, page_count + 1):
@@ -35,98 +36,110 @@ class Guiyang(Crawler):
 
         build_list_url = self.get_comm_info(all_url_list)
         # 获取所有楼栋列表页 http://www.gyfc.net.cn/pro_query/index.aspx?yszh=2017005&qu=2
-        all_house_detail_url = self.get_build_detail_url(build_list_url)
-        house_url_list = self.get_build_detail(all_house_detail_url)
-
+        all_bu_detail_url = self.get_build_detail_url(build_list_url)
+        house_url_list = self.get_build_detail(all_bu_detail_url)
         ture_house_url_list = self.get_true_house_url(house_url_list)
 
         self.get_house_detail(ture_house_url_list)
         print('小区数据入库成功')
 
     def get_house_detail(self, house_url_list):
-        h = House(co_index)
-        h.bu_id = 'yszh=(.*?)".*?id'
-        h.ho_num = 'span class=\'.*?>(.*?)<'
-        h.info = 'title=\'(.*?)\'>.*?<span'
+        for i in house_url_list:
+            h = House(co_index)
+            h.bu_id = 'yszh=(.*?)".*?id'
+            h.ho_num = 'span class=\'.*?>(.*?)<'
+            h.info = 'title=\'(.*?)\'>.*?<span'
 
-        data_list = h.to_dict()
-        p = ProducerListUrl(headers=self.headers,
-                            analyzer_rules_dict=data_list,
-                            list_page_url=house_url_list,
-                            analyzer_type='regex',
-                            request_type='get',
-                            encode='gbk', )
-        p.get_details()
+            data_list = h.to_dict()
+            p = ProducerListUrl(headers=self.headers,
+                                analyzer_rules_dict=data_list,
+                                page_url=i,
+                                analyzer_type='regex',
+                                request_type='get',
+                                encode='gbk', )
+            p.get_details()
 
     def get_true_house_url(self, complete_url_list):
-        b = Building(co_index)
-        b.co_id = 'NewLouPan/(.*?)_'
-        p = ProducerListUrl(current_url_rule="src='(index/floorView\.aspx.*?)'",
-                            list_page_url=complete_url_list,
-                            headers=self.headers,
-                            analyzer_type='regex',
-                            request_type='get',
-                            encode='gbk',
-                            )
-        url_list = p.get_details()
-        new_url_list = []
-        for i in url_list:
-            qu = re.findall('qu=(.*?)&', i)[0]
-            url_encode = parse.quote(qu)
-            replace_str = re.sub(qu, url_encode, url)
-            new_url_list.append('http://www.gyfc.net.cn/pro_query/' + replace_str)
-        return new_url_list
+        true_list = []
+        for k in complete_url_list:
+            p = ProducerListUrl(current_url_rule="src='(index/floorView\.aspx.*?)'",
+                                page_url=k,
+                                headers=self.headers,
+                                analyzer_type='regex',
+                                request_type='get',
+                                encode='gbk',
+                                )
+            true_url_list = p.get_current_page_url()
+            new_url_list = []
+            for i in true_url_list:
+                qu = re.findall('qu=(.*?)&', i)[0]
+                url_encode = parse.quote(qu)
+                replace_str = re.sub(qu, url_encode, i)
+                new_url_list.append('http://www.gyfc.net.cn/pro_query/' + replace_str)
+            true_list = new_url_list + true_list
+        return true_list
 
     def get_build_detail(self, all_house_detail_url):
-        b = Building(co_index)
-        b.bu_id = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 楼栋id，预(销)售证号
-        b.bu_build_size = '1_info_all1_listJZMJ">(.*?)</span>'  # 建筑面积
-        b.size = '1_info_all1_litZDMJ">(.*?)</span>'  # 占地面积
-        b.bu_pre_sale = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 预(销)售证号
-        b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
-        b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
-        b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
+        house_url = []
+        for i in all_house_detail_url:
+            b = Building(co_index)
+            b.bu_id = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 楼栋id，预(销)售证号
+            b.bu_build_size = '1_info_all1_listJZMJ">(.*?)</span>'  # 建筑面积
+            b.size = '1_info_all1_litZDMJ">(.*?)</span>'  # 占地面积
+            b.bu_pre_sale = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 预(销)售证号
+            b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
+            b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
+            b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
 
-        current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
+            current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
 
-        data_list = b.to_dict()
-        p = ProducerListUrl(headers=self.headers,
-                            analyzer_rules_dict=data_list,
-                            list_page_url=all_house_detail_url,
-                            analyzer_type='regex',
-                            request_type='get',
-                            encode='gbk',
-                            current_url_rule=current_url_rule)
-        url_list = p.get_details()
-        complete_url_list = []
-        for i in url_list:
-            complete_url_list.append('http://www.gyfc.net.cn/pro_query/' + i)
-        return complete_url_list
+            data_list = b.to_dict()
+            p = ProducerListUrl(headers=self.headers,
+                                analyzer_rules_dict=data_list,
+                                page_url=i,
+                                analyzer_type='regex',
+                                request_type='get',
+                                encode='gbk',
+                                current_url_rule=current_url_rule)
+            url_list = p.get_details()
+            complete_url_list = []
+            for k in url_list:
+                complete_url_list.append('http://www.gyfc.net.cn/pro_query/' + k)
+            house_url = house_url + complete_url_list
+
+        return house_url
 
     def get_build_detail_url(self, build_list_url):
-        p = ProducerListUrl(
-            current_url_rule='//*[@id="proInfodetail_panResult"]/table/tr/td//table/tr/td[1]/table/tr[1]/td[1]/a/@href',
-            analyzer_type='xpath',
-            headers=self.headers,
-            encode='gbk',
-            list_page_url=build_list_url)
-        all_build_detail_url = p.get_current_page_url()
-        print(all_build_detail_url)
-        return all_build_detail_url
+        bu_url = []
+        for i in build_list_url:
+            p = ProducerListUrl(
+                current_url_rule='//*[@id="proInfodetail_panResult"]/table/tr/td/div[1]/table/tr/td[3]/a/@href',
+                analyzer_type='xpath',
+                headers=self.headers,
+                encode='gbk',
+                page_url=i)
+            all_build_detail_url = p.get_current_page_url()
+            bu_url = bu_url + all_build_detail_url
+
+        return bu_url
 
     def get_comm_info(self, all_url_list):
-        c = Comm(co_index)
-        c.co_name = '>楼盘名称.*?auto">(.*?)&nbsp'  # 15个匹配结果
-        c.co_id = 'margin: 8px"><a href="http://www\.gyfc\.net\.cn/2_proInfo/LoupanDetail\.aspx\?lpid=(.*?)".*?查看详细'
-        c.co_address = '>楼盘地址.*?<td>(.*?)&nbsp'
+        url_list = []
+        for i in all_url_list:
+            c = Comm(co_index)
+            c.co_name = '>楼盘名称.*?auto">(.*?)&nbsp'  # 15个匹配结果
+            c.co_id = 'margin: 8px"><a href="http://www\.gyfc\.net\.cn/2_proInfo/LoupanDetail\.aspx\?lpid=(.*?)".*?查看详细'
+            c.co_address = '>楼盘地址.*?<td>(.*?)&nbsp'
 
-        data_list = c.to_dict()
+            data_list = c.to_dict()
 
-        p = ProducerListUrl(list_page_url=all_url_list,
-                            request_type='get', encode='gbk',
-                            current_url_rule='margin: 8px"><a href="(.*?)".*?查看详细',
-                            analyzer_rules_dict=data_list,
-                            analyzer_type='regex',
-                            headers=self.headers)
-        url_list = p.get_details()
+            p = ProducerListUrl(page_url=i,
+                                request_type='get', encode='gbk',
+                                current_url_rule='margin: 8px"><a href="(.*?)".*?查看详细',
+                                analyzer_rules_dict=data_list,
+                                analyzer_type='regex',
+                                headers=self.headers)
+            current_url_list = p.get_details()
+            url_list = current_url_list + url_list
+
         return url_list
