@@ -1,4 +1,8 @@
 """
+业务及其复杂
+"""
+
+"""
 url = http://www.lzfc.com.cn:8080/LFGIS/buildingTb/webSupportAction!comHouseProList.action?pageNo=1&pageSize=1000
 city : 兰州
 CO_INDEX : 27
@@ -56,10 +60,6 @@ class Lanzhou(object):
                                     current_url_rule="queryBuildHerf1.href='(.*?)'",
                                     analyzer_type='regex')
                 build_url = p.get_details()
-
-
-
-
 
 
 if __name__ == '__main__':

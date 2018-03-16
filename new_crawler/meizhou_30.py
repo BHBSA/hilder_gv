@@ -1,4 +1,8 @@
 """
+    rsa加密
+"""
+
+"""
 url = http://219.132.136.142:8080/gz/index.asp?skey=&kind=&page=1
 city : 梅州
 CO_INDEX : 30
@@ -7,10 +11,8 @@ CO_INDEX : 30
 
 import requests
 from lxml import etree
-from producer import ProducerListUrl
-from comm_info import Comm, Building, House
-from get_page_num import AllListUrl
-import re
+from comm_info import Comm
+
 
 url = 'http://219.132.136.142:8080/gz/index.asp?skey=&kind=&page=1'
 co_index = '30'

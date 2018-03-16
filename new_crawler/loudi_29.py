@@ -7,9 +7,8 @@ CO_INDEX : 29
 import requests
 from lxml import etree
 from producer import ProducerListUrl
-from comm_info import Comm, Building, House
+from comm_info import Comm
 from get_page_num import AllListUrl
-import re
 
 url = 'http://www.ldfdcw.com/index.php?caid=2&addno=1'
 co_index = '29'
@@ -42,21 +41,25 @@ class Loudi(object):
 
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
-            comm = Comm(co_index)
-            comm_url = i.replace('view', 'detail')
-            comm.co_type = '物业类型：.*?<dd>(.*?)<'
-            comm.area = '区域所属：.*?<dd>(.*?)<'
-            comm.co_build_size = '建筑面积：.*?<dd>(.*?)<'
-            comm.co_size = '占地面积：.*?<dd>(.*?)<'
-            comm.co_green = '绿化率：.*?<dd><.*?>(.*?)<'
-            comm.co_build_type = '楼　　层：.*?<dd>(.*?)<'
-            comm.co_volumetric = '容积率：.*?<dd><.*?>(.*?)<'
-            comm.co_id = '楼盘首页.*?newhouse/.*?/(.*?)/'
-            comm.co_name = '<h1 class="title">(.*?)<'
-            comm.co_address = '楼盘地址：.*?<dd>(.*?)<'
-            comm.co_develops = '开发商：.*?<dd(.*?)<'
-            p = ProducerListUrl(page_url=comm_url,
-                                request_type='get', encode='gbk',
-                                analyzer_rules_dict=comm.to_dict(),
-                                analyzer_type='regex')
-            p.get_details()
+            try:
+                comm = Comm(co_index)
+                comm_url = i.replace('view', 'detail')
+                comm.co_type = '物业类型：.*?<dd>(.*?)<'
+                comm.area = '区域所属：.*?<dd>(.*?)<'
+                comm.co_build_size = '建筑面积：.*?<dd>(.*?)<'
+                comm.co_size = '占地面积：.*?<dd>(.*?)<'
+                comm.co_green = '绿化率：.*?<dd><.*?>(.*?)<'
+                comm.co_build_type = '楼　　层：.*?<dd>(.*?)<'
+                comm.co_volumetric = '容积率：.*?<dd><.*?>(.*?)<'
+                comm.co_id = '楼盘首页.*?newhouse/.*?/(.*?)/'
+                comm.co_name = '<h1 class="title">(.*?)<'
+                comm.co_address = '楼盘地址：.*?<dd>(.*?)<'
+                comm.co_develops = '开发商：.*?<dd(.*?)<'
+                p = ProducerListUrl(page_url=comm_url,
+                                    request_type='get', encode='gbk',
+                                    analyzer_rules_dict=comm.to_dict(),
+                                    analyzer_type='regex',
+                                    headers=self.headers)
+                p.get_details()
+            except Exception as e:
+                print(e)
