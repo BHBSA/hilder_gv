@@ -8,11 +8,8 @@ CO_INDEX : 35
 """
 
 import requests
-from producer import ProducerListUrl
 from comm_info import Comm, Building, House
-from get_page_num import AllListUrl
 from lxml import etree
-from tool import Tool
 import re
 
 url = 'http://www.nhfg.cn/webhouseinfo/ItemSearch/ItemSearch.aspx'
