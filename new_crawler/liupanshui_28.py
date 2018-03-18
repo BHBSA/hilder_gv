@@ -7,7 +7,7 @@ CO_INDEX : 28
 import requests
 from lxml import etree
 from comm_info import Comm, Building, House
-from retry import  retry
+from retry import retry
 import re
 
 url = 'http://www.lpsfdc.cn/Templets/LPS/aspx/ProjectList.aspx'
@@ -83,6 +83,7 @@ class Liupanshui(object):
                 self.get_house_info(house_url_list, bu_id)
             except Exception as e:
                 print(e)
+
     @retry(tries=3)
     def get_house_info(self, house_url_list, bu_id):
         for i in house_url_list:

@@ -26,7 +26,7 @@ class Pingdingshan(object):
 
     def start_crawler(self):
         all_comm_url_list = []
-        response = requests.get(url=url)
+        response = requests.get(url=url, headers=self.headers)
         html = response.text
         tree = etree.HTML(html)
         comm_url = tree.xpath('//tr[@class="TR_BG_list"]/td/a/@href')
@@ -58,9 +58,9 @@ class Pingdingshan(object):
             build.bu_num = code[1]
             build.co_name = co_name
             build.insert_db()
-            self.get_house_info(code)
+            self.get_house_info(code, co_name)
 
-    def get_house_info(self, code):
+    def get_house_info(self, code, co_name):
         house_url = 'http://house.bffdc.gov.cn/Common/Agents/ExeFunCommon.aspx?'
         payload = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<param funname=\"SouthDigital.Wsba.CBuildTableEx.GetBuildHTMLEx\">\r\n<item>" + \
                   code[
@@ -75,6 +75,7 @@ class Pingdingshan(object):
             house = House(co_index)
             house.bu_num = code[1]
             house.info = i
+            house.co_name = co_name
             house.insert_db()
 
     def get_view_state(self, html):

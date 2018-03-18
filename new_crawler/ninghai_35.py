@@ -79,14 +79,15 @@ class Ninghai(object):
             build.insert_db()
             house_url = re.findall('(RoomLoad\.aspx\?.*?)"', html, re.S | re.M)[0]
             zu_house_url = 'http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/' + house_url
-            self.get_house_info(zu_house_url, build.bu_num)
+            self.get_house_info(zu_house_url, build.bu_num, co_id)
         except Exception as e:
             print(e)
 
-    def get_house_info(self, zu_house_url, bu_num):
+    def get_house_info(self, zu_house_url, bu_num, co_id):
         try:
             house = House(co_index)
             house.bu_num = bu_num
+            house.co_id = co_id
             result = requests.get(zu_house_url, headers=self.headers).text
             house.info = re.search('ItemName.*?>(.*?)<', result).group(1).strip()
             ho_name_list = re.findall('OnClick="__doPostBack\(.*?>(.*?)<', result, re.S | re.M)
