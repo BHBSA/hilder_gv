@@ -95,6 +95,7 @@ class Ningde(object):
                 house_url = 'http://www.ndjsj.gov.cn/House/' + i
                 house.bu_num = '幢　　号：.*?<td.*?>(.*?)<'
                 house.ho_name = '房　　号：.*?<td.*?>(.*?)<'
+                house.co_name = '项目名称：.*?<td.*?>(.*?)<'
                 house.ho_build_size = '建筑面积：.*?<td.*?>(.*?)<'
                 house.ho_true_size = '套内面积：.*?<td.*?>(.*?)<'
                 house.ho_share_size = '分摊面积：.*?<td.*?>(.*?)<'
