@@ -31,7 +31,7 @@ class Comm:
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
                  co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm', co_use=None,
-                 co_land_type=None,co_plan_pro=None,co_work_pro=None):
+                 co_land_type=None, co_plan_pro=None, co_work_pro=None):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -134,7 +134,7 @@ class Building:
 class House:
     def __init__(self, co_index, co_id=None, bu_id=None, bu_num=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
-                 orientation=None, ho_name=None, data_type='house', info=None, area=None, ):
+                 orientation=None, ho_name=None, data_type='house', info=None, area=None, co_name=None):
         self.co_index = int(co_index)  # 网站id
         self.bu_num = bu_num  # 楼号 栋号
         self.co_id = co_id  # 小区id
@@ -151,6 +151,7 @@ class House:
         self.orientation = orientation  # 朝向
         self.info = info  # 无法判断是什么的数据
         self.area = area  # 地区
+        self.co_name = co_name  # 小区名
 
         # self.time = datetime.datetime.now()
         self.data_type = data_type
