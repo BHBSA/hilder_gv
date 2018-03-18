@@ -15,6 +15,38 @@ class Shanghai(Crawler):
         # 小区列表页url
         comm_list_url = self.get_all_comm_list_url()
         build_url_list = self.get_build_url_list(comm_list_url)
+        house_url_list = self.get_house_url_list(build_url_list)
+        print(house_url_list)
+
+    def get_house_url_list(self, build_url_list):
+        house_url_list = []
+
+        for i in build_url_list:
+            house_url = []
+            res = requests.get(i)
+            html_str = res.content.decode('gbk')
+            url_list = re.findall("(Presell.*?)'", html_str, re.S | re.M)
+            first_list = []
+            for k in url_list:
+                first_list.append('http://www.fangdi.com.cn/' + k)
+            for j in first_list:
+                b = Building(self.co_index)
+                b.bu_num = 'House\.asp.*?".*?">(.*?)<'
+                data_dict = b.to_dict()
+                current_url_rule = '(building.*?)"'
+                p = ProducerListUrl(analyzer_rules_dict=data_dict,
+                                    page_url=j,
+                                    analyzer_type='regex',
+                                    request_type='get',
+                                    encode='gbk',
+                                    current_url_rule=current_url_rule)
+                house_url_list = p.get_details()
+                true_url = []
+                for k in house_url_list:
+                    true_url.append('http://www.fangdi.com.cn/' + k)
+                house_url = house_url + true_url
+            house_url_list = house_url_list + house_url
+        return house_url_list
 
     def get_build_url_list(self, comm_list_url):
         all_url = []
@@ -38,6 +70,7 @@ class Shanghai(Crawler):
             for k in url_list:
                 true_url_list.append('http://www.fangdi.com.cn/' + k)
             all_url = all_url + true_url_list
+            break
         # print(all_url)
         return all_url
 
@@ -51,8 +84,8 @@ class Shanghai(Crawler):
             # 根据返回结果 获取每个地区的返回分页
             url_list = re.findall('"(/complexpro.*?)">', html_str, re.S | re.M)
             true_url_list = []
-            for i in url_list:
-                true_url_list.append('http://www.fangdi.com.cn' + i)
+            for k in url_list:
+                true_url_list.append('http://www.fangdi.com.cn' + k)
             # print(true_url_list)
             all_comm_list_url = all_comm_list_url + true_url_list
             break
