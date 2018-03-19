@@ -7,8 +7,21 @@ from lib.mongo import Mongo
 import datetime
 import yaml
 from city_dict import dict_city
+from functools import wraps
 
 setting = yaml.load(open('config_local.yaml'))
+
+
+def singleton(cls):
+    instances = {}
+
+    @wraps(cls)
+    def getinstance(*args, **kw):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kw)
+        return instances[cls]
+
+    return getinstance
 
 
 def serialization_info(info):
@@ -25,6 +38,7 @@ def serialization_info(info):
     return data
 
 
+@singleton
 class Comm:
     def __init__(self, co_index, co_name=None, co_id=None, co_address=None, co_type=None, co_green=None,
                  co_is_build=None, co_size=None, co_build_size=None, co_build_start_time=None, co_build_end_time=None,
@@ -79,6 +93,7 @@ class Comm:
         self.coll.insert_one(data)
 
 
+@singleton
 class Building:
     def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
@@ -131,6 +146,7 @@ class Building:
         self.coll.update({'co_id': co_id}, {'$set': data}, True)
 
 
+@singleton
 class House:
     def __init__(self, co_index, co_id=None, bu_id=None, bu_num=None, ho_num=None, ho_floor=None, ho_type=None,
                  ho_room_type=None, ho_build_size=None, ho_true_size=None, ho_share_size=None, ho_price=None,
