@@ -15,7 +15,7 @@ class Tool:
                 '__EVENTVALIDATION': html_tree.xpath(event_validation)}
         """
         res = requests.get(url)
-        html_tree = etree.HTML(res.content)
+        html_tree = etree.HTML(res.text)
 
         return {'__VIEWSTATE': html_tree.xpath(view_state)[0],
                 '__EVENTVALIDATION': html_tree.xpath(event_validation)[0]}
