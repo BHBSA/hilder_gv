@@ -4,8 +4,8 @@ city : 宿州
 CO_INDEX : 56
 小区数量：
 对应关系：
-    小区与楼栋：
-    楼栋与房屋：
+    小区与楼栋：co_id
+    楼栋与房屋：bu_num
 """
 import requests
 from comm_info import Comm, Building, House
