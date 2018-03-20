@@ -15,7 +15,6 @@ class AllInOne(Crawler):
     def __init__(self, url, url_front, co_index):
         self.url = url
         self.URL_FRONT = url_front
-        self.URL_FRONT = url_front
         self.CO_INDEX = co_index
 
     @retry(tries=3)
