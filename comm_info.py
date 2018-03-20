@@ -40,8 +40,7 @@ def serialization_info(info):
 
 @singleton
 class MongoSingle:
-    coll = Mongo(setting['db'], setting['port'], setting['db_name'],
-                 setting['coll_comm']).get_collection_object()
+    connection = Mongo(setting['db'], setting['port']).get_connection()
 
 
 class Comm:
@@ -84,7 +83,7 @@ class Comm:
         self.data_type = data_type
 
         m = MongoSingle()
-        self.coll = m.coll
+        self.coll = m.connection[setting['db_name']][setting['coll_comm']]
 
     def to_dict(self):
         data = serialization_info(self)
@@ -129,7 +128,7 @@ class Building:
         # self.time = datetime.datetime.now()
         self.data_type = data_type
         m = MongoSingle()
-        self.coll = m.coll
+        self.coll = m.connection[setting['db_name']][setting['building']]
 
     def to_dict(self):
         data = serialization_info(self)
@@ -176,7 +175,7 @@ class House:
         # self.time = datetime.datetime.now()
         self.data_type = data_type
         m = MongoSingle()
-        self.coll = m.coll
+        self.coll = m.connection[setting['db_name']][setting['house']]
 
     def to_dict(self):
         data = serialization_info(self)
