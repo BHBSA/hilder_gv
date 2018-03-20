@@ -109,7 +109,12 @@ class Consumer(object):
                     ch.basic_ack(delivery_tag=method.delivery_tag)
                     print('\n\n没有选取到任何信息\n\n')
                     return
-                self.put_database(info, data_type, co_index=co_index, co_id=co_id, co_name=co_name)
+                try:
+                    self.put_database(info, data_type, co_index=co_index, co_id=co_id, co_name=co_name)
+                except Exception as e:
+                    print(e)
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    return
             elif analyzer_type == 'xml':
                 pass
 
@@ -140,7 +145,12 @@ class Consumer(object):
                     ch.basic_ack(delivery_tag=method.delivery_tag)
                     print('\n\n没有选取到任何信息\n\n')
                     return
-                self.put_database(info, data_type, co_index=co_index, bu_id=bu_id, bu_num=bu_num)
+                try:
+                    self.put_database(info, data_type, co_index=co_index, bu_id=bu_id, bu_num=bu_num)
+                except Exception as e:
+                    print(e)
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    return
             elif analyzer_type == 'xpath':
                 tree = etree.HTML(html)
                 info = {}
@@ -168,8 +178,12 @@ class Consumer(object):
                     ch.basic_ack(delivery_tag=method.delivery_tag)
                     print('\n\n没有选取到任何信息\n\n')
                     return
-                self.put_database(info, data_type, co_index=co_index, bu_id=bu_id, bu_num=bu_num)
-
+                try:
+                    self.put_database(info, data_type, co_index=co_index, bu_id=bu_id, bu_num=bu_num)
+                except Exception as e:
+                    print(e)
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                    return
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     # 遍历字典放入数据库
@@ -201,6 +215,7 @@ class Consumer(object):
                     if value:
                         setattr(obj, key, value[i].strip())
                 obj.insert_db()
+
 
     # 创建对象（data_type是什么类型是就创建什么对象）
     def get_data_obj(self, analyzer, co_index):
