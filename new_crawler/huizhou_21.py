@@ -105,6 +105,7 @@ class Huizhou(Crawler):
         c.co_pre_sale = '资质证书编号：</th>.*?<td.*?>(.*?)<'
         c.co_owner = '国土证书：</th>.*?<td.*?>(.*?)<'
         c.co_build_structural = '<td align="center">.*?center.*?center">(.*?)<.*?center'
+        c.area = '行政区划：</th>.*?<td.*?>(.*?)<'
         b = Building(co_index)
         b.co_id = 'jectcode=(.*?)"'
         b.bu_id = 'buildingcode=(.*?)&'

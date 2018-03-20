@@ -18,13 +18,16 @@ building_id = 0
 class Chuzhou(Crawler):
     def __init__(self):
         self.url = 'http://www.czhome.com.cn/complexPro.asp?page=1&districtID=0&projectAdr=&projectName=&buildingType=0&houseArea=0&averagePrice=0&selState=-1'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+        }
 
     def start_crawler(self):
         self.start()
 
     @retry(retry(3))
     def get_all_page(self):
-        response = requests.get(url=self.url)
+        response = requests.get(url=self.url, headers=self.headers)
         html = response.content.decode('gbk')
         tree = etree.HTML(html)
         page = tree.xpath('//*[@id="Table7"]/tr/td[2]/text()')[1]
@@ -45,23 +48,24 @@ class Chuzhou(Crawler):
         for i in range(1, int(page) + 1):
             url = 'http://www.czhome.com.cn/complexPro.asp?page=' + str(
                 i) + '&districtID=0&projectAdr=&projectName=&buildingType=0&houseArea=0&averagePrice=0&selState=-1'
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
+            area_list = tree.xpath('//*[@id="Table8"]/tr/td[6][not(@bgcolor="e7e7e7")]/text()')
             comm_url_list = tree.xpath('//*[@id="Table8"]/tr/td[2]/a/@href')
-            for i in comm_url_list:
+            for i in range(len(comm_url_list)):
                 try:
                     comm = Comm(7)
-                    comm_url = 'http://www.czhome.com.cn/' + i
+                    comm.area = area_list[i]
+                    comm_url = 'http://www.czhome.com.cn/' + comm_url_list[i]
                     self.get_comm_info(comm_url, comm)
                 except BaseException as e:
                     print(e)
 
-
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
         try:
-            response = requests.get(comm_url)
+            response = requests.get(comm_url, headers=self.headers)
             html = response.content.decode('gbk').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
             # 小区id
             co_id = re.search('projectID=(\d+?)&', comm_url).group(1)
@@ -89,19 +93,18 @@ class Chuzhou(Crawler):
         except BaseException as e:
             print(e)
 
-
     @retry(retry(3))
     def get_build_info(self, co_id, co_name):
         try:
             url = 'http://www.czhome.com.cn/Presell.asp?projectID=' + co_id + '&projectname=' + co_name
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
             xpath_list = tree.xpath('//tr[@class="indextabletxt"]')
             for i in xpath_list[1:]:
                 build_url = i.xpath('td[2]/a/@href')[0]
                 url = 'http://www.czhome.com.cn/' + build_url
-                result = requests.get(url)
+                result = requests.get(url, headers=self.headers)
                 if result.status_code is not 200:
                     continue
                 html = result.content.decode('gbk')
@@ -116,7 +119,7 @@ class Chuzhou(Crawler):
                     bu_all_house = i.xpath('td[7]/text()')[0]
                     bu_url = i.xpath('td[1]/a/@href')[0]
                     url = 'http://www.czhome.com.cn/' + bu_url
-                    response = requests.get(url)
+                    response = requests.get(url, headers=self.headers)
                     if response.status_code is not 200:
                         continue
                     html = response.text
@@ -133,14 +136,14 @@ class Chuzhou(Crawler):
                     building.bu_id = building_id
                     building.co_id = co_id
                     building.insert_db()
+
         except Exception as e:
             print(e)
-
 
     @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, building_id):
         try:
-            response = requests.get(house_url)
+            response = requests.get(house_url, headers=self.headers)
             html = response.content.decode('gbk').replace('\t', '').replace('\n', '').replace('\r', '').replace(' ', '')
             if response.status_code is not 200:
                 return
@@ -171,4 +174,3 @@ class Chuzhou(Crawler):
             house.insert_db()
         except Exception as e:
             print(e)
-

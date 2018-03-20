@@ -65,54 +65,34 @@ class Ningbo(object):
                 bu_all_house_list = re.findall("window.open.*?<td.*?>(.*?)<", html, re.S | re.M)
                 qrykey = re.findall("qrykey=(.*?)&", html, re.S | re.M)
                 for index in range(len(build_url_list)):
-                    build = Building(co_index)
-                    build.bu_name = bu_name_list[index].strip()
-                    build.bu_all_house = bu_all_house_list[index].strip()
-                    build.co_id = comm.co_id.strip()
-                    build.bu_id = qrykey[index].strip()
-                    build.insert_db()
+                    try:
+                        build = Building(co_index)
+                        build.bu_name = bu_name_list[index].strip()
+                        build.bu_all_house = bu_all_house_list[index].strip()
+                        build.co_id = comm.co_id.strip()
+                        build.bu_id = qrykey[index].strip()
+                        build.insert_db()
+                    except Exception as e:
+                        print(e)
                 self.get_house_info(build_url_list)
-            except BaseException as e:
+            except Exception as e:
                 print(e)
 
     @retry(tries=3)
     def get_house_info(self, build_url_list):
         for i in build_url_list:
-            try:
-                qrykey = re.search('qrykey=(.*?)&', i).group(1)
-                house_url = 'http://old.newhouse.cnnbfdc.com/GetHouseTable.aspx?qrykey=' + qrykey
-                response = requests.get(house_url, headers=self.headers)
-                html = response.text
-                # house_info_url_list = re.findall('javascript:window.open\("(.*?)"', html, re.S | re.M)
-                info_list = re.findall('(房号：.*?")', html, re.S | re.M)
-                ho_name_list = re.findall('title=.*?center.*?center.*?<a.*?>(.*?)<', html, re.S | re.M)
-                for index in range(len(info_list)):
+            qrykey = re.search('qrykey=(.*?)&', i).group(1)
+            house_url = 'http://old.newhouse.cnnbfdc.com/GetHouseTable.aspx?qrykey=' + qrykey
+            response = requests.get(house_url, headers=self.headers)
+            html = response.text
+            info_list = re.findall('(房号：.*?")', html, re.S | re.M)
+            ho_name_list = re.findall('title=.*?center.*?center.*?<a.*?>(.*?)<', html, re.S | re.M)
+            for index in range(len(info_list)):
+                try:
                     house = House(co_index)
                     house.info = info_list[index]
                     house.ho_name = ho_name_list[index]
                     house.bu_id = qrykey
                     house.insert_db()
-                    # 房屋详情页面
-                    # self.get_house_detail(house_info_url_list, qrykey)
-            except BaseException as e:
-                print(e)
-                # 房屋页面响应太慢
-                # @retry(tries=3)
-                # def get_house_detail(self, house_info_url_list, qrykey):
-                #     for i in house_info_url_list:
-                #         try:
-                #             house = House(co_index)
-                #             house_url = 'http://old.newhouse.cnnbfdc.com/' + i
-                #             response = requests.get(house_url, headers=self.headers)
-                #             html = response.text
-                #             house.ho_name = re.findall('户室名称（室号）.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_floor = re.findall('实际楼层.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_room_type = re.findall('户型.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_type = re.findall('房屋用途.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_build_size = re.findall('预测建筑面积.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_true_size = re.findall('预测套内面积.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.ho_share_size = re.findall('预测分摊面积.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-                #             house.bu_id = qrykey
-                #             house.insert_db()
-                #         except BaseException as e:
-                #             print(e)
+                except Exception as e:
+                    print(e)

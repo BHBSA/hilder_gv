@@ -1,6 +1,6 @@
 """
 url = http://www.cxsfdcglzx.com/touming/wangShangHouse.aspx
-city : 慈溪（宁波）
+city : 慈溪
 CO_INDEX : 8
 author: 吕三利
 小区数量 : 1901    2018/2/24
@@ -21,6 +21,9 @@ CO_ID = 0
 class Cixi(Crawler):
     def __init__(self):
         self.url = 'http://www.cxsfdcglzx.com/touming/wangShangHouse.aspx'
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+        }
 
     def start_crawler(self):
         self.start()
@@ -34,20 +37,22 @@ class Cixi(Crawler):
 
     @retry(retry(3))
     def start(self):
-        response = requests.get(self.url)
+        response = requests.get(self.url, headers=self.headers)
         html = response.text
         tree = etree.HTML(html)
         comm_url_list = tree.xpath('//ul[@class="NewsList"]/li/a/@href')
-        for i in comm_url_list:
+        # comm_area = tree.xpath('//*[@id="Content"]/div[2]/div[4]/table/tr/td[2]/a/text()')
+        for i in range(len(comm_url_list)):
             comm = Comm(8)
-            comm_url = 'http://www.cxsfdcglzx.com/touming/' + i
+            # comm.area = comm_area[i]
+            comm_url = 'http://www.cxsfdcglzx.com/touming/' + comm_url_list[i]
             print(comm_url)
             self.get_comm_info(comm_url, comm)
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
         try:
-            response = requests.get(comm_url)
+            response = requests.get(comm_url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             co_address = tree.xpath('//*[@id="PageB_Location"]/text()')[0]  # 小区地址
@@ -69,13 +74,12 @@ class Cixi(Crawler):
         except BaseException as e:
             print(e)
 
-
     @retry(retry(3))
     def get_build_info(self, url, comm, building):
         try:
             coll = Mongo(setting['db'], setting['port'], setting['db_name'],
                          setting['coll_comm']).get_collection_object()
-            response = requests.get(url)
+            response = requests.get(url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             co_name = tree.xpath('//*[@id="PageB_Location"]/text()')[0]  # 小区名字
@@ -129,4 +133,3 @@ class Cixi(Crawler):
             building.insert_db()
         except BaseException as e:
             print(e)
-

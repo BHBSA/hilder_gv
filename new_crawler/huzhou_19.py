@@ -1,3 +1,7 @@
+# @Author  :
+# @city    : 
+# @C0_INDEX: 
+# @url     :
 """
 url = http://www.hufdc.com/presell.jspx?pageno=1&keyword=
 city : 湖州
@@ -166,8 +170,4 @@ class Huzhou(Crawler):
         a = a.replace('U', 'u')
         a = json.loads(a)
         return a
-
-
-
-
 

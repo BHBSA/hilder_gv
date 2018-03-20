@@ -5,7 +5,7 @@ from urllib import parse
 
 class Tool:
     @classmethod
-    def get_view_state(cls, url, view_state, event_validation):
+    def get_view_state(cls, url, view_state, event_validation, post_data=None, headers=None):
         """
         传入view_state,event_validation的xpath
         :param url: http://www.jscsfc.com/NewHouse/
@@ -14,8 +14,12 @@ class Tool:
         :return: {'__VIEWSTATE': html_tree.xpath(view_state),
                 '__EVENTVALIDATION': html_tree.xpath(event_validation)}
         """
-        res = requests.get(url)
-        html_tree = etree.HTML(res.content)
+        if post_data is None:
+            res = requests.get(url, headers=headers)
+            html_tree = etree.HTML(res.text)
+        else:
+            res = requests.post(url, headers=headers, post_data=post_data)
+            html_tree = etree.HTML(res.text)
 
         return {'__VIEWSTATE': html_tree.xpath(view_state)[0],
                 '__EVENTVALIDATION': html_tree.xpath(event_validation)[0]}
