@@ -10,7 +10,6 @@ CO_INDEX : 58
 import requests
 from lxml import etree
 from comm_info import Comm, Building, House
-from producer import ProducerListUrl
 import re
 
 url = 'http://www.ytfcjy.com/public/project/presellCertList.aspx'
