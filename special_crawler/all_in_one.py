@@ -15,7 +15,6 @@ class AllInOne(Crawler):
     def __init__(self, url, url_front, co_index):
         self.url = url
         self.URL_FRONT = url_front
-        self.URL_FRONT = url_front
         self.CO_INDEX = co_index
 
     @retry(tries=3)
@@ -126,16 +125,16 @@ class AllInOne(Crawler):
                     data_dict = self.get_build_detail(build_url)
                     bu_num = data_dict['bu_num']  # 楼号
                     bu_build_size = data_dict['bu_build_size']  # 建筑面积
-                    co_address = data_dict['co_address']  # 小区地址
+                    bu_address = data_dict['co_address']
                     co_build_end_time = data_dict['co_build_end_time']  # 竣工时间
                     co_build_type = data_dict['co_build_type']  # 竣工时间
                     if not co_build_end_time:
                         building.co_is_build = '1'
-                    comm.co_address = co_address
                     comm.co_build_end_time = co_build_end_time
                     comm.bu_build_size = bu_build_size
                     comm.co_build_type = co_build_type
                     # 楼栋
+                    building.bu_address = bu_address
                     building.bu_num = bu_num
                     building.bu_build_size = bu_build_size
                     building.bu_all_house = bu_all_house
