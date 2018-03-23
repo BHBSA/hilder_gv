@@ -101,7 +101,7 @@ class Chizhou(Crawler):
             build_url = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[1]/tr/td[1]/a/@href')
             build_url = self.is_none(build_url)
             build_url = 'http://www.czfdc.gov.cn/spf/' + build_url
-            # self.get_build_info(build_url, co_id)
+            self.get_build_info(build_url, co_id)
             # 插入数据库
             comm.insert_db()
         except Exception as e:
