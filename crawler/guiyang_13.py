@@ -31,7 +31,7 @@ class Guiyang(Crawler):
         page_count = all_url.get_page_count()
         all_url_list = []
         for i in range(1, page_count + 1):
-            all_url_list.append('http://www.gyfc.net.cn/2_proInfo/index.aspx/page=' + str(i))
+            all_url_list.append('http://www.gyfc.net.cn/2_proInfo/index.aspx/?page=' + str(i))
         print(all_url_list)
 
         build_list_url = self.get_comm_info(all_url_list)
