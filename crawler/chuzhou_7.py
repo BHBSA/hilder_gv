@@ -78,17 +78,17 @@ class Chuzhou(Crawler):
         # 小区总套数
         co_all_house = re.search('总套数<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4)
         # 占地面的
-        co_size = re.search('总面积<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4).replace('㎡', '')
+        co_all_size = re.search('总面积<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4).replace('㎡', '')
         # 建筑面积
-        co_build_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
+        co_residential_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
         self.get_build_info(co_id, co_name)
         comm.co_id = co_id
         comm.co_name = co_name
         comm.co_address = co_address
         comm.co_develops = co_develops
         comm.co_all_house = co_all_house
-        comm.co_size = co_size
-        comm.co_build_size = co_build_size
+        comm.co_all_size = co_all_size
+        comm.co_residential_size = co_residential_size
         comm.insert_db()
         global count
         count += 1
@@ -123,28 +123,32 @@ class Chuzhou(Crawler):
                     response = requests.get(url, headers=self.headers)
                     if response.status_code is not 200:
                         continue
-                    html = response.text
+                    html = response.content.decode('gbk')
                     tree = etree.HTML(html)
                     # 楼层
                     bu_floor = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td[1]/u/text()')[-1]
                     house_url_list = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td/a/@href')
-                    for i in house_url_list:
-                        try:
-                            house = House(7)
-                            house_url = 'http://www.czhome.com.cn/' + i
-                            self.get_house_info(house_url, house, co_id, building_id)
-                        except Exception as e:
-                            print(e)
+                    bu_address = re.search('<center><font color=.*?&nbsp;&nbsp;(.*?)<', html, re.S | re.M).group(1)
                     building.bu_all_house = bu_all_house
+                    building.bu_address = bu_address
                     building.bu_floor = bu_floor
                     building.bu_id = building_id
                     building.co_id = co_id
                     building.insert_db()
+                    for i in house_url_list:
+                        try:
+                            house = House(7)
+                            house_url = 'http://www.czhome.com.cn/' + i
+                            self.get_house_info(house_url, house, co_id, building_id, building)
+                        except Exception as e:
+                            print(e)
+
+
                 except Exception as e:
                     print(e)
 
     @retry(retry(3))
-    def get_house_info(self, house_url, house, co_id, building_id):
+    def get_house_info(self, house_url, house, co_id, building_id, building):
         try:
             response = requests.get(house_url, headers=self.headers)
             html = response.content.decode('gbk').replace('\t', '').replace('\n', '').replace('\r', '').replace(' ', '')
