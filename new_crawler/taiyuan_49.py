@@ -43,10 +43,14 @@ class Taiyuan(Crawler):
                     comm_url_res = requests.post(url,data=formdata,headers=self.headers)
                     con = comm_url_res.text
                     co_id_list = re.findall('Info\((.*?)\)',con)
-                    for co_id in co_id_list:
-                        co_id = co_id.strip("//'")
+                    co_area_list = re.findall('</a></td>\r\n<td>(.*?)区</td>',con,re.S|re.M)
+                    co_type = re.findall('区</td>\r\n<td>(.*?)</td>\r\n<td>\(',con,re.S|re.M)
+                    for index in range(0,len(co_id_list)):
+                        co_id = co_id_list[index].strip("//'")
+                        co_area = co_area_list[index]
+                        type = co_type[index]
                         comm_url = "http://ys.tyfdc.gov.cn/Firsthand/tyfc/publish/p/PermitInfo.do?propid="+co_id
-                        url_list.put(comm_url)
+                        url_list.put((comm_url,co_area,type))
             except:
                 continue
 
@@ -54,15 +58,17 @@ class Taiyuan(Crawler):
         co = Comm(co_index)
         # url_list = Queue()
         while True:
-            url = url_list.get()
+            url,area,type = url_list.get()
             try:
                 res = requests.get(url,headers=self.headers)
                 con  = res.text
+                co.area = area
+                co.co_type = type
                 co.co_id = re.search('id=(\d+)',url).group(1)
                 co.co_develops = re.search('企业名称.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
                 co.co_name = re.search('项目名称.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
                 co.co_address = re.search('项目座落.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
-                co.co_type = re.search('房屋用途.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
+                co.co_use = re.search('房屋用途.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
                 try:
                     co.co_pre_sale = re.search('许可证号.*?>&nbsp;(.*?)<',con,re.S|re.M).group(1)
                 except:
@@ -113,7 +119,7 @@ class Taiyuan(Crawler):
         res = requests.post(house_url,data=formdata,headers=self.headers)
         con = res.text
 
-        ho_num = re.findall('\'\);">(.*?)&nbsp;',con,re.S|re.M)
+        ho_name = re.findall('\'\);">(.*?)&nbsp;',con,re.S|re.M)
         ho_build_size = re.findall('<span.*?建筑面积：(.*?)㎡',con,re.S|re.M)
         ho_true_size = re.findall('<span.*?套内面积：(.*?)分',con,re.S|re.M)
         ho_share_size = re.findall('<span.*?分摊面积：(.*?)㎡',con,re.S|re.M)
@@ -123,13 +129,13 @@ class Taiyuan(Crawler):
         for index in range(0,len(ho_id)):
             ho.co_id = co_id
             ho.bu_id = bu_id
-            ho.ho_num = ho_num[index]
+            ho.ho_name = ho_name[index]
             ho.ho_build_size = ho_build_size[index]
             ho.ho_type = ho_type[index]
             ho.ho_share_size = ho_share_size[index]
             ho.ho_price = ho_price[index]
             ho.ho_true_size = ho_true_size[index]
-            ho.ho_id = ho_id[index]
+            ho.ho_num = ho_id[index]
             ho.insert_db()
 
     def start_crawler(self):
