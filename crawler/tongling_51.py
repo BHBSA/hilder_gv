@@ -75,8 +75,11 @@ class Tongling(Crawler):
                 bu.insert_db()
             except:
                 continue
-            house_url = a[index].xpath("./a/@href")[0]
-            self.house_parse(house_url,co_id,bu.bu_id)
+            try:
+                house_url = a[index].xpath("./a/@href")[0]
+                self.house_parse(house_url,co_id,bu.bu_id)
+            except:
+                continue
 
     def house_parse(self,house_url,co_id,bu_id):
         ho = House(co_index)
@@ -89,7 +92,7 @@ class Tongling(Crawler):
         ho_build_size = re.findall('建筑面积：(.*?)参',con,re.S|re.M)
         ho_price = re.findall('价格：(.*?)元',con,re.S|re.M)
         ho_id = re.findall('\?id=(.*?)&',con,re.S|re.M)
-
+        ho_detail = re.findall('href="(show.*?\?id=\d+&id2=\d+&prjid=\d+)"',con,re.S|re.M)
         for index in range(0,len(ho_name)):
             try:
                 ho.co_id = co_id
@@ -99,6 +102,13 @@ class Tongling(Crawler):
                 ho.ho_build_size = ho_build_size[index]
                 ho.ho_price = ho_price[index]
                 ho.ho_id = ho_id[index]
+
+
+                ho_detail_url = "http://spf.tlfdc.cn/"+ho_detail[index]
+                res = requests.get(ho_detail_url,headers=self.headers)
+                res = res.content.decode('gb2312')
+                ho.ho_floor = re.findall('楼层.*?">(.*?)</td>',res,re.S|re.M)[0]
+
                 ho.insert_db()
             except:
                 continue
