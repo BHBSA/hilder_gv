@@ -2,7 +2,7 @@
 url = http://www.jjzzfdc.com.cn/WebClient/ClientService/frmYsxk_more.aspx?qcount=10000&pcount=33
 city : 九江
 CO_INDEX : 25
-小区数量：345
+
 """
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
@@ -46,40 +46,52 @@ class Jiujiang(Crawler):
 
     def get_build_info(self, comm_url_list):
         for i in comm_url_list:
-            sid = re.findall('\+(\d+)\+', i)[0]
-            pid = re.findall('\+(\d+)\+', i)[1]
-            build_url = 'http://www.jjzzfdc.com.cn/WebClient/ClientService/bldg_query.aspx?pid=' + pid + '&sid=' + sid
-            response = requests.get(build_url)
-            html = response.text
-            build = Building(co_index)
-            build.bu_id = pid
-            build.bu_num = re.search('楼栋座落.*?<td.*?>(.*?)<',html, re.S | re.M).group(1)
-            build.bu_pre_sale = re.search('预售证号.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-            build.bu_pre_sale_date = re.search('时间.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-            build.bu_all_house = re.search('dM.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-            build.bu_address = re.search('售楼处地址.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-            build.insert_db()
+            try:
+                sid = re.findall('\+(\d+)\+', i)[0]
+                pid = re.findall('\+(\d+)\+', i)[1]
+                build_url = 'http://www.jjzzfdc.com.cn/WebClient/ClientService/bldg_query.aspx?pid=' + pid + '&sid=' + sid
+                # print(build_url)
+                response = requests.get(build_url)
+                html = response.text
+                build = Building(co_index)
+                build.bu_id = pid
+                build.bu_num = re.search('楼栋座落.*?<td.*?>(.*?)<',html, re.S | re.M).group(1)
+                build.bu_pre_sale = re.search('预售证号.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
+                build.bu_pre_sale_date = re.search('时间.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
+                build.bu_all_house = re.search('dM.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
+                build.bu_address = re.search('售楼处地址.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
+                build.insert_db()
+            except:
+                continue
 
             house_url = 'http://www.jjzzfdc.com.cn/WebClient/ClientService/proxp.aspx?key=WWW_LPB_001&params=' + sid
+            # print(house_url)
             result = requests.get(house_url)
             html_ = result.text
 
             house = House(co_index)
+
             ho_name_list = re.findall('<ONAME>(.*?)</ONAME>', html_, re.S | re.M)
             ho_id_list = re.findall('<OSEQ>(.*?)</OSEQ>',html_,re.S|re.M)
             ho_buil_size = re.findall('<BAREA>(.*?)</BAREA>',html_,re.S|re.M)
             ho_floor = re.findall('<FORC>(.*?)</FORC>',html_,re.S|re.M)
             ho_true_size = re.findall('<PAREA>(.*?)</PAREA>',html_,re.S|re.M)
 
+
+
             for index in range(len(ho_name_list)):
-                house.bu_id = build.bu_id
-                house.bu_num = build.bu_num
-                house.ho_name = ho_name_list[index]
-                house.ho_num = ho_id_list[index]
-                house.ho_build_size = ho_buil_size[index]
-                house.ho_floor = ho_floor[index]
-                house.ho_true_size = ho_true_size[index]
-                house.insert_db()
+                try:
+                    house.bu_id = build.bu_id
+                    house.bu_num = build.bu_num
+                    house.ho_name = ho_name_list[index]
+                    house.ho_num = ho_id_list[index]
+                    house.ho_build_size = ho_buil_size[index]
+                    house.ho_floor = ho_floor[index]
+                    house.ho_true_size = ho_true_size[index]
+                    house.insert_db()
+                except:
+                    continue
+
 
 
 if __name__ == '__main__':
