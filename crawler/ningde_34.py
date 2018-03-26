@@ -51,7 +51,7 @@ class Ningde(object):
                 comm.co_name = '项目名称：.*?<td.*?>(.*?)<'
                 comm.co_pre_sale = '预售许可证：.*?<td.*?>(.*?)<'
                 comm.co_address = '项目坐落：.*?<td.*?>(.*?)<'
-                comm.co_type = '规划用途：.*?<td.*?>(.*?)<'
+                comm.co_use = '规划用途：.*?<td.*?>(.*?)<'
                 comm.co_size = '占地面积：.*?<td.*?>(.*?)<'
                 comm.co_build_size = '建筑面积：.*?<td.*?>(.*?)<'
                 p = ProducerListUrl(page_url=comm_url,
@@ -72,10 +72,11 @@ class Ningde(object):
                 build_url = 'http://www.ndjsj.gov.cn/House/' + i
                 build.co_name = '项目名称：.*?<td.*?>(.*?)<'
                 build.bu_num = '幢　　号：.*?<td.*?>(.*?)<'
+                build.bu_address = '坐落位置：.*?<td.*?>(.*?)<'
                 build.co_build_structural = '建筑结构：.*?<td.*?>(.*?)<'
                 build.bu_floor = '总 层 数：.*?<td.*?>(.*?)<'
                 build.bu_build_size = '总 面 积：.*?<td.*?>(.*?)<'
-                build.bu_type = '设计用途：.*?<td.*?>(.*?)<'
+                # build.bu_type = '设计用途：.*?<td.*?>(.*?)<'
                 build.bu_all_house = '批准销售：.*?<td.*?>(.*?)<'
                 p = ProducerListUrl(page_url=build_url,
                                     request_type='get', encode='utf-8',
