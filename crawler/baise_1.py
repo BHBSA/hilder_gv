@@ -127,7 +127,7 @@ class Baise(Crawler):
                 return comm
             comm.co_id = co_id
             comm.co_name = co_name
-            comm.co_adress = co_adress
+            comm.co_address = co_adress
             comm.co_investor = co_investor
             comm.co_is_build = co_is_build
             comm.co_type = co_type
@@ -193,6 +193,8 @@ class Baise(Crawler):
             bu_price = re.search(
                 r'拟销住宅价格：</td><tdbackground="images/trbg3.gif"></td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right"bgcolor="#FFFFFF"></td><tdalign="right"bgcolor="#CECFCE"></td><tdalign="right">拟销商业门面价格'
                 , html).group(1).split('元')[0]  # 住宅价格
+
+            bu_type = re.search('项目类型：</td>.*?ft3px">(.*?)</td>', html, re.S | re.M).group(1)
             building.co_id = co_id
             building.bu_id = bu_id
             building.bu_name = bu_name
@@ -203,6 +205,7 @@ class Baise(Crawler):
             building.bu_live_size = bu_live_size
             building.bu_not_live_size = bu_not_live_size
             building.bu_price = bu_price
+            building.bu_type = bu_type
             # 获取房号超链接
             house_url_list = re.findall(r"window.open\('(.+?)'\)", html)
             for i in house_url_list:
@@ -225,7 +228,7 @@ class Baise(Crawler):
             res = requests.get(url=house_url, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore')
             tree = etree.HTML(html)
-            ho_num = tree.xpath('//td[@width="82"]/text()')[0]  # 房号
+            ho_name = tree.xpath('//td[@width="82"]/text()')[0]  # 房号
             ho_floor = tree.xpath('//td[@width="72"]/text()')[0]  # 楼层
             ho_type = tree.xpath('//tr[3]/td[@bgcolor="#FFFFEE"][2]/text()')[0]  # 房屋类型
             ho_room_type = tree.xpath('//tr[3]/td[@bgcolor="#FFFFEE"][4]/text()')[0]  # 户型
@@ -240,7 +243,7 @@ class Baise(Crawler):
                 return house
             house.co_id = co_id
             house.bu_id = bu_id
-            house.ho_num = ho_num
+            house.ho_num = ho_name
             house.ho_floor = ho_floor
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type
@@ -254,7 +257,3 @@ class Baise(Crawler):
             print(e)
             print('retry')
 
-
-if __name__ == '__main__':
-    b = Baise()
-    b.baise_start()

@@ -116,7 +116,7 @@ class Changshu(Crawler):
         con = requests.get(url, headers=self.headers)
         tr = con.text
         ho_name = re.findall('室号：(.*?)户', tr, re.S | re.M)  # 房号：3单元403
-        ho_num = re.findall('_td(\d+)"', tr)  # 房号id
+        # ho_num = re.findall('_td(\d+)"', tr)  # 房号id
         ho_floor = re.findall('(\d+)层', tr)  # 楼层
         ho_type = re.findall('房屋属性：(.*?)"', tr, re.S | re.M)  # 房屋类型：普通住宅 / 车库仓库
         ho_room_type = re.findall('户型：(.*?)所', tr, re.S | re.M)  # 户型
@@ -130,7 +130,7 @@ class Changshu(Crawler):
                     ho.ho_type = ho_type[index]
                     ho.ho_room_type = ho_room_type[index]
                     ho.ho_build_size = ho_build_size[index]
-                    ho.ho_num = ho_num[index]
+                    # ho.ho_num = ho_num[index]
 
                     ho.insert_db()
             except:

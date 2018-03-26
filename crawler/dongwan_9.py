@@ -43,7 +43,7 @@ class Dongwan(Crawler):
         for i in house_url_list:
             h = House(9)
             h.bu_num = '项目名称.*?>(.*?)（<'  # 项目名称
-            h.ho_num = 'target=\'_blank\'>(.*?)</a>'
+            h.ho_name = 'target=\'_blank\'>(.*?)</a>'
             h.info = '建筑面积：.*?</a></td>'
             p = ProducerListUrl(page_url=i,
                                 request_type='get',

@@ -13,6 +13,7 @@ import requests, re
 from retry import retry
 
 building_id = 0
+count = 0
 
 
 class Chuzhou(Crawler):
@@ -64,54 +65,54 @@ class Chuzhou(Crawler):
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
-        try:
-            response = requests.get(comm_url, headers=self.headers)
-            html = response.content.decode('gbk').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
-            # 小区id
-            co_id = re.search('projectID=(\d+?)&', comm_url).group(1)
-            # 小区名称
-            co_name = re.search('项目名称：(.*?)<', html).group(1)
-            # 小区地址
-            co_address = re.search('所在区名：(.*?)<', html).group(1)
-            # 开发商
-            co_develops = re.search('企业名称：<(.*?)>(.*?)<', html).group(2)
-            # 小区总套数
-            co_all_house = re.search('总套数<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4)
-            # 占地面的
-            co_size = re.search('总面积<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4).replace('㎡', '')
-            # 建筑面积
-            co_build_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
-            self.get_build_info(co_id, co_name)
-            comm.co_id = co_id
-            comm.co_name = co_name
-            comm.co_address = co_address
-            comm.co_develops = co_develops
-            comm.co_all_house = co_all_house
-            comm.co_size = co_size
-            comm.co_build_size = co_build_size
-            comm.insert_db()
-        except BaseException as e:
-            print(e)
+        response = requests.get(comm_url, headers=self.headers)
+        html = response.content.decode('gbk').replace(' ', '').replace('\n', '').replace('\r', '').replace('\t', '')
+        # 小区id
+        co_id = re.search('projectID=(\d+?)&', comm_url).group(1)
+        # 小区名称
+        co_name = re.search('项目名称：(.*?)<', html).group(1)
+        # 小区地址
+        co_address = re.search('所在区名：(.*?)<', html).group(1)
+        # 开发商
+        co_develops = re.search('企业名称：<(.*?)>(.*?)<', html).group(2)
+        # 小区总套数
+        co_all_house = re.search('总套数<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4)
+        # 占地面的
+        co_all_size = re.search('总面积<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4).replace('㎡', '')
+        # 建筑面积
+        co_residential_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
+        self.get_build_info(co_id, co_name)
+        comm.co_id = co_id
+        comm.co_name = co_name
+        comm.co_address = co_address
+        comm.co_develops = co_develops
+        comm.co_all_house = co_all_house
+        comm.co_all_size = co_all_size
+        comm.co_residential_size = co_residential_size
+        comm.insert_db()
+        global count
+        count += 1
+        print(count)
 
     @retry(retry(3))
     def get_build_info(self, co_id, co_name):
-        try:
-            url = 'http://www.czhome.com.cn/Presell.asp?projectID=' + co_id + '&projectname=' + co_name
-            response = requests.get(url, headers=self.headers)
-            html = response.content.decode('gbk')
+        url = 'http://www.czhome.com.cn/Presell.asp?projectID=' + co_id + '&projectname=' + co_name
+        response = requests.get(url, headers=self.headers)
+        html = response.content.decode('gbk')
+        tree = etree.HTML(html)
+        xpath_list = tree.xpath('//tr[@class="indextabletxt"]')
+        for i in xpath_list[1:]:
+            build_url = i.xpath('td[2]/a/@href')[0]
+            url = 'http://www.czhome.com.cn/' + build_url
+            result = requests.get(url, headers=self.headers)
+            if result.status_code is not 200:
+                continue
+            html = result.content.decode('gbk')
             tree = etree.HTML(html)
-            xpath_list = tree.xpath('//tr[@class="indextabletxt"]')
-            for i in xpath_list[1:]:
-                build_url = i.xpath('td[2]/a/@href')[0]
-                url = 'http://www.czhome.com.cn/' + build_url
-                result = requests.get(url, headers=self.headers)
-                if result.status_code is not 200:
-                    continue
-                html = result.content.decode('gbk')
-                tree = etree.HTML(html)
-                # 总套数
-                bu_xpath = tree.xpath('/html/body/table/tr/td/table/tr/td/table/tr')[1:]
-                for i in bu_xpath:
+            # 总套数
+            bu_xpath = tree.xpath('/html/body/table/tr/td/table/tr/td/table/tr')[1:]
+            for i in bu_xpath:
+                try:
                     building = Building(7)
                     global building_id
                     building_id += 1
@@ -122,33 +123,39 @@ class Chuzhou(Crawler):
                     response = requests.get(url, headers=self.headers)
                     if response.status_code is not 200:
                         continue
-                    html = response.text
+                    html = response.content.decode('gbk')
                     tree = etree.HTML(html)
                     # 楼层
                     bu_floor = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td[1]/u/text()')[-1]
                     house_url_list = tree.xpath('//*[@id="Table4"]/tr[2]/td/table[3]/tr/td/a/@href')
-                    for i in house_url_list:
-                        house = House(7)
-                        house_url = 'http://www.czhome.com.cn/' + i
-                        self.get_house_info(house_url, house, co_id, building_id)
+                    bu_address = re.search('<center><font color=.*?&nbsp;&nbsp;(.*?)<', html, re.S | re.M).group(1)
                     building.bu_all_house = bu_all_house
+                    building.bu_address = bu_address
                     building.bu_floor = bu_floor
                     building.bu_id = building_id
                     building.co_id = co_id
                     building.insert_db()
+                    for i in house_url_list:
+                        try:
+                            house = House(7)
+                            house_url = 'http://www.czhome.com.cn/' + i
+                            self.get_house_info(house_url, house, co_id, building_id, building)
+                        except Exception as e:
+                            print(e)
 
-        except Exception as e:
-            print(e)
+
+                except Exception as e:
+                    print(e)
 
     @retry(retry(3))
-    def get_house_info(self, house_url, house, co_id, building_id):
+    def get_house_info(self, house_url, house, co_id, building_id, building):
         try:
             response = requests.get(house_url, headers=self.headers)
             html = response.content.decode('gbk').replace('\t', '').replace('\n', '').replace('\r', '').replace(' ', '')
             if response.status_code is not 200:
                 return
             # 房号id
-            ho_num = re.search('室号<(.*?)<(.*?)>(.*?)<', html).group(3)
+            ho_name = re.search('室号<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 房屋类型
             ho_type = re.search('房屋类型<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 户型
@@ -164,7 +171,7 @@ class Chuzhou(Crawler):
             ho_share_size = re.search('预测分摊面积<(.*?)<(.*?)>(.*?)<', html).group(3)
             house.co_id = co_id
             house.bu_id = building_id
-            house.ho_num = ho_num
+            house.ho_name = ho_name
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type
             house.ho_floor = ho_floor

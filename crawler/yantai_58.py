@@ -10,7 +10,6 @@ CO_INDEX : 58
 import requests
 from lxml import etree
 from comm_info import Comm, Building, House
-from producer import ProducerListUrl
 import re
 
 url = 'http://www.ytfcjy.com/public/project/presellCertList.aspx'
@@ -82,6 +81,8 @@ class Yantai(object):
         house_info_list = re.findall("title='(.*?)'", html, re.S | re.M)
         for i in house_info_list:
             house = House(co_index)
+            house.ho_name = re.search('房号：(.*?)单元', i, re.S | re.M).group(1)
+            house.ho_build_size = re.search('总面积：(.*?) 平方米', i, re.S | re.M).group(1)
             house.bu_id = bu_id
             house.info = i
             house.insert_db()

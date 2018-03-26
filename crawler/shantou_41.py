@@ -39,7 +39,7 @@ class Shantou(Crawler):
             for j in house_info:
                 try:
                     h = House(self.co_index)
-                    h.ho_num = ho_id_dict[j[0]]
+                    h.ho_name = ho_id_dict[j[0]]
                     h.ho_true_size = j[1]
                     h.ho_type = j[2]
                     h.co_name = co_name
@@ -79,7 +79,6 @@ class Shantou(Crawler):
                 for j in house_url:
                     url_list.append('http://www.stfcj.gov.cn/stsite/ProjectList/' + j)
             all_url = all_url + url_list
-            break
         return all_url
 
     def get_comm_url_list(self, first_page_url_list):
@@ -92,7 +91,6 @@ class Shantou(Crawler):
             for k in all_url:
                 true_url.append('http://www.stfcj.gov.cn/stsite/ProjectList/' + k)
             url_list = true_url + url_list
-            break
         return url_list
 
     def get_all_page(self):

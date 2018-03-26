@@ -4,7 +4,7 @@ import re
 from comm_info import Comm, Building, House
 
 
-class Yingquan(Crawler):
+class Yingtai(Crawler):
     def __init__(self):
         self.url = 'http://www.yingtanfdc.com/website/search/q.html?type=spf&city=&price=&wuye=&stat=&key=%u5173%u952E%u5B57'
         self.url_source = 'http://www.yingtanfdc.com'
@@ -58,7 +58,7 @@ class Yingquan(Crawler):
                                     try:
                                         h = House(self.co_index)
                                         h.info = final_html
-                                        h.ho_num = l
+                                        h.ho_name = l
                                         h.co_name = re.search('html">(.*?)</a>', k, re.S | re.M).group(1)
                                         h.bu_num = re.search('="absmiddle"  />(.*?)</a></strong></', j,
                                                              re.S | re.M).group(1)
@@ -76,7 +76,7 @@ class Yingquan(Crawler):
         res = requests.get(self.url, )
         html = res.content.decode('gbk')
         url_list = []
-        for i in re.findall('href="(/website/search/.*?")', html, re.S | re.M):
+        for i in re.findall('href="(/website/search/.*?)"', html, re.S | re.M):
             url_list.append(self.url_source + i)
         url_list.append(self.url)
         return url_list

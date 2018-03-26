@@ -42,6 +42,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def start(self):
         page = self.get_all_page()
+        count = 0
         for i in range(1, int(page) + 1):
             try:
                 url = 'http://www.czfdc.gov.cn/spf/gs.php?pageid=' + str(i)
@@ -49,12 +50,20 @@ class Chizhou(Crawler):
                 html = response.content.decode('gbk')
                 tree = etree.HTML(html)
                 comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
+
                 for i in comm_url_list:
-                    comm = Comm(6)
-                    comm_url = 'http://www.czfdc.gov.cn/spf/' + i
-                    self.get_comm_info(comm_url, comm)
+                    try:
+                        count += 1
+                        print(count)
+                        comm = Comm(6)
+                        comm_url = 'http://www.czfdc.gov.cn/spf/' + i
+                        self.get_comm_info(comm_url, comm)
+                    except Exception as e:
+                        continue
             except Exception as e:
                 print(e)
+                continue
+
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
@@ -152,10 +161,10 @@ class Chizhou(Crawler):
             response = requests.get(house_url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
-            ho_num = tree.xpath('/html/body/table/tr[2]/td[4]/text()')
-            if not ho_num:
+            ho_name = tree.xpath('/html/body/table/tr[2]/td[4]/text()')
+            if not ho_name:
                 return
-            ho_num = self.is_none(ho_num)
+            ho_name = self.is_none(ho_name)
             ho_floor = tree.xpath('/html/body/table/tr[2]/td[2]/text()')
             ho_floor = self.is_none(ho_floor).replace('层', '')
             ho_price = tree.xpath('/html/body/table/tr[6]/td[2]/text()')
@@ -170,7 +179,7 @@ class Chizhou(Crawler):
             ho_room_type = self.is_none(ho_room_type)
             house.co_id = co_id
             house.bu_id = bu_id
-            house.ho_num = ho_num
+            house.ho_name = ho_name
             house.ho_floor = ho_floor
             house.ho_price = ho_price
             house.ho_build_size = ho_build_size

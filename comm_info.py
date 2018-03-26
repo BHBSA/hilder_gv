@@ -49,7 +49,7 @@ class Comm:
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
                  co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm', co_use=None,
-                 co_land_type=None, co_plan_pro=None, co_work_pro=None):
+                 co_land_type=None, co_plan_pro=None, co_work_pro=None, co_all_size=None,co_residential_size=None):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -58,7 +58,9 @@ class Comm:
         self.co_build_type = co_build_type  # 建筑类型:独栋,小高层,高层多层
         self.co_green = co_green  # 绿化率
         self.co_is_build = co_is_build  # 竣工/是否在建 1 已经完成/竣工 0未完成/正在建立
+        self.co_all_size = co_all_size # 总面积
         self.co_size = co_size  # 占地面的
+        self.co_residential_size = co_residential_size # 住宅面积
         self.co_build_size = co_build_size  # 建筑面积
         self.co_build_start_time = co_build_start_time  # 开工时间
         self.co_build_end_time = co_build_end_time  # 竣工时间

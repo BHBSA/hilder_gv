@@ -15,6 +15,7 @@ import re
 url = 'http://house.bffdc.gov.cn/public/project/presellCertList2.aspx'
 co_index = '36'
 city = '平顶山'
+count = 0
 
 
 class Pingdingshan(object):
@@ -37,28 +38,37 @@ class Pingdingshan(object):
 
     def get_comm_detail(self, comm_list):
         for i in comm_list:
-            comm = Comm(co_index)
-            comm_url = 'http://house.bffdc.gov.cn/public/project/' + i
-            response = requests.get(comm_url)
-            html = response.text
-            comm.co_name = re.search('PROJECT_XMMC">(.*?)<', html, re.S | re.M).group(1)
-            comm.co_develops = re.search('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M).group(1)
-            comm.co_address = re.search('PROJECT_XMDZ">(.*?)<', html, re.S | re.M).group(1)
-            comm.area = re.search('PROJECT_SZQY">(.*?)<', html, re.S | re.M).group(1)
-            comm.co_pre_sale = re.search('YSXKZH">(.*?)<', html, re.S | re.M).group(1)
-            comm.insert_db()
-            build_info = re.search('id="buildInfo".*?value="(.*?)"', html, re.S | re.M).group(1)
-            build_url_list = build_info.split(';;')
-            self.get_build_info(build_url_list, comm.co_name)
+            try:
+                comm = Comm(co_index)
+                comm_url = 'http://house.bffdc.gov.cn/public/project/' + i
+                response = requests.get(comm_url)
+                html = response.text
+                comm.co_name = re.search('PROJECT_XMMC">(.*?)<', html, re.S | re.M).group(1)
+                comm.co_develops = re.search('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M).group(1)
+                comm.co_address = re.search('PROJECT_XMDZ">(.*?)<', html, re.S | re.M).group(1)
+                comm.area = re.search('PROJECT_SZQY">(.*?)<', html, re.S | re.M).group(1)
+                comm.co_pre_sale = re.search('YSXKZH">(.*?)<', html, re.S | re.M).group(1)
+                comm.insert_db()
+                build_info = re.search('id="buildInfo".*?value="(.*?)"', html, re.S | re.M).group(1)
+                build_url_list = build_info.split(';;')
+                self.get_build_info(build_url_list, comm.co_name)
+                global count
+                count += 1
+                print(count)
+            except Exception as e:
+                print(e)
 
     def get_build_info(self, build_url_list, co_name):
         for i in build_url_list:
-            build = Building(co_index)
-            code = i.split(',,')
-            build.bu_num = code[1]
-            build.co_name = co_name
-            build.insert_db()
-            self.get_house_info(code, co_name)
+            try:
+                build = Building(co_index)
+                code = i.split(',,')
+                build.bu_num = code[1]
+                build.co_name = co_name
+                build.insert_db()
+                self.get_house_info(code, co_name)
+            except Exception as e:
+                print(e)
 
     def get_house_info(self, code, co_name):
         house_url = 'http://house.bffdc.gov.cn/Common/Agents/ExeFunCommon.aspx?'
@@ -72,11 +82,17 @@ class Pingdingshan(object):
         html = response.text
         info = re.findall("title='(.*?)'", html, re.S | re.M)
         for i in info:
-            house = House(co_index)
-            house.bu_num = code[1]
-            house.info = i
-            house.co_name = co_name
-            house.insert_db()
+            try:
+                house = House(co_index)
+                house.bu_num = code[1]
+                house.ho_name = re.search('房号：(.*?)\r\n', i).group(1)
+                house.ho_type = re.search('用途：(.*?)\r\n', i).group(1)
+                house.ho_room_type = re.search('户型：(.*?)\r\n', i).group(1)
+                house.ho_build_size = re.search('总面积：(.*?)\r\n', i).group(1)
+                house.co_name = co_name
+                house.insert_db()
+            except Exception as e:
+                print(e)
 
     def get_view_state(self, html):
         tree = etree.HTML(html)

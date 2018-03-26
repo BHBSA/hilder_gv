@@ -85,7 +85,7 @@ class Nanchang(object):
                 try:
                     house = House(co_index)
                     house_url = 'http://www.ncfdc.com.cn:5060/Module/BB/MyHouseInfo.aspx?bhid=' + house_code
-                    house.ho_num = 'NHOUSENO">(.*?)<'
+                    # house.ho_num = 'NHOUSENO">(.*?)<'
                     house.ho_name = 'VCHOUSENUM">(.*?)<'
                     house.co_build_structural = 'NHSTRUCTNO_bin">(.*?)<'
                     house.ho_floor = 'CLOCALNUM">(.*?)<'

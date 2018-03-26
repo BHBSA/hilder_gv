@@ -10,7 +10,7 @@ import requests
 from comm_info import Comm, Building, House
 import re
 
-url = 'http://www.ndjsj.gov.cn/House/listproject'
+url = 'http://221.2.144.162:8090/loupan_list.asp?area=&name='
 co_index = '52'
 city = '威海'
 
@@ -24,28 +24,34 @@ class Weihai(object):
 
     def start_crawler(self):
         for i in range(1, 47):
-            index_url = 'http://221.2.144.162:8090/loupan_list.asp?Page=' + str(i)
-            response = requests.get(index_url, headers=self.headers)
-            html = response.content.decode('gbk')
-            comm_url_list = re.findall('\[项目网站\] \[<a href=(.*?) target', html, re.S | re.M)
-            self.get_comm_info(comm_url_list)
+            try:
+                index_url = 'http://221.2.144.162:8090/loupan_list.asp?Page=' + str(i)
+                response = requests.get(index_url, headers=self.headers)
+                html = response.content.decode('gbk')
+                comm_url_list = re.findall('\[项目网站\] \[<a href=(.*?) target', html, re.S | re.M)
+                self.get_comm_info(comm_url_list)
+            except Exception as e:
+                print(e)
 
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
-            comm = Comm(co_index)
-            comm_url = 'http://221.2.144.162:8090/' + i
-            response = requests.get(comm_url, headers=self.headers)
-            html = response.content.decode('gbk')
-            comm.co_name = re.findall('项目名称：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.co_develops = re.findall('开 发 商：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.area = re.findall('城 &nbsp;&nbsp;&nbsp;区：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.co_type = re.findall('物业类型：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.co_address = re.findall('物业位置：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.co_build_size = re.findall('建筑面积：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
-            comm.insert_db()
-            build_url_list = re.findall("height=20.*?<a href=(.*?) ", html, re.S | re.M)
-            bu_pre_sale_list = re.findall("height=20.*?<Td>(.*?)<", html, re.S | re.M)
-            self.get_build_info(build_url_list, bu_pre_sale_list, comm.co_name)
+            try:
+                comm = Comm(co_index)
+                comm_url = 'http://221.2.144.162:8090/' + i
+                response = requests.get(comm_url, headers=self.headers)
+                html = response.content.decode('gbk')
+                comm.co_name = re.findall('项目名称：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.co_develops = re.findall('开 发 商：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.area = re.findall('城 &nbsp;&nbsp;&nbsp;区：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.co_type = re.findall('物业类型：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.co_address = re.findall('物业位置：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.co_build_size = re.findall('建筑面积：.*?<td.*?>(.*?)<', html, re.S | re.M)[0]
+                comm.insert_db()
+                build_url_list = re.findall("height=20.*?<a href=(.*?) ", html, re.S | re.M)
+                bu_pre_sale_list = re.findall("height=20.*?<Td>(.*?)<", html, re.S | re.M)
+                self.get_build_info(build_url_list, bu_pre_sale_list, comm.co_name)
+            except Exception as e:
+                print(e)
 
     def get_build_info(self, build_url_list, bu_pre_sale_list, co_name):
         for i in range(len(build_url_list)):
