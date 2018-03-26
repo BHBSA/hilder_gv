@@ -81,6 +81,8 @@ class Yantai(object):
         house_info_list = re.findall("title='(.*?)'", html, re.S | re.M)
         for i in house_info_list:
             house = House(co_index)
+            house.ho_name = re.search('房号：(.*?)单元', i, re.S | re.M).group(1)
+            house.ho_build_size = re.search('总面积：(.*?) 平方米', i, re.S | re.M).group(1)
             house.bu_id = bu_id
             house.info = i
             house.insert_db()
