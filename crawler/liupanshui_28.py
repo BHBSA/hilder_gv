@@ -14,6 +14,8 @@ url = 'http://www.lpsfdc.cn/Templets/LPS/aspx/ProjectList.aspx'
 co_index = '28'
 city = '六盘水'
 
+count = 0
+
 
 class Liupanshui(object):
     def __init__(self):
@@ -50,23 +52,30 @@ class Liupanshui(object):
                 co_pre_sale_list = re.findall('Pro_XKZH">(.*?)<', html, re.S | re.M)
                 co_all_house_list = re.findall('TJ_HZYSTS">(.*?)<', html, re.S | re.M)
                 for i in range(0, len(co_name_list)):
-                    comm.co_name = co_name_list[i]
-                    comm.co_id = co_id_list[i]
-                    comm.co_develops = co_develops_list[i]
-                    comm.co_build_size = co_build_size_list[i]
-                    comm.co_address = co_address_list[i]
-                    comm.co_owner = co_owner_list[i]
-                    comm.co_pre_sale = co_pre_sale_list[i]
-                    comm.co_all_house = co_all_house_list[i]
-                    comm.insert_db()
-                build_url_list = re.findall("radiobuild' id='build(.*?)'", html, re.S | re.M)
-                build_name_list = re.findall("radiobuild.*?<span.*?>(.*?)<", html, re.S | re.M)
-                for i in range(0, len(build_url_list)):
-                    build = Building(co_index)
-                    build.bu_id = build_url_list[i]
-                    build.bu_num = build_name_list[i]
-                    build.co_id = co_id_list[0]
-                self.get_build_info(build_url_list)
+                    try:
+                        comm.co_name = co_name_list[i]
+                        comm.co_id = co_id_list[i]
+                        comm.co_develops = co_develops_list[i]
+                        comm.co_build_size = co_build_size_list[i]
+                        comm.co_address = co_address_list[i]
+                        comm.co_owner = co_owner_list[i]
+                        comm.co_pre_sale = co_pre_sale_list[i]
+                        comm.co_all_house = co_all_house_list[i]
+                        comm.insert_db()
+                        global count
+                        count += 1
+                        print(count)
+                    except Exception as e:
+                        print(e)
+                    build_url_list = re.findall("radiobuild' id='build(.*?)'", html, re.S | re.M)
+                    build_name_list = re.findall("radiobuild.*?<span.*?>(.*?)<", html, re.S | re.M)
+                    for i in range(0, len(build_url_list)):
+                        build = Building(co_index)
+                        build.bu_id = build_url_list[i]
+                        build.bu_num = build_name_list[i]
+                        build.co_id = co_id_list[0]
+                        build.insert_db()
+                    self.get_build_info(build_url_list)
             except Exception as e:
                 print(e)
 
