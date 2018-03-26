@@ -31,10 +31,13 @@ class Shenyang(Crawler):
             con_html = etree.HTML(res.text)
             html = con_html.xpath("//table[@bgcolor='#a4abb5']//tr")[1:-1]
             for tag in html:
-                build_all_url,co_id = self.comm(tag)
-                res = requests.get(build_all_url,headers=self.headers)
+                try:
+                    build_all_url,co_id = self.comm(tag)
+                    res = requests.get(build_all_url,headers=self.headers)
 
-                self.build(res,co_id)
+                    self.build(res,co_id)
+                except:
+                    continue
 
     def comm(self,tag):
         co = Comm(co_index)
@@ -53,12 +56,15 @@ class Shenyang(Crawler):
         h = etree.HTML(res.text)
         bu_info = h.xpath("//table[@width='739']//td[@align='left']")
         for buil in bu_info:
-            bu.co_id = co_id
-            bu.bu_address = buil.xpath("./a/text()")[0]
-            house_url = buil.xpath("./a/@href")[0]
-            bu.bu_id = re.search('houseid=(\d+)&',house_url).group(1)
+            try:
+                bu.co_id = co_id
+                bu.bu_address = buil.xpath("./a/text()")[0]
+                house_url = buil.xpath("./a/@href")[0]
+                bu.bu_id = re.search('houseid=(\d+)&',house_url).group(1)
 
-            bu.insert_db()
+                bu.insert_db()
+            except:
+                continue
             self.house(house_url,bu.bu_id,co_id)
 
     def house(self,house_url,bu_id,co_id):
