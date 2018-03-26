@@ -38,8 +38,7 @@ class Xinyu(object):
             if i is 1:
                 all_page_url = 'http://www.xyfcj.com/html/jplp/index.html'
             else:
-                all_page_url = 'http://www.xyfcj.com/html/jplp/index_' + str(i)
-                '.html'
+                all_page_url = 'http://www.xyfcj.com/html/jplp/index_' + str(i) + '.html'
             response = requests.get(all_page_url, headers=self.headers)
             html = response.text
             comm_url_list = re.findall('<a style="COLOR: #000000" target="_blank" href="(.*?)"', html, re.S | re.M)
@@ -85,6 +84,10 @@ class Xinyu(object):
         house_info_list = re.findall("onclick=.g_oBuildTable.clickRoom.*? title='(.*?)'", html, re.S | re.M)
         for i in house_info_list:
             house = House(co_index)
+            house.ho_name = re.search('房号：(.*?)单元：', i, re.S | re.M).group(1)
+            house.ho_build_size = re.search('总面积：(.*?)平方米', i, re.S | re.M).group(1)
+            house.ho_type = re.search('用途：(.*?)户型', i, re.S | re.M).group(1)
+            house.ho_room_type = re.search('户型：(.*?)状态', i, re.S | re.M).group(1)
             house.info = i
             house.bu_id = bu_id
             house.insert_db()

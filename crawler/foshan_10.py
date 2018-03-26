@@ -12,6 +12,7 @@ from lxml import etree
 from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
+import json
 
 
 class Foshan(Crawler):
@@ -76,16 +77,22 @@ class Foshan(Crawler):
             # building_url_list = tree.xpath('//p[@class="bot-a"]/a')
             bu_url_info = re.search('<pclass="bot-a">(.*?)</p>', html_).group(1)
             building_url_list = re.findall('<td><aid="(.*?)"(.*?)>(.*?)</a>', bu_url_info)
+
             for i in building_url_list:
                 try:
                     build = Building(10)
                     value = i[0]
                     bu_name = i[2]
                     url = 'http://fsfc.fsjw.gov.cn/hpms_project/room.jhtml?id=' + value
+                    floor_url = "http://fsfc.fsjw.gov.cn/hpms_project/roomtj.jhtml?id=" + value
+                    res = requests.get(floor_url,headers=self.headers)
+                    bu_floor = json.loads(res.text)
+                    build.bu_floor = bu_floor["zcs"]
                     self.get_build_info(url, co_id, value)
                     build.co_id = co_id
                     build.bu_id = value
                     build.bu_name = bu_name
+
                     build.insert_db()
                 except Exception as e:
                     continue

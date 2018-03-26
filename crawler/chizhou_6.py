@@ -42,6 +42,7 @@ class Chizhou(Crawler):
     @retry(retry(3))
     def start(self):
         page = self.get_all_page()
+        count = 0
         for i in range(1, int(page) + 1):
             try:
                 url = 'http://www.czfdc.gov.cn/spf/gs.php?pageid=' + str(i)
@@ -49,12 +50,20 @@ class Chizhou(Crawler):
                 html = response.content.decode('gbk')
                 tree = etree.HTML(html)
                 comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
+
                 for i in comm_url_list:
-                    comm = Comm(6)
-                    comm_url = 'http://www.czfdc.gov.cn/spf/' + i
-                    self.get_comm_info(comm_url, comm)
+                    try:
+                        count += 1
+                        print(count)
+                        comm = Comm(6)
+                        comm_url = 'http://www.czfdc.gov.cn/spf/' + i
+                        self.get_comm_info(comm_url, comm)
+                    except Exception as e:
+                        continue
             except Exception as e:
                 print(e)
+                continue
+
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):

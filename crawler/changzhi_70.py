@@ -74,20 +74,24 @@ class Changzhi(object):
                 build_url = 'http://www.sxczfdc.com/pubinfo/' + i
                 response = requests.get(build_url, headers=self.headers)
                 html = response.text
-                build_detail_url = re.findall('(Pub_dtxx.aspx\?ProjectBuildingID=.*?)"', html, re.S | re.M)[0]
-                build_url_detail = 'http://www.sxczfdc.com/pubinfo/' + build_detail_url
-                result = requests.get(build_url_detail, headers=self.headers)
-                content = result.text
-                build.bu_num = re.findall('BuildingInfo1_lblBuildingName">(.*?)<', content, re.S | re.M)[0]
-                build.bu_all_house = re.findall('BuildingInfo1_lblZts">(.*?)<', content, re.S | re.M)[0]
-                build.bu_floor = re.findall('BuildingInfo1_lblZcs">(.*?)<', content, re.S | re.M)[0]
-                build.bu_build_size = re.findall('BuildingInfo1_lblJzmj">(.*?)<', content, re.S | re.M)[0]
-                build.bu_live_size = re.findall('BuildingInfo1_lblZzmj">(.*?)<', content, re.S | re.M)[0]
-                build.bu_pre_sale = re.findall('BuildingInfo1_lblYsxkzh">(.*?)<', content, re.S | re.M)[0]
-                build.bu_pre_sale_date = re.findall('BuildingInfo1_lblYsxkzfzrq">(.*?)<', content, re.S | re.M)[0]
-                build.insert_db()
-                house_url_list = re.findall("onClick=.getMoreHouseInfo\('(.*?)'\)", content, re.S | re.M)
-                self.get_house_info(house_url_list, co_name, build.bu_num)
+                # build_detail_url = re.findall('(Pub_dtxx.aspx\?ProjectBuildingID=.*?)"', html, re.S | re.M)[0]
+                for k in re.findall('(Pub_dtxx.aspx\?ProjectBuildingID=.*?)"', html, re.S | re.M):
+                    try:
+                        build_url_detail = 'http://www.sxczfdc.com/pubinfo/' + k
+                        result = requests.get(build_url_detail, headers=self.headers)
+                        content = result.text
+                        build.bu_num = re.findall('BuildingInfo1_lblBuildingName">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_all_house = re.findall('BuildingInfo1_lblZts">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_floor = re.findall('BuildingInfo1_lblZcs">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_build_size = re.findall('BuildingInfo1_lblJzmj">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_live_size = re.findall('BuildingInfo1_lblZzmj">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_pre_sale = re.findall('BuildingInfo1_lblYsxkzh">(.*?)<', content, re.S | re.M)[0]
+                        build.bu_pre_sale_date = re.findall('BuildingInfo1_lblYsxkzfzrq">(.*?)<', content, re.S | re.M)[0]
+                        build.insert_db()
+                        house_url_list = re.findall("onClick=.getMoreHouseInfo\('(.*?)'\)", content, re.S | re.M)
+                        self.get_house_info(house_url_list, co_name, build.bu_num)
+                    except Exception as e:
+                        print(e)
             except Exception as e:
                 print(e)
 

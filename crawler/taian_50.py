@@ -44,6 +44,8 @@ class Taian(Crawler):
                 c.co_owner = re.search('所有权证号：.*?left">(.*?)</td>', html_str, re.S | re.M).group(1)
                 c.co_land_use = re.search('土地使用权证：.*?left">(.*?)</td>', html_str, re.S | re.M).group(1)
                 c.co_land_type = re.search('土地权证类型：.*?left">(.*?)</td>', html_str, re.S | re.M).group(1)
+                print(c.co_name)
+                continue
                 c.insert_db()
 
                 # 找到楼栋
@@ -93,17 +95,17 @@ class Taian(Crawler):
                     'pageNo': i
                 }
                 res = requests.post(url=url, data=data, headers=self.headers)
-                print(res.content.decode())
+                # print(res.content.decode())
                 html_str = res.content.decode()
                 page_url_list = []
                 for k in re.findall('<tr onmouseover.*?</tr>', html_str, re.S | re.M):
                     try:
                         area = re.search('<div.*?>(.*?)</div>', k, re.S | re.M).group(1)
                         href = re.findall("projectInfo\('(.*?)','(.*?)'\)", k, re.S | re.M)
-                        url = mosaic + 'id=' + href[0][0] + '&cid=' + href[0][1]
+                        url_ = mosaic + 'id=' + href[0][0] + '&cid=' + href[0][1]
                         area_url_dict = {
                             'area': area,
-                            'url': url
+                            'url': url_
                         }
                         page_url_list.append(area_url_dict)
                     except Exception as e:

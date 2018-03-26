@@ -109,7 +109,7 @@ class Huzhou(Crawler):
                     house_res = requests.get(house_url,headers=self.headers)
                     house_html = house_res.text
 
-
+                    ho.bu_id = re.search('house_\d+_(\d+)_',house_url_list[index]).group(1)
                     ho.co_id = re.search('楼盘主页.*?_\d+_(\d+)_info',house_html).group(1) # 小区id
                     ho.ho_name = re.search('<title>.*?\d+ (\d+)号',house_html).group(1)  # 房号：3单元403
                     # ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
