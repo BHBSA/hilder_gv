@@ -10,7 +10,7 @@ import requests
 from comm_info import Comm, Building, House
 import re
 
-url = 'http://www.ndjsj.gov.cn/House/listproject'
+url = 'http://221.2.144.162:8090/loupan_list.asp?area=&name='
 co_index = '52'
 city = '威海'
 
@@ -24,11 +24,14 @@ class Weihai(object):
 
     def start_crawler(self):
         for i in range(1, 47):
-            index_url = 'http://221.2.144.162:8090/loupan_list.asp?Page=' + str(i)
-            response = requests.get(index_url, headers=self.headers)
-            html = response.content.decode('gbk')
-            comm_url_list = re.findall('\[项目网站\] \[<a href=(.*?) target', html, re.S | re.M)
-            self.get_comm_info(comm_url_list)
+            try:
+                index_url = 'http://221.2.144.162:8090/loupan_list.asp?Page=' + str(i)
+                response = requests.get(index_url, headers=self.headers)
+                html = response.content.decode('gbk')
+                comm_url_list = re.findall('\[项目网站\] \[<a href=(.*?) target', html, re.S | re.M)
+                self.get_comm_info(comm_url_list)
+            except Exception as e:
+                print(e)
 
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
