@@ -11,6 +11,7 @@ import requests
 from comm_info import Comm, Building, House
 from lxml import etree
 import re
+from urllib import parse
 
 url = 'http://www.nhfg.cn/webhouseinfo/ItemSearch/ItemSearch.aspx'
 co_index = '35'
@@ -93,31 +94,32 @@ class Ninghai(object):
             result = requests.get(zu_house_url, headers=self.headers).text
             house.info = re.search('ItemName.*?>(.*?)<', result).group(1).strip()
             ho_name_list = re.findall("OnClick=.__doPostBack\(.*?,'(.*?)'\)", result, re.S | re.M)
-            self.get_house_detail(ho_name_list)
+            view_ = re.search('id="__VIEWSTATE.*?value="(.*?)" />', result, re.S | re.M).group(1)
+            self.get_house_detail(ho_name_list, view_)
         except Exception as e:
             print(e)
 
-    def get_house_detail(self, ho_name_list):
+    def get_house_detail(self, ho_name_list, view_):
         for i in ho_name_list:
-            s = requests.session()
+            # s = requests.session()
             code = i.replace('amp;', '')
+
             data = {
-                '__VIEWSTATE': '',
+                '__VIEWSTATE': view_,
                 '__VIEWSTATEGENERATOR': 'C5D03DD7',
                 '__EVENTTARGET': 'WebChessTabForSqlCtl1',
-                '__EVENTARGUMENT': code,
-                'WebChessTabForSqlCtl1': ''
+                '__EVENTARGUMENT': parse.quote(code,encoding='utf8'),
+                'WebChessTabForSqlCtl1': None
             }
-            result = s.post('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomLoad.aspx?153', data=data,
+            result = requests.post('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomLoad.aspx?153', data=data,
                             headers=self.headers)
             s_id = result.cookies.get_dict()['NHREMO_SessionId']
             data2 = {
-                'Referer': 'http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomLoad.aspx?153',
                 'Cookie': 'NHREMO_SessionId=' + s_id,
             }
-            response = s.get('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomInfo.aspx', data=data2,
-                             headers=self.headers)
-            html = response.text
+            response = requests.get('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomInfo.aspx',
+                                    headers=data2)
+            html = response.content.decode('gb2312')
 
     def get_view_state(self, html):
         tree = etree.HTML(html)
