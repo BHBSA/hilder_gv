@@ -76,7 +76,7 @@ class Yingtai(Crawler):
         res = requests.get(self.url, )
         html = res.content.decode('gbk')
         url_list = []
-        for i in re.findall('href="(/website/search/.*?")', html, re.S | re.M):
+        for i in re.findall('href="(/website/search/.*?)"', html, re.S | re.M):
             url_list.append(self.url_source + i)
         url_list.append(self.url)
         return url_list
