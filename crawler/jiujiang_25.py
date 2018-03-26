@@ -77,8 +77,6 @@ class Jiujiang(Crawler):
             ho_floor = re.findall('<FORC>(.*?)</FORC>',html_,re.S|re.M)
             ho_true_size = re.findall('<PAREA>(.*?)</PAREA>',html_,re.S|re.M)
 
-
-
             for index in range(len(ho_name_list)):
                 try:
                     house.bu_id = build.bu_id
@@ -91,6 +89,7 @@ class Jiujiang(Crawler):
                     house.insert_db()
                 except:
                     continue
+
 
 
 

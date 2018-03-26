@@ -112,7 +112,7 @@ class Huzhou(Crawler):
                     ho.bu_id = re.search('house_\d+_(\d+)_',house_url_list[index]).group(1)
                     ho.co_id = re.search('楼盘主页.*?_\d+_(\d+)_info',house_html).group(1) # 小区id
                     ho.ho_name = re.search('<title>.*?\d+ (\d+)号',house_html).group(1)  # 房号：3单元403
-                    ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
+                    # ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
 
                     ho.ho_type = re.search('房屋用途：.*?>(.*?)<',house_html).group(1)  # 房屋类型：普通住宅 / 车库仓库
                     ho.ho_floor = re.search('第-(\d+)层',house_html).group(1)

@@ -124,7 +124,7 @@ class Fuzhou(Crawler):
             for i in house_info_list:
                 try:
                     house = House(11)
-                    ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
+                    # ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
                     ho_name = i.xpath('ROOM_NUMBER/text()')[0]
                     ho_build_size = i.xpath('BUILD_AREA/text()')[0]
                     ho_true_size = i.xpath('BUILD_AREA_INSIDE/text()')[0]
@@ -137,7 +137,7 @@ class Fuzhou(Crawler):
                     house.ho_true_size = ho_true_size
                     house.ho_share_size = ho_share_size
                     house.ho_floor = ho_floor
-                    house.ho_num = ho_num
+                    # house.ho_num = ho_num
                     house.ho_name = ho_name
                     house.ho_type = ho_type
                     house.insert_db()

@@ -58,7 +58,7 @@ class Yingtai(Crawler):
                                     try:
                                         h = House(self.co_index)
                                         h.info = final_html
-                                        h.ho_num = l
+                                        h.ho_name = l
                                         h.co_name = re.search('html">(.*?)</a>', k, re.S | re.M).group(1)
                                         h.bu_num = re.search('="absmiddle"  />(.*?)</a></strong></', j,
                                                              re.S | re.M).group(1)
