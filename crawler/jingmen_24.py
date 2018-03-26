@@ -96,12 +96,12 @@ class Jingmen(object):
                 response = requests.get(build_url)
                 html = response.text
                 bu_id = re.search('lzbm=(.*?)&', build_url).group(1)
-                ho_num_list = re.findall('width="35%".*?房号:.*?<TD.*?>(.*?)<', html)
+                ho_name_list = re.findall('width="35%".*?房号:.*?<TD.*?>(.*?)<', html)
                 ho_true_size_list = re.findall('width="35%".*?房号:.*?<TD.*?<TD.*?<TD.*?>(.*?)<', html)
                 ho_type_list = re.findall('width="35%".*?房号:.*?<font.*?<TD.*?<TD.*?>(.*?)<', html)
-                for i in range(0, len(ho_num_list)):
+                for i in range(0, len(ho_name_list)):
                     house = House(co_index)
-                    house.ho_num = ho_num_list[i]
+                    house.ho_name = ho_name_list[i]
                     house.ho_true_size = ho_true_size_list[i]
                     house.ho_type = ho_type_list[i]
                     house.bu_id = bu_id

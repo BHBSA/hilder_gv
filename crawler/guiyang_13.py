@@ -47,7 +47,7 @@ class Guiyang(Crawler):
         for i in house_url_list:
             h = House(co_index)
             h.bu_id = 'yszh=(.*?)".*?id'
-            h.ho_num = 'span class=\'.*?>(.*?)<'
+            h.ho_name = 'span class=\'.*?>(.*?)<'
             h.info = 'title=\'(.*?)\'>.*?<span'
 
             data_list = h.to_dict()

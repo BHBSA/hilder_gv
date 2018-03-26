@@ -111,7 +111,7 @@ class Foshan(Crawler):
                 try:
                     house = House(10)
                     ho_name = i['roomno']  # 房号
-                    ho_num = i['code']  # 房号id
+                    # ho_num = i['code']  # 房号id
                     ho_room_type = i['ghyt']  # 户型
                     ho_true_size = i['tnmj']  # 预测套内面积
                     ho_floor = i['floorindex']  # 楼层
@@ -119,7 +119,7 @@ class Foshan(Crawler):
                     house.co_id = co_id
                     house.bu_id = bu_id
                     house.ho_name = ho_name
-                    house.ho_num = ho_num
+                    # house.ho_num = ho_num
                     house.ho_room_type = ho_room_type
                     house.ho_true_size = ho_true_size
                     house.ho_floor = ho_floor

@@ -113,7 +113,7 @@ class Hangzhou(Crawler):
                 house.co_build_size = 'builtuparea":(.*?),'
                 house.ho_price = 'declarationofroughprice":(.*?),'
                 house.ho_name = 'houseno":(.*?),'
-                house.ho_num = 'houseid":(.*?),'
+                # house.ho_num = 'houseid":(.*?),'
                 house.ho_true_size = 'setinsidefloorarea":(.*?),'
                 house.ho_share_size = 'poolconstructionarea":(.*?),'
                 house.ho_type = 'houseusage":(.*?),'

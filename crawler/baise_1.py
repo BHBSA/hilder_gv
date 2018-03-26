@@ -225,7 +225,7 @@ class Baise(Crawler):
             res = requests.get(url=house_url, headers=self.headers)
             html = res.content.decode('gb2312', 'ignore')
             tree = etree.HTML(html)
-            ho_num = tree.xpath('//td[@width="82"]/text()')[0]  # 房号
+            ho_name = tree.xpath('//td[@width="82"]/text()')[0]  # 房号
             ho_floor = tree.xpath('//td[@width="72"]/text()')[0]  # 楼层
             ho_type = tree.xpath('//tr[3]/td[@bgcolor="#FFFFEE"][2]/text()')[0]  # 房屋类型
             ho_room_type = tree.xpath('//tr[3]/td[@bgcolor="#FFFFEE"][4]/text()')[0]  # 户型
@@ -240,7 +240,7 @@ class Baise(Crawler):
                 return house
             house.co_id = co_id
             house.bu_id = bu_id
-            house.ho_num = ho_num
+            house.ho_num = ho_name
             house.ho_floor = ho_floor
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type
@@ -254,7 +254,3 @@ class Baise(Crawler):
             print(e)
             print('retry')
 
-
-if __name__ == '__main__':
-    b = Baise()
-    b.baise_start()

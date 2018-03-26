@@ -66,7 +66,7 @@ class Jiujiang(Crawler):
 
             house = House(co_index)
             ho_name_list = re.findall('<ONAME>(.*?)</ONAME>', html_, re.S | re.M)
-            ho_id_list = re.findall('<OSEQ>(.*?)</OSEQ>',html_,re.S|re.M)
+            # ho_id_list = re.findall('<OSEQ>(.*?)</OSEQ>',html_,re.S|re.M)
             ho_buil_size = re.findall('<BAREA>(.*?)</BAREA>',html_,re.S|re.M)
             ho_floor = re.findall('<FORC>(.*?)</FORC>',html_,re.S|re.M)
             ho_true_size = re.findall('<PAREA>(.*?)</PAREA>',html_,re.S|re.M)
@@ -75,7 +75,7 @@ class Jiujiang(Crawler):
                 house.bu_id = build.bu_id
                 house.bu_num = build.bu_num
                 house.ho_name = ho_name_list[index]
-                house.ho_num = ho_id_list[index]
+                # house.ho_num = ho_id_list[index]
                 house.ho_build_size = ho_buil_size[index]
                 house.ho_floor = ho_floor[index]
                 house.ho_true_size = ho_true_size[index]

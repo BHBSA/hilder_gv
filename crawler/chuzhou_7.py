@@ -148,7 +148,7 @@ class Chuzhou(Crawler):
             if response.status_code is not 200:
                 return
             # 房号id
-            ho_num = re.search('室号<(.*?)<(.*?)>(.*?)<', html).group(3)
+            ho_name = re.search('室号<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 房屋类型
             ho_type = re.search('房屋类型<(.*?)<(.*?)>(.*?)<', html).group(3)
             # 户型
@@ -164,7 +164,7 @@ class Chuzhou(Crawler):
             ho_share_size = re.search('预测分摊面积<(.*?)<(.*?)>(.*?)<', html).group(3)
             house.co_id = co_id
             house.bu_id = building_id
-            house.ho_num = ho_num
+            house.ho_name = ho_name
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type
             house.ho_floor = ho_floor

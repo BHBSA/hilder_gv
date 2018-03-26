@@ -82,7 +82,7 @@ class Yichang(Crawler):
                     res = requests.get(room_url,headers=self.headers)
                     dict = json.loads(res.text)
                     ho.bu_id = id
-                    ho.ho_num = room_id
+                    # ho.ho_num = room_id
                     ho.ho_name = dict["data"]["houseNo"]
                     ho.ho_build_size = dict["data"]["buildArea"]
                     ho.ho_true_size = dict["data"]["jacketArea"]
