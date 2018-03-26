@@ -8,7 +8,6 @@ CO_INDEX : 33
 
 import requests
 from lxml import etree
-from producer import ProducerListUrl
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 from retry import retry
@@ -55,8 +54,10 @@ class Ningbo(object):
                 comm.co_address = re.findall('项目地址：.*?<td.*?>(.*?)<', html, re.S | re.M)[0].strip()
                 comm.co_develops = re.findall('开发公司：.*?<td.*?>(.*?)<', html, re.S | re.M)[0].strip()
                 comm.co_pre_sale = re.findall('预\(现\)售证名称：.*?<td.*?>(.*?)<', html, re.S | re.M)[0].strip()
-                comm.co_build_size = re.findall('纳入网上可售面积：.*?<img.*?>(.*?)<', html, re.S | re.M)[0].strip()
-                comm.co_all_house = re.findall('纳入网上可售套数：.*?<img.*?>(.*?)<', html, re.S | re.M)[0].strip()
+                comm.co_build_size = re.findall('纳入网上可售面积：.*?<img.*?>(.*?)<', html, re.S | re.M)[0].replace('m&sup2;',
+                                                                                                            '').strip()
+                comm.co_all_house = re.findall('纳入网上可售套数：.*?<img.*?>(.*?)<', html, re.S | re.M)[0].replace('套',
+                                                                                                           '').strip()
                 comm.area = re.findall('所在区县：.*?<td.*?>(.*?)<', html, re.S | re.M)[0].strip()
                 comm.co_id = re.findall('mobanshow.aspx\?projectid=(.*?)"', html, re.S | re.M)[0].strip()
                 comm.insert_db()
