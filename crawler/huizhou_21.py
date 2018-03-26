@@ -11,7 +11,6 @@ from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 from producer import ProducerListUrl
 import re, requests
-from urllib import parse
 from tool import Tool
 
 url = 'http://113.106.199.148/web/presale.jsp?page=1'
@@ -63,18 +62,22 @@ class Huizhou(Crawler):
     def get_house_info(self, house_all_list, bu_id_list):
         count = 0
         for i in bu_id_list:
-            house = House(co_index)
-            house_url = house_all_list[count]
-            count += 1
-            response = requests.post(house_url)
-            html = response.content.decode('gbk')
-            house.bu_id = i
-            house.ho_floor = re.search('所在楼层：.*?<td>(.*?)<', html, re.M | re.S).group(1)
-            house.ho_name = re.search('房号：.*?<td>(.*?)<', html, re.M | re.S).group(1)
-            house.ho_build_size = re.search('预测总面积：.*?<td>(.*?)<', html, re.M | re.S).group(1)
-            house.ho_true_size = re.search('预测套内面积.*?<td>(.*?)<', html, re.M | re.S).group(1)
-            house.ho_share_size = re.search('预测套内面积.*?<td>(.*?)<', html, re.M | re.S).group(1)
-            house.insert_db()
+            try:
+                house = House(co_index)
+                house_url = house_all_list[count]
+                count += 1
+                print(count)
+                response = requests.post(house_url, headers=self.headers)
+                html = response.content.decode('gbk')
+                house.bu_id = i
+                house.ho_floor = re.search('所在楼层：.*?<td>(.*?)<', html, re.M | re.S).group(1)
+                house.ho_name = re.search('房号：.*?<td>(.*?)<', html, re.M | re.S).group(1)
+                house.ho_build_size = re.search('预测总面积：.*?<td>(.*?)<', html, re.M | re.S).group(1)
+                house.ho_true_size = re.search('预测套内面积.*?<td>(.*?)<', html, re.M | re.S).group(1)
+                house.ho_share_size = re.search('预测套内面积.*?<td>(.*?)<', html, re.M | re.S).group(1)
+                house.insert_db()
+            except Exception as e:
+                print(e)
 
     def get_build_info(self, all_build_url_list):
         p = ProducerListUrl(page_url=all_build_url_list,
@@ -99,19 +102,19 @@ class Huizhou(Crawler):
     def get_comm_info(self, all_comm_url_list):
         c = Comm(co_index)
         c.co_id = 'jectcode=(.*?)"'
-        c.co_name = "项目名称：</th>.*?<td.*?>(.*?)<"
-        c.co_address = '项目地址：</th>.*?<td.*?>(.*?)<'
-        c.co_develops = '开发企业：</th>.*?<td.*?>(.*?)<'
-        c.co_pre_sale = '资质证书编号：</th>.*?<td.*?>(.*?)<'
-        c.co_owner = '国土证书：</th>.*?<td.*?>(.*?)<'
+        c.co_name = "项目名称：.*?<td.*?>(.*?)<"
+        c.co_address = '项目地址：.*?<td.*?>(.*?)<'
+        c.co_develops = '开发企业：.*?<td.*?>(.*?)<'
+        c.co_pre_sale = '资质证书编号：.*?<td.*?>(.*?)<'
+        c.co_owner = '国土证书：.*?<td.*?>(.*?)<'
         c.co_build_structural = '<td align="center">.*?center.*?center">(.*?)<.*?center'
         c.area = '行政区划：</th>.*?<td.*?>(.*?)<'
         b = Building(co_index)
         b.co_id = 'jectcode=(.*?)"'
         b.bu_id = 'buildingcode=(.*?)&'
         b.bu_floor = 'center.*?center.*?center.*?center.*?center">(.*?)<.*?"center'
-        b.bu_all_house = 'center.*?center.*?center.*?center(.*?)center">.*?<.*?"center'
-        b.bu_num = 'center.*?center(.*?)center.*?center.*?center">.*?<.*?"center'
+        b.bu_all_house = 'center.*?center.*?center.*?center">(.*?)<.*?center">.*?<.*?"center'
+        b.bu_num = 'center.*?center">(.*?)<.*?center.*?center.*?center">.*?<.*?"center'
         data_list_comm = c.to_dict()
         p_comm = ProducerListUrl(page_url=all_comm_url_list,
                                  request_type='get', encode='gbk',
