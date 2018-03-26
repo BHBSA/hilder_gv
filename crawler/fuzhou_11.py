@@ -89,15 +89,17 @@ class Fuzhou(Crawler):
                 try:
                     build = Building(11)
                     # 楼栋名称
-                    bu_name = i.xpath('string(td[1])')
+                    bu_name = i.xpath('string(td[1])')[0]
+                    bu_all_house = i.xpath('td[2]/text()')[0]
                     # 楼栋id
                     bu_id = i.xpath('td[1]/strong/a/@href')[0]
                     bu_id = re.search('building_id=(.*?)$', bu_id).group(1)
                     # 建筑面积
                     bu_build_size = i.xpath('string(td[3])').replace('�O', '')
-                    self.get_build_info(bu_id, co_id)
+                    # self.get_build_info(bu_id, co_id)
                     build.co_id = co_id
                     build.bu_id = bu_id
+                    build.bu_all_house = bu_all_house
                     build.bu_name = bu_name
                     build.bu_build_size = bu_build_size
                     build.insert_db()
