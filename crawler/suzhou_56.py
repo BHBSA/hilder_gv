@@ -82,7 +82,7 @@ class Suzhou(object):
             house.area = 'Labelxzq">(.*?)<'
             house.bu_num = 'Labeldongmc">(.*?)<'
             house.ho_type = 'Labelyxyongtu">(.*?)<'
-            house.ho_name = 'Labelroommc.*?<font.*?>(.*?)<'
+            house.ho_name = '<span id="Labelroommc".*?>(.*?)</span>'
             house.ho_build_size = 'Labeljzmianji">(.*?)<'
             house.ho_true_size = 'Labeltaonei">(.*?)<'
             house.ho_share_size = 'Labelgongtan">(.*?)<'
