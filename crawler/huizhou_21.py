@@ -107,11 +107,11 @@ class Huizhou(Crawler):
         c.co_develops = '开发企业：.*?<td.*?>(.*?)<'
         c.co_pre_sale = '资质证书编号：.*?<td.*?>(.*?)<'
         c.co_owner = '国土证书：.*?<td.*?>(.*?)<'
-        c.co_build_structural = '<td align="center">.*?center.*?center">(.*?)<.*?center'
         c.area = '行政区划：</th>.*?<td.*?>(.*?)<'
         b = Building(co_index)
         b.co_id = 'jectcode=(.*?)"'
         b.bu_id = 'buildingcode=(.*?)&'
+        b.co_build_structural = '<td align="center">.*?center.*?center">(.*?)<.*?center.*?center.*?center'
         b.bu_floor = 'center.*?center.*?center.*?center.*?center">(.*?)<.*?"center'
         b.bu_all_house = 'center.*?center.*?center.*?center">(.*?)<.*?center">.*?<.*?"center'
         b.bu_num = 'center.*?center">(.*?)<.*?center.*?center.*?center">.*?<.*?"center'
