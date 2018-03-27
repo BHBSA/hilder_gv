@@ -66,16 +66,17 @@ class Weihai(object):
                 build.bu_address = re.findall('坐落位置：</b>(.*?)<', html, re.S | re.M)[0]
                 build.insert_db()
                 ho_url_list = re.findall('background-.*?href=(.*?) ', html, re.S | re.M)
-                for i in ho_url_list:
+                ho_name_list = re.findall('background-color.*?<a.*?>(.*?)<', html, re.S | re.M)
+                for i in range(len(ho_url_list)):
                     try:
                         house = House(co_index)
-                        house_url = 'http://221.2.144.162:8090' + i
-                        result = requests.get(house_url, headers=self.headers).text
+                        house_url = 'http://221.2.144.162:8090/' + ho_url_list[i]
+                        result = requests.get(house_url, headers=self.headers).content.decode('gbk')
                         house.ho_type = re.findall('用&nbsp;&nbsp;&nbsp;途：.*?<td.*?>(.*?)<', result, re.S | re.M)[0]
                         house.ho_build_size = re.findall('建筑面积：.*?<td>(.*?)<', result, re.S | re.M)[0]
                         house.bu_num = build.bu_num
                         house.co_name = co_name
-                        house.ho_name = i
+                        house.ho_name = ho_name_list[i]
                         house.insert_db()
                     except Exception as e:
                         print(e)
