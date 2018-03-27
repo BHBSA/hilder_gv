@@ -82,6 +82,7 @@ class Changshu(Crawler):
                             co.co_all_house = re.findall('#eff6ff">(.*?)</td>', comm_con, re.S | re.M)[0]
                             co.area = re.search('所属区域.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
                             co.insert_db()
+                            print(co.co_name)
                         except:
                             continue
                         self.build_crawler(co.co_id, co.co_name, comm_con)
