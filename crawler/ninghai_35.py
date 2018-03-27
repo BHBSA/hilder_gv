@@ -23,13 +23,14 @@ class Ninghai(object):
             'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36',
         }
+        self.s = requests.session()
 
     def start_crawler(self):
         all_comm_url_dict = {
             'area_list': [],
             'comm_url_list': []
         }
-        response = requests.get(url=url)
+        response = self.s.get(url=url)
         html = response.text
         comm_url_list = re.findall("</font></td><td align=.center. width=.100.><font color=.#000066.>.*?href='(.*?)'",
                                    html, re.S | re.M)
@@ -51,7 +52,7 @@ class Ninghai(object):
             comm = Comm(co_index)
             comm.area = area.strip()
             comm_url = comm_url.replace('..', '')
-            response = requests.get(comm_url)
+            response = self.s.get(comm_url)
             html = response.text
             comm.co_name = re.findall('项目名称：.*?<TD.*?><FONT.*?>(.*?)<', html, re.S | re.M)[0].strip()
             comm.co_address = re.findall('项目地址：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0].strip()
@@ -71,7 +72,7 @@ class Ninghai(object):
                 build = Building(co_index)
                 build.co_id = co_id
                 bu_url = 'http://www.nhfg.cn/webhouseinfo/ItemList/' + i
-                response = requests.get(bu_url)
+                response = self.s.get(bu_url)
                 html = response.text
                 build.bu_num = \
                     re.findall('<TD style="WIDTH: 471px" colSpan="11"><FONT style="COLOR: white" face="宋体">(.*?)<',
@@ -90,34 +91,40 @@ class Ninghai(object):
             house = House(co_index)
             house.bu_num = bu_num
             house.co_id = co_id
-            result = requests.get(zu_house_url, headers=self.headers).text
+            result = self.s.get(zu_house_url, headers=self.headers).text
             house.info = re.search('ItemName.*?>(.*?)<', result).group(1).strip()
-            ho_name_list = re.findall("OnClick=.__doPostBack\(.*?,'(.*?)'\)", result, re.S | re.M)
-            self.get_house_detail(ho_name_list)
+            ho_code_list = re.findall("OnClick=.__doPostBack\(.*?,'(.*?)'\)", result, re.S | re.M)
+            ho_msg_list = re.findall("OnClick=.__doPostBack\('(.*?)'", result, re.S | re.M)
+            self.get_house_detail(zu_house_url, ho_msg_list, ho_code_list, house)
         except Exception as e:
             print(e)
 
-    def get_house_detail(self, ho_name_list):
-        for i in ho_name_list:
-            s = requests.session()
-            code = i.replace('amp;', '')
-            data = {
-                '__VIEWSTATE': '',
-                '__VIEWSTATEGENERATOR': 'C5D03DD7',
-                '__EVENTTARGET': 'WebChessTabForSqlCtl1',
-                '__EVENTARGUMENT': code,
-                'WebChessTabForSqlCtl1': ''
-            }
-            result = s.post('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomLoad.aspx?153', data=data,
+    def get_house_detail(self, zu_house_url, ho_msg_list, ho_code_list, house):
+        for i in range(len(ho_msg_list)):
+            try:
+                code = ho_code_list[i].replace('amp;', '')
+                data = {
+                    '__VIEWSTATE': '',
+                    '__VIEWSTATEGENERATOR': 'C5D03DD7',
+                    '__EVENTTARGET': ho_msg_list[i],
+                    '__EVENTARGUMENT': code,
+                    ho_msg_list[i]: ''
+                }
+                self.s.post(zu_house_url, data=data,
                             headers=self.headers)
-            s_id = result.cookies.get_dict()['NHREMO_SessionId']
-            data2 = {
-                'Referer': 'http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomLoad.aspx?153',
-                'Cookie': 'NHREMO_SessionId=' + s_id,
-            }
-            response = s.get('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomInfo.aspx', data=data2,
-                             headers=self.headers)
-            html = response.text
+                response = self.s.get('http://www.nhfg.cn/webhouseinfo/ItemList/HouseList/RoomInfo.aspx',
+                                      headers=self.headers)
+                html = response.text
+                house.ho_name = re.findall('房号：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_floor = re.findall('楼层：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_type = re.findall('房屋类型：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_room_type = re.findall('房型：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_build_size = re.findall('预测建筑面积：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_true_size = re.findall('预测套内面积：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.ho_share_size = re.findall('预测分摊面积：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0]
+                house.insert_db()
+            except Exception as e:
+                print(e)
 
     def get_view_state(self, html):
         tree = etree.HTML(html)
@@ -131,7 +138,7 @@ class Ninghai(object):
         return data
 
     def get_all_url_comm(self, data, index, all_comm_url_dict):
-        response = requests.post(url=url, data=data)
+        response = self.s.post(url=url, data=data)
         html = response.text
         comm_url_list = re.findall("</font></td><td align=.center. width=.100.><font color=.#000066.>.*?href='(.*?)'",
                                    html, re.S | re.M)
