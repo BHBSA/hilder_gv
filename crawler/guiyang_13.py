@@ -89,8 +89,8 @@ class Guiyang(Crawler):
             b.size = '1_info_all1_litZDMJ">(.*?)</span>'  # 占地面积
             b.bu_pre_sale = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 预(销)售证号
             b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
-            b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
-            b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
+            # b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
+            # b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
 
             current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
 
