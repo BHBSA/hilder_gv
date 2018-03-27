@@ -18,7 +18,6 @@ class Add_area:
             i['ho_build_size'] = re.search('建筑面积：(.*?)&', info).group(1)
             i['ho_share_size'] = re.search('分摊面积：(.*?)&', info).group(1)
             i['ho_type'] = re.search('房屋用途：(.*?)"', info).group(1)
-            i['info'] = None
             collection.update({'_id': i['_id']}, {'$set': i})
 
 
