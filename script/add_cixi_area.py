@@ -16,7 +16,7 @@ class Add_area:
     def update_all_building(self):
         client = MongoClient('192.168.0.235', 27017)
         db = client['gv']
-        collection = db['community']
+        collection = db['community_2018_3_26']
 
         for i in collection.find({'co_index': 8}):
             print(i)
