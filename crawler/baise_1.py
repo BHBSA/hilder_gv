@@ -243,7 +243,7 @@ class Baise(Crawler):
                 return house
             house.co_id = co_id
             house.bu_id = bu_id
-            house.ho_num = ho_name
+            house.ho_name = ho_name
             house.ho_floor = ho_floor
             house.ho_type = ho_type
             house.ho_room_type = ho_room_type
