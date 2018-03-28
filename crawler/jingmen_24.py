@@ -4,7 +4,6 @@ city : 荆门
 CO_INDEX : 24
 小区数量：345
 """
-from crawler_base import Crawler
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 from producer import ProducerListUrl
@@ -93,18 +92,21 @@ class Jingmen(object):
         for i in house_url_list:
             try:
                 build_url = 'http://www.jmfc.com.cn' + i
-                response = requests.get(build_url)
+                response = requests.get(build_url, headers=self.headers)
                 html = response.text
                 bu_id = re.search('lzbm=(.*?)&', build_url).group(1)
-                ho_name_list = re.findall('width="35%".*?房号:.*?<TD.*?>(.*?)<', html)
-                ho_true_size_list = re.findall('width="35%".*?房号:.*?<TD.*?<TD.*?<TD.*?>(.*?)<', html)
-                ho_type_list = re.findall('width="35%".*?房号:.*?<font.*?<TD.*?<TD.*?>(.*?)<', html)
+                ho_name_list = re.findall('width="35%".*?房号:.*?<TD.*?>(.*?)<', html, re.S | re.M)
+                ho_true_size_list = re.findall('width="35%".*?房号:.*?<TD.*?<TD.*?<TD.*?>(.*?)<', html, re.S | re.M)
+                ho_type_list = re.findall('width="35%".*?房号:.*?<font.*?<TD.*?<TD.*?>(.*?)<', html, re.S | re.M)
                 for i in range(0, len(ho_name_list)):
-                    house = House(co_index)
-                    house.ho_name = ho_name_list[i]
-                    house.ho_true_size = ho_true_size_list[i]
-                    house.ho_type = ho_type_list[i]
-                    house.bu_id = bu_id
-                    house.insert_db()
+                    try:
+                        house = House(co_index)
+                        house.ho_name = ho_name_list[i].strip()
+                        house.ho_true_size = ho_true_size_list[i].strip()
+                        house.ho_type = ho_type_list[i].strip()
+                        house.bu_id = bu_id
+                        house.insert_db()
+                    except Exception as e:
+                        print(e)
             except Exception as e:
                 print(e)
