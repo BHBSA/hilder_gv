@@ -79,7 +79,7 @@ class Cixi(Crawler):
         try:
             coll = Mongo(setting['db'], setting['port'], setting['db_name'],
                          setting['coll_comm']).get_collection_object()
-            response = requests.get(url, headers=self.headers)
+            response = requests.get(url)
             html = response.text
             tree = etree.HTML(html)
             co_name = tree.xpath('//*[@id="PageB_Location"]/text()')[0]  # 小区名字
@@ -103,25 +103,28 @@ class Cixi(Crawler):
             building.bu_live_size = bu_live_size
             building.bu_price = bu_price
             building.bu_id = bu_id
-            house_info_list = tree.xpath('//td[@oncontextmenu="return false"]/*/text()')
-            count = 0
-            house = House(8)
-            for i in house_info_list:
-                if count % 4 == 0:
-                    ho_name = i.replace('<', '').replace('>', '')
-                    house.ho_name = ho_name
-                elif count % 4 == 1:
-                    ho_true_size = i
-                    house.ho_true_size = ho_true_size
-                elif count % 4 == 2:
-                    co_type = i
-                    comm.co_type = co_type
-                count += 1
-                if count % 4 == 0:
-                    house.co_id = CO_ID
-                    house.bu_id = bu_id
-                    house.insert_db()
-                    house = House(8)
+            house_info_html = re.findall('<tr id="row3">(.*)$', html, re.S | re.M)[0]
+            for i in re.findall('(<td.*?>.*?</td>)', house_info_html, re.S | re.M):
+                if '<br>' not in i:
+                    continue
+                ho_name_list = re.findall('<td.*?>(.*?)<br>', i, re.S | re.M)
+                ho_true_size_list = re.findall('<td.*?>.*?<br>(.*?)<br>', i, re.S | re.M)
+                co_type = re.findall('<td.*?>.*?<br>.*?<br>(.*?)<br>', i, re.S | re.M)
+                for i in range(len(ho_name_list)):
+                    try:
+                        if 'font' in ho_name_list[i]:
+                            ho_name = re.sub('<font.*?>', '', ho_name_list[i])
+                        else:
+                            ho_name = ho_name_list[i]
+                        house = House(8)
+                        house.ho_name = ho_name
+                        house.ho_true_size = ho_true_size_list[i]
+                        house.co_id = CO_ID
+                        house.bu_id = bu_id
+                        comm.co_type = co_type
+                        house.insert_db()
+                    except Exception as e:
+                        print(e)
             comm_list = coll.find_one({'co_name': co_name})
             if not comm_list:
                 global CO_ID

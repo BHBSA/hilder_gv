@@ -33,7 +33,7 @@ class Loudi(object):
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             all_page_url = url + '&page=' + str(i)
-            response = requests.get(all_page_url)
+            response = requests.get(all_page_url, headers=self.headers)
             html = response.text
             tree = etree.HTML(html)
             comm_url_list = tree.xpath('//div[@class="info"]/h3/a/@href')
