@@ -44,7 +44,8 @@ class Jingmen(object):
         for i in comm_url_list:
             try:
                 comm = Comm(co_index)
-                comm.co_id = 'http://www.jmfc.com.cn/archive/aid-(.*?)\.html'
+                comm.co_id = 'name="fmdata\[yxlp\]" value="(.*?)"'
+                comm.co_name = 'class="title">(.*?)<'
                 comm.co_type = '物业类型</em>(.*?)<'
                 comm.area = '区域所属：</em>(.*?)<'
                 comm.co_green = '绿 化 率：</em>(.*?)<'
