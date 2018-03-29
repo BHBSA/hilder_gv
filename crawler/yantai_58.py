@@ -16,6 +16,8 @@ url = 'http://www.ytfcjy.com/public/project/presellCertList.aspx'
 co_index = '58'
 city = '烟台'
 
+count = 0
+
 
 class Yantai(object):
     def __init__(self):
@@ -36,25 +38,31 @@ class Yantai(object):
 
     def get_comm_info(self, comm_list):
         for i in comm_list:
-            comm = Comm(co_index)
-            comm_url = 'http://www.ytfcjy.com/public/project/' + i
-            response = requests.get(comm_url, headers=self.headers)
-            html = response.text
-            comm.co_name = re.findall('PROJECT_XMMC">(.*?)<', html, re.S | re.M)[0]
-            comm.co_id = re.findall('ProjectInfo.aspx\?code=(.*?)&', html, re.S | re.M)[0]
-            comm.co_address = re.findall('PROJECT_XMDZ">(.*?)<', html, re.S | re.M)[0]
-            comm.co_develops = re.findall('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M)[0]
-            comm.area = re.findall('PROJECT_SZQY">(.*?)<', html, re.S | re.M)[0]
-            comm.co_volumetric = re.findall('PROJECT_RJL">(.*?)<', html, re.S | re.M)[0]
-            comm.co_build_size = re.findall('PROJECT_GHZJZMJ">(.*?)<', html, re.S | re.M)[0]
-            comm.co_pre_sale = re.findall('YSXKZH">(.*?)<', html, re.S | re.M)[0]
-            comm.co_all_house = re.findall('YSZTS">(.*?)<', html, re.S | re.M)[0]
-            comm.co_plan_pro = re.findall('id="ghxkzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
-            comm.co_work_pro = re.findall('id="sgxkzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
-            comm.co_land_use = re.findall('id="tdzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
-            comm.insert_db()
-            build_url_list = re.findall('id="buildInfo" value="(.*?)"', html, re.S | re.M)
-            self.get_build_info(build_url_list, comm.co_id)
+            try:
+                comm = Comm(co_index)
+                comm_url = 'http://www.ytfcjy.com/public/project/' + i
+                response = requests.get(comm_url, headers=self.headers)
+                html = response.text
+                comm.co_name = re.findall('PROJECT_XMMC">(.*?)<', html, re.S | re.M)[0]
+                comm.co_id = re.findall('ProjectInfo.aspx\?code=(.*?)&', html, re.S | re.M)[0]
+                comm.co_address = re.findall('PROJECT_XMDZ">(.*?)<', html, re.S | re.M)[0]
+                comm.co_develops = re.findall('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M)[0]
+                comm.area = re.findall('PROJECT_SZQY">(.*?)<', html, re.S | re.M)[0]
+                comm.co_volumetric = re.findall('PROJECT_RJL">(.*?)<', html, re.S | re.M)[0]
+                comm.co_build_size = re.findall('PROJECT_GHZJZMJ">(.*?)<', html, re.S | re.M)[0]
+                comm.co_pre_sale = re.findall('YSXKZH">(.*?)<', html, re.S | re.M)[0]
+                comm.co_all_house = re.findall('YSZTS">(.*?)<', html, re.S | re.M)[0]
+                comm.co_plan_pro = re.findall('id="ghxkzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
+                comm.co_work_pro = re.findall('id="sgxkzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
+                comm.co_land_use = re.findall('id="tdzInfo" value=".*?,,(.*?)"', html, re.S | re.M)[0]
+                comm.insert_db()
+                global count
+                count += 1
+                print(count)
+                build_url_list = re.findall('id="buildInfo" value="(.*?)"', html, re.S | re.M)
+                self.get_build_info(build_url_list, comm.co_id)
+            except Exception as e:
+                print(e)
 
     def get_build_info(self, build_url_list, co_id):
         bu_code_list = build_url_list[0].split(';;')

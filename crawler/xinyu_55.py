@@ -17,7 +17,7 @@ url = 'http://www.xyfcj.com/html/jplp/index.html'
 co_index = '55'
 city = '新余'
 
-
+count = 0
 class Xinyu(object):
     def __init__(self):
         self.headers = {
@@ -46,20 +46,26 @@ class Xinyu(object):
 
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
-            response = requests.get(i, headers=self.headers)
-            html = response.text
-            comm = Comm(co_index)
-            comm.co_name = re.findall('PROJECT_XMMC">(.*?)<', html, re.S | re.M)[0]
-            comm.co_develops = re.findall('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M)[0]
-            comm.co_address = re.findall('PROJECT_XMDZ">(.*?)<', html, re.S | re.M)[0]
-            comm.area = re.findall('PROJECT_SZQY">(.*?)<', html, re.S | re.M)[0]
-            comm.co_volumetric = re.findall('PROJECT_RJL">(.*?)<', html, re.S | re.M)[0]
-            comm.co_build_size = re.findall('PROJECT_GHZJZMJ">(.*?)<', html, re.S | re.M)[0]
-            comm.co_pre_sale = re.findall('YSXKZH">(.*?)<', html, re.S | re.M)[0]
-            comm.co_id = re.findall('PROJECT_XMBH">(.*?)<', html, re.S | re.M)[0]
-            comm.insert_db()
-            bu_info = re.search('id="buildInfo".*?value="(.*?)"', html, re.S | re.M).group(1)
-            self.get_build_info(bu_info, comm.co_name)
+            try:
+                response = requests.get(i, headers=self.headers)
+                html = response.text
+                comm = Comm(co_index)
+                comm.co_name = re.findall('PROJECT_XMMC">(.*?)<', html, re.S | re.M)[0]
+                comm.co_develops = re.findall('PROJECT_KFQY_NAME">(.*?)<', html, re.S | re.M)[0]
+                comm.co_address = re.findall('PROJECT_XMDZ">(.*?)<', html, re.S | re.M)[0]
+                comm.area = re.findall('PROJECT_SZQY">(.*?)<', html, re.S | re.M)[0]
+                comm.co_volumetric = re.findall('PROJECT_RJL">(.*?)<', html, re.S | re.M)[0]
+                comm.co_build_size = re.findall('PROJECT_GHZJZMJ">(.*?)<', html, re.S | re.M)[0]
+                comm.co_pre_sale = re.findall('YSXKZH">(.*?)<', html, re.S | re.M)[0]
+                comm.co_id = re.findall('PROJECT_XMBH">(.*?)<', html, re.S | re.M)[0]
+                comm.insert_db()
+                global count
+                count+=1
+                print(count)
+                bu_info = re.search('id="buildInfo".*?value="(.*?)"', html, re.S | re.M).group(1)
+                self.get_build_info(bu_info, comm.co_name)
+            except Exception as e:
+                print(e)
 
     def get_build_info(self, bu_info, co_name):
         build_list = bu_info.split(';;')

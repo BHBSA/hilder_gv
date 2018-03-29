@@ -74,7 +74,6 @@ class Foshan(Crawler):
             # 小区id
             co_id = re.search('id=(.*?)$', url).group(1)
             html_ = html.replace('\t', '').replace('\r', '').replace('\n', '').replace(' ', '')
-            # building_url_list = tree.xpath('//p[@class="bot-a"]/a')
             bu_url_info = re.search('<pclass="bot-a">(.*?)</p>', html_).group(1)
             building_url_list = re.findall('<td><aid="(.*?)"(.*?)>(.*?)</a>', bu_url_info)
 
@@ -118,20 +117,19 @@ class Foshan(Crawler):
                 try:
                     house = House(10)
                     ho_name = i['roomno']  # 房号
-                    # ho_num = i['code']  # 房号id
-                    ho_room_type = i['ghyt']  # 户型
+                    ho_type = i['ghyt']  # 用途
                     ho_true_size = i['tnmj']  # 预测套内面积
                     ho_floor = i['floorindex']  # 楼层
                     ho_build_size = i['jzmj']  # 建筑面积
                     house.co_id = co_id
                     house.bu_id = bu_id
                     house.ho_name = ho_name
-                    # house.ho_num = ho_num
-                    house.ho_room_type = ho_room_type
+                    house.ho_room_type = ho_type
                     house.ho_true_size = ho_true_size
                     house.ho_floor = ho_floor
                     house.ho_build_size = ho_build_size
                     house.insert_db()
+                    break
                 except Exception as e:
                     continue
         except BaseException as e:

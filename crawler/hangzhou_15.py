@@ -35,13 +35,13 @@ class Hangzhou(Crawler):
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             all_url = 'http://www.tmsf.com/newhouse/property_searchall.htm?&page=' + str(i)
-            p = ProducerListUrl(page_url=all_url,
-                                request_type='get', encode='utf-8',
-                                analyzer_rules_dict=None,
-                                current_url_rule='build_word01" onclick="toPropertyInfo\((.*?)\);',
-                                analyzer_type='regex',
-                                headers=self.headers)
-            comm_url_list = p.get_current_page_url()
+            try:
+                response = requests.get(all_url, headers=self.headers, timeout=5)
+            except Exception as e:
+                print(e)
+                continue
+            html = response.text
+            comm_url_list = re.findall('build_word01" onclick="toPropertyInfo\((.*?)\);', html, re.S | re.M)
             self.get_comm_info(comm_url_list)
 
     def get_comm_info(self, comm_url_list):
@@ -51,7 +51,7 @@ class Hangzhou(Crawler):
                 comm_url = 'http://www.tmsf.com/newhouse/property_' + code[0] + '_' + code[1] + '_info.htm'
                 comm = Comm(co_index)
                 comm.co_name = 'buidname.*?>(.*?)<'
-                comm.co_address = '楼盘地址：<.*?<.*?>(.*?)<'
+                comm.co_address = '--位置行--.*?<span.*?title="(.*?)"'
                 comm.co_build_type = '建筑形式：<.*?>(.*?)<'
                 comm.co_develops = '项目公司：<.*?>(.*?)<'
                 comm.co_volumetric = '容 积 率：</span>(.*?)<'
@@ -101,7 +101,7 @@ class Hangzhou(Crawler):
                         bu_all_url_list[i] = co_id[0]
                 except Exception as e:
                     print(e)
-        # self.get_house_info(bu_all_url_list)
+                self.get_house_info(bu_all_url_list)
 
     def get_house_info(self, bu_all_url_list):
         for i in bu_all_url_list:
@@ -113,7 +113,6 @@ class Hangzhou(Crawler):
                 house.co_build_size = 'builtuparea":(.*?),'
                 house.ho_price = 'declarationofroughprice":(.*?),'
                 house.ho_name = 'houseno":(.*?),'
-                # house.ho_num = 'houseid":(.*?),'
                 house.ho_true_size = 'setinsidefloorarea":(.*?),'
                 house.ho_share_size = 'poolconstructionarea":(.*?),'
                 house.ho_type = 'houseusage":(.*?),'

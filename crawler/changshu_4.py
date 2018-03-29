@@ -14,9 +14,10 @@ from lxml import etree
 co_index = "4"
 city = '常熟'
 
+count = 0
+
 
 class Changshu(Crawler):
-
     def __init__(self):
         self.url = 'http://www.jscsfc.com/NewHouse/'
 
@@ -82,6 +83,9 @@ class Changshu(Crawler):
                             co.co_all_house = re.findall('#eff6ff">(.*?)</td>', comm_con, re.S | re.M)[0]
                             co.area = re.search('所属区域.*?">(.*?)</td>', comm_con, re.S | re.M).group(1)
                             co.insert_db()
+                            global count
+                            count += 1
+                            print(count)
                             print(co.co_name)
                         except:
                             continue
