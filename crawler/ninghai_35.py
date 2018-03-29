@@ -16,6 +16,7 @@ from urllib import parse
 url = 'http://www.nhfg.cn/webhouseinfo/ItemSearch/ItemSearch.aspx'
 co_index = '35'
 city = '宁海'
+count = 0
 
 
 class Ninghai(object):
@@ -62,6 +63,9 @@ class Ninghai(object):
             comm.co_build_size = re.findall('纳入网上可售面积：.*?<TD.*?>(.*?)<', html, re.S | re.M)[0].strip()
             comm.co_id = re.search('\?(.*?)$', comm_url).group(1)
             comm.insert_db()
+            global count
+            count += 1
+            print(count)
             build_url_list = re.findall("(HouseList/HouseInfo.aspx\?.*?)'", html, re.S | re.M)
             self.get_build_url(build_url_list, comm.co_id)
         except Exception as e:
@@ -150,7 +154,7 @@ class Ninghai(object):
         data = self.get_view_state(html)
         index += 1
         print(index)
-        if index == 2:
+        if index == 7:
             return all_comm_url_dict
         else:
             return self.get_all_url_comm(data, index, all_comm_url_dict)
