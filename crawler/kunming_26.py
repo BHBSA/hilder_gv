@@ -13,6 +13,8 @@ url = 'http://www.kmhouse.org/moreHousePriceList.asp?page=1'
 co_index = '26'
 city = '昆明'
 
+count = 0
+
 
 class Kunming(object):
     def __init__(self):
@@ -43,27 +45,33 @@ class Kunming(object):
 
     @retry(tries=3)
     def get_comm_detail(self, comm_detail_url):
-        comm = Comm(co_index)
-        comm_url = 'http://www.kmhouse.org' + comm_detail_url
-        response = requests.get(comm_url, headers=self.headers)
-        html = response.content.decode('gbk')
-        co_id = re.search('Preid=(.*?)&', comm_detail_url).group(1)
-        co_name = re.search('楼盘名称.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        area = re.search('所在地区.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        co_address = re.search('楼盘地址.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        co_pre_sale = re.search('预售证号.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        co_volumetric = re.search('容&nbsp;积&nbsp;率.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        co_green = re.search('绿&nbsp;化&nbsp;率.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        co_build_start_time = re.search('开工时间.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        comm.co_name = co_name
-        comm.area = area
-        comm.co_id = co_id
-        comm.co_address = co_address
-        comm.co_pre_sale = co_pre_sale
-        comm.co_volumetric = co_volumetric
-        comm.co_green = co_green
-        comm.co_build_start_time = co_build_start_time
-        comm.insert_db()
+        try:
+            comm = Comm(co_index)
+            comm_url = 'http://www.kmhouse.org' + comm_detail_url
+            response = requests.get(comm_url, headers=self.headers)
+            html = response.content.decode('gbk')
+            co_id = re.search('Preid=(.*?)&', comm_detail_url).group(1)
+            co_name = re.search('楼盘名称.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            area = re.search('所在地区.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            co_address = re.search('楼盘地址.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            co_pre_sale = re.search('预售证号.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            co_volumetric = re.search('容&nbsp;积&nbsp;率.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            co_green = re.search('绿&nbsp;化&nbsp;率.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            co_build_start_time = re.search('开工时间.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+            comm.co_name = co_name
+            comm.area = area
+            comm.co_id = co_id
+            comm.co_address = co_address
+            comm.co_pre_sale = co_pre_sale
+            comm.co_volumetric = co_volumetric
+            comm.co_green = co_green
+            comm.co_build_start_time = co_build_start_time
+            comm.insert_db()
+            global count
+            count += 1
+            print(count)
+        except Exception as e:
+            print(e)
 
     @retry(tries=3)
     def get_comm_info(self, comm_url_list):
