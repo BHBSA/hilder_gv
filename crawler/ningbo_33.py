@@ -17,6 +17,8 @@ url = 'http://old.newhouse.cnnbfdc.com/lpxx.aspx'
 co_index = '33'
 city = '宁波'
 
+count = 0
+
 
 class Ningbo(object):
     def __init__(self):
@@ -61,6 +63,9 @@ class Ningbo(object):
                 comm.area = re.findall('所在区县：.*?<td.*?>(.*?)<', html, re.S | re.M)[0].strip()
                 comm.co_id = re.findall('mobanshow.aspx\?projectid=(.*?)"', html, re.S | re.M)[0].strip()
                 comm.insert_db()
+                global count
+                count += 1
+                print(count)
                 build_url_list = re.findall("window.open\('(.*?)'", html, re.S | re.M)
                 bu_name_list = re.findall("window.open.*?<font.*?>(.*?)<", html, re.S | re.M)
                 bu_all_house_list = re.findall("window.open.*?<td.*?>(.*?)<", html, re.S | re.M)
@@ -70,7 +75,7 @@ class Ningbo(object):
                         build = Building(co_index)
                         build.bu_name = bu_name_list[index].strip()
                         build.bu_all_house = bu_all_house_list[index].strip()
-                        build.co_id = comm.co_id.strip()
+                        build.co_id = comm.co_id
                         build.bu_id = qrykey[index].strip()
                         build.insert_db()
                     except Exception as e:
