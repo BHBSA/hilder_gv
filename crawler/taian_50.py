@@ -45,7 +45,6 @@ class Taian(Crawler):
                 c.co_land_use = re.search('土地使用权证：.*?left">(.*?)</td>', html_str, re.S | re.M).group(1)
                 c.co_land_type = re.search('土地权证类型：.*?left">(.*?)</td>', html_str, re.S | re.M).group(1)
                 print(c.co_name)
-                continue
                 c.insert_db()
 
                 # 找到楼栋
