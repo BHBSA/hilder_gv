@@ -44,8 +44,8 @@ class Jingmen(object):
         for i in comm_url_list:
             try:
                 comm = Comm(co_index)
-                comm.co_id = 'name="fmdata\[yxlp\]" value="(.*?)"'
-                comm.co_name = 'class="title">(.*?)<'
+                comm.co_id = '楼盘首页.*?aid-(.*?)/'
+                comm.co_name = 'class="ls">(.*?)<'
                 comm.co_type = '物业类型</em>(.*?)<'
                 comm.area = '区域所属：</em>(.*?)<'
                 comm.co_green = '绿 化 率：</em>(.*?)<'
@@ -73,7 +73,7 @@ class Jingmen(object):
                 build = Building(co_index)
                 build_url = 'http://www.jmfc.com.cn/' + i
                 build.bu_name = '<tr bgcolor="#FFFFFF">.*?<td.*?>(.*?)<'
-                build.co_id = 'www.jmfc.com.cn/archive/aid-(.*?)\.html'
+                build.co_id = '楼盘首页.*?aid-(.*?)/'
                 build.bu_id = '&addno=12&action=loupantable&lzbm=(.*?)&ql_xh='
                 build.bu_pre_sale = '<tr bgcolor="#FFFFFF">.*?<td.*?>.*?<.*?<td.*?>(.*?)<'
                 build.bu_floor = '<tr bgcolor="#FFFFFF">.*?<td.*?>.*?<.*?<td.*?>.*?<.*?<td.*?>(.*?)<'
