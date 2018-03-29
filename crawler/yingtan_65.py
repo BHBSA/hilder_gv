@@ -3,7 +3,7 @@ import requests
 import re
 from comm_info import Comm, Building, House
 
-
+count = 0
 class Yingtai(Crawler):
     def __init__(self):
         self.url = 'http://www.yingtanfdc.com/website/search/q.html?type=spf&city=&price=&wuye=&stat=&key=%u5173%u952E%u5B57'
@@ -27,6 +27,9 @@ class Yingtai(Crawler):
                         c.area = re.search('"city">(.*?)</dd>', k, re.S | re.M).group(1)
                         c.co_develops = re.search('"average">(.*?)</dd>', k, re.S | re.M).group(1)
                         c.insert_db()
+                        global count
+                        count += 1
+                        print(count)
 
                         url = re.search('a href="(.*?)">', k, re.S | re.M).group(1)
                         complete_url = self.url_source + url
