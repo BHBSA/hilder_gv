@@ -35,7 +35,11 @@ class Hangzhou(Crawler):
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             all_url = 'http://www.tmsf.com/newhouse/property_searchall.htm?&page=' + str(i)
-            response = requests.get(all_url, headers=self.headers)
+            try:
+                response = requests.get(all_url, headers=self.headers, timeout=5)
+            except Exception as e:
+                print(e)
+                continue
             html = response.text
             comm_url_list = re.findall('build_word01" onclick="toPropertyInfo\((.*?)\);', html, re.S | re.M)
             self.get_comm_info(comm_url_list)
