@@ -63,14 +63,18 @@ class Huzhou(Crawler):
     def build(self,comm_html,sid):
         bu = Building(co_index)
 
-        bu_num = comm_html.xpath("//div[@id='building_dd']//a")[1:-1]
+        bu_num = comm_html.xpath("//div[@id='building_dd']//a")[1:]
+        bu_info = {}
+        bu_num_list = []
         for bu_ in bu_num:
             bu.bu_num = bu_.xpath("./text()")[0]
             bu_id = bu_.xpath("./@id")[0]
             bu.bu_id = re.search('\d+',bu_id).group(0)
             bu.co_id = sid
             bu.insert_db()
-
+            bu_info[bu.bu_num] = bu.bu_id
+            bu_num_list.append(bu.bu_num)
+        return bu_info,bu_num_list
 
     def comm_info(self,co_develops,co_pre_sale,co_name,co_pre_sale_date,sid):
         co = Comm(co_index)
@@ -89,7 +93,7 @@ class Huzhou(Crawler):
         sid = comm_html.xpath("//input[@id='sid']/@value")[0]
         detail_url = "http://hu.tmsf.com/newhouse/property_"+str(sid)+"_"+str(value)+"_price.htm"
 
-        self.build(comm_html,value)
+        bu_info,bu_num_list = self.build(comm_html,value)
         self.comm_info(co_develops,co_pre_sale,co_name,co_pre_sale_date,value)
         page_html = requests.get(detail_url,headers=self.headers)
 
@@ -101,6 +105,7 @@ class Huzhou(Crawler):
             house_html = etree.HTML(detail_res.text)
             house_url_list = house_html.xpath("//td[@width='100']/a/@href")
             house_bu_num = house_html.xpath("//td[@width='100']/a/text()")
+            house_name = house_html.xpath("//td[@width='101'][1]/a/div/text()")
 
             for index in range(1,len(house_url_list)+1):
                 try:
@@ -109,13 +114,20 @@ class Huzhou(Crawler):
                     house_res = requests.get(house_url,headers=self.headers)
                     house_html = house_res.text
 
-                    ho.bu_id = re.search('house_\d+_(\d+)_',house_url_list[index]).group(1)
+                    for bu_num in bu_num_list:
+                        if bu_num in ho.bu_num:
+                            ho.bu_id = bu_info[bu_num]
+                            break
+                            # bu_num_list.remove(bu_num)
+                        else:
+                            continue
+
                     ho.co_id = re.search('楼盘主页.*?_\d+_(\d+)_info',house_html).group(1) # 小区id
-                    ho.ho_name = re.search('<title>.*?\d+ (\d+)号',house_html).group(1)  # 房号：3单元403
+                    ho.ho_name = house_name[index]  # 房号：3单元403
                     # ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
 
                     ho.ho_type = re.search('房屋用途：.*?>(.*?)<',house_html).group(1)  # 房屋类型：普通住宅 / 车库仓库
-                    ho.ho_floor = re.search('第-(\d+)层',house_html).group(1)
+                    ho.ho_floor = re.search('第(.*?)层',house_html).group(1)
 
                     build_text = re.search('建筑面积：(.*?)平方米',house_html).group(1)
                     build_num = re.findall('class="(.*?)"',build_text)
