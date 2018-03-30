@@ -123,6 +123,7 @@ class Cixi(Crawler):
                         house.bu_id = bu_id
                         comm.co_type = co_type
                         house.insert_db()
+
                     except Exception as e:
                         print(e)
             comm_list = coll.find_one({'co_name': co_name})
