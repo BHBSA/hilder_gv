@@ -49,7 +49,7 @@ class Fenghua(Crawler):
             try:
                 response = requests.get(comm_url, headers=self.headers)
             except Exception as e:
-                print("{}城市无法访问小区{}".format(co_index,comm_url),e)
+                print("{}城市无法访问小区{}".format(city,comm_url),e)
                 continue
 
             html = response.text
@@ -67,7 +67,7 @@ class Fenghua(Crawler):
             try:
                 bu_url_list = re.findall("window\.open\('(.*?)'", html, re.S | re.M)
             except Exception as e:
-                print("{}城市{}小区无楼栋".format(co_index,comm.co_name),e)
+                print("{}城市{}小区无楼栋".format(city,comm.co_name),e)
                 continue
             for i in range(len(bu_url_list)):
                 build = Building(co_index)
@@ -93,7 +93,7 @@ class Fenghua(Crawler):
             try:
                 res = requests.get(house_detail_url,headers=self.headers,)
             except Exception as e:
-                print("{}城市无法访问房屋页面{}".format(co_index,house_detail_url),e)
+                print("{}城市无法访问房屋页面{}".format(city,house_detail_url),e)
                 continue
                 # if res.status_code ==200:
             time.sleep(2)
@@ -116,7 +116,7 @@ class Fenghua(Crawler):
 
                 ho.insert_db()
             except Exception as e:
-                print("{}房号错误，请求频繁,当前页面{}未提取".format(co_index,house_detail_url),e)
+                print("{}房号错误，请求频繁,当前页面{}未提取".format(city,house_detail_url),e)
                 continue
 
 # def proxy_pool(self):
