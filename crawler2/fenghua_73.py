@@ -48,8 +48,8 @@ class Fenghua(Crawler):
             comm_url = 'http://old.newhouse.cnnbfdc.com/' + i
             try:
                 response = requests.get(comm_url, headers=self.headers)
-            except:
-                print("无法访问小区{}".format(comm_url))
+            except Exception as e:
+                print("{}城市无法访问小区{}".format(co_index,comm_url),e)
                 continue
 
             html = response.text
@@ -66,8 +66,8 @@ class Fenghua(Crawler):
             bu_all_house_list = re.findall('window.open.*?center.*?center.*?>(.*?)<', html, re.S | re.M)
             try:
                 bu_url_list = re.findall("window\.open\('(.*?)'", html, re.S | re.M)
-            except:
-                print("小区无楼栋")
+            except Exception as e:
+                print("{}城市{}小区无楼栋".format(co_index,comm.co_name),e)
                 continue
             for i in range(len(bu_url_list)):
                 build = Building(co_index)
@@ -92,8 +92,8 @@ class Fenghua(Crawler):
             #     proxies = self.proxy_pool()
             try:
                 res = requests.get(house_detail_url,headers=self.headers,)
-            except:
-                print("无法访问房屋页面{}".format(house_detail_url))
+            except Exception as e:
+                print("{}城市无法访问房屋页面{}".format(co_index,house_detail_url),e)
                 continue
                 # if res.status_code ==200:
             time.sleep(2)
@@ -115,8 +115,8 @@ class Fenghua(Crawler):
                 ho.ho_share_size =re.search('预测分摊面积.*?">(.*?)</td>',content,re.S|re.M).group(1)
 
                 ho.insert_db()
-            except:
-                print("请求频繁,当前页面{}未提取".format(house_detail_url))
+            except Exception as e:
+                print("{}房号错误，请求频繁,当前页面{}未提取".format(co_index,house_detail_url),e)
                 continue
 
 # def proxy_pool(self):
