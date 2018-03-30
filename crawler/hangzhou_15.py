@@ -90,6 +90,7 @@ class Hangzhou(Crawler):
                     build_num_url = 'http://www.tmsf.com/newhouse/property_330184_10442053_control.htm?presellid=' + i
                     build.co_id = 'search" name="search" action="/newhouse/property_(.*?)_control'
                     build.bu_num = 'javascript:doBuilding.*?>(.*?)<'
+                    build.bu_id = "javascript:doBuilding\('(.*?)'\)"
                     p_2 = ProducerListUrl(page_url=build_num_url,
                                           request_type='get', encode='utf-8',
                                           analyzer_rules_dict=build.to_dict(),
@@ -98,10 +99,11 @@ class Hangzhou(Crawler):
                                           headers=self.headers)
                     build_num_list = p_2.get_details()
                     for i in build_num_list:
+                        # build.bu_id = i
                         bu_all_url_list[i] = co_id[0]
                 except Exception as e:
                     print(e)
-                self.get_house_info(bu_all_url_list)
+                # self.get_house_info(bu_all_url_list)
 
     def get_house_info(self, bu_all_url_list):
         for i in bu_all_url_list:
