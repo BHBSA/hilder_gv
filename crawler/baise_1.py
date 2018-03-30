@@ -22,112 +22,77 @@ class Baise(Crawler):
     }
 
     @retry(tries=3)
-    def get_all_page(self):
+    def get_all_page_url(self):
         try:
             res = requests.get(url=self.url, headers=self.headers)
-            html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\t', '').replace('\r', '').replace(
-                ' ', '')
-            page = re.search(r'/(\d+)</strong>页', html).group(1)
-            return page
+            first_page_html = res.content.decode('gb2312')
+            page_count = re.search('/(\d+)</strong>页', first_page_html, re.S | re.M).group(1)
+            print('总页数', page_count)
+            url_list = []
+            for i in range(1, int(page_count) + 1):
+                url_list.append(self.url + '?page=' + str(i))
+            return url_list
         except Exception as e:
-            print(e)
-            print('retry')
+            print('获取所有页面错误, url=', self.url, e)
             raise
 
     @retry(tries=3)
     def start_crawler(self):
-        try:
-            page = self.get_all_page()
-            for i in range(1, int(page) + 1):
-                res = requests.get(self.url + '?page=' + str(i), headers=self.headers)
-                html = res.content.decode('gb2312', 'ignore')
-                comm_area = re.findall(r'height="25"><.*?center.*?center">(.*?)<', html, re.S | re.M)
-                com_list = re.findall(r'height="25"><a href="(.+)">', html)
+        url_list = self.get_all_page_url()
+        for url in url_list:
+            res = requests.get(url, headers=self.headers)
+            html = res.content.decode('gb2312')
+            info_list = re.search('可售套数(.*?)<!--进行翻页显示和处理-->', html, re.S | re.M).group(1)
+            for info in re.findall('<tr.*?</tr>', info_list, re.S | re.M):
+                try:
+                    comm = Comm(1)
 
-                for i in range(len(com_list)):
-                    try:
-                        comm = Comm(1)
-                        comm.area = comm_area[i]
-                        href = 'http://www.bsfcj.com/PubInfo/' + com_list[i]
-                        # href = 'http://www.bsfcj.com/PubInfo/' + 'lpxx.asp?qyxmbm=DBDHDADCDADADADFDDDBDCDJ000001'
-                        if not href:
-                            continue
-                        comm = self.get_comm_detail(href, comm)
-                        comm.insert_db()
-                    except Exception as e:
-                        continue
-        except Exception as e:
-            print(e)
-            print('retry')
+                    comm_detail_url = re.search('<a href="(.*?)">', info, re.S | re.M).group(1)
+                    comm_area = re.findall('<td align="center">(.*?)</td>', info, re.S | re.M)[1]
+                    comm.area = comm_area
+                    # href = 'http://www.bsfcj.com/PubInfo/' + 'lpxx.asp?qyxmbm=DBDHDADCDADADADFDDDBDCDJ000001'
+                    href = 'http://www.bsfcj.com/PubInfo/' + comm_detail_url
 
-    @retry(tries=3)
+                    comm = self.get_comm_detail(href, comm)
+                    comm.insert_db()
+                except Exception as e:
+                    print(e)
+
     def get_comm_detail(self, href, comm):
         try:
             res = requests.get(url=href, headers=self.headers)
-            co_id = res.url
-            co_id = co_id.split('=')[1]  # 小区id
-            html = res.content.decode('gb2312', 'ignore').replace('\n', '').replace('\t', '').replace('\r', '').replace(
-                ' ', '')
+            co_id = res.url.split('=')[1]  # 小区id
+            html = res.content.decode('gb2312')
             # 获取小区详情字段
-            co_name = re.search(
-                r'class="padingleft3px">(.*)?</td><tdwidth="1"rowspan="13"align="right"bgcolor="#CECFCE"><palign="left"></td><tdwidth="2"rowspan="13"align="right"bgcolor="#FFFFFF">',
-                html).group(1)  # 小区名
-            co_adress = re.search(
-                r'<tdalign="left"class="padingleft3px">(.*)?</td></tr><tr><tdheight="25"align="right"><palign="left">项目开发形式：',
-                html).group(1)  # 地址
-            co_investor = re.search(
-                r'投资商：</td><tdalign="left"class="padingleft3px">(.*)?</td></tr><tr><tdheight="25"align="right"><palign="left">是否在建：',
-                html).group(1)  # 投资商
-            co_is_build = re.search(
-                r'是否在建：</td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"><palign="left">项目类型：',
-                html).group(1)  # 是否在建
-            if '在建' in co_is_build:
-                co_is_build = '0'
-            elif '竣工' in co_is_build:
-                co_is_build = '1'
-            else:
-                co_is_build = None
-            co_type = re.search(
-                r'项目类型：</td><tdalign="left"class="padingleft3px">(.*)?</td></tr><tr><tdheight="25"align="right"><palign="left">项目代理：',
-                html).group(1)  # 项目类型
-            co_size = re.search(
-                r'占地面积：</td><tdalign="left"class="padingleft3px">(.*)?m<sup>2</sup></td></tr><tr><tdheight="25"align="right"><palign="left">竣工日期（计划）',
-                html).group(1)  # 占地面积
-            # print(co_size)
-            co_build_size = re.search(
-                r'建筑面积：</td><tdalign="left"class="padingleft3px">(.*)?m<sup>2</sup></td></tr><tr><tdheight="25"align="right"><palign="left">容积率',
-                html).group(1)  # 建筑面积
-            co_build_start_time = re.search(
-                r'开工日期（计划）：</td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"><palign="left">占地面积',
-                html).group(1)  # 开工时间
-            co_build_end_time = re.search(
-                r'竣工日期（计划）：</td><tdalign="left"class="padingleft3px">(.*)?</td><tdheight="25"align="right"><palign="left">建筑面积',
-                html).group(1)  # 竣工时间
-            co_volumetric = re.search(
-                r'容积率：</td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"><palign="left">绿化率',
-                html).group(
-                1)  # 容积率
-            co_green = re.search(
-                r'绿化率：</td><tdalign="left"class="padingleft3px">(.*)?</td></tr><tr><tdheight="25"align="right"><palign="left">投资计划批准文件文号',
-                html).group(1)  # 绿化率
-            co_pre_sale = re.search(
-                r'售许可证：</td><tdalign="left"class="padingleft3px"style="line-height:25px;">(.*)?</td><tdheight="25"align="right"valign="top"style="padding-top:6px;"><palign="left">',
-                html).group(1).rstrip('<br/>').split('<br/>')  # 预售证书
-            if not co_pre_sale:
-                return comm
-            co_land_use = re.search(
-                r'土地使用权证：</td><tdalign="left"class="padingleft3px">(.*)?</td><tdalign="right"><palign="left">建设工程规划许可证',
-                html).group(1).rstrip('<br/>').split('<br/>')  # 土地使用证
-            if not co_land_use:
-                return comm
-            co_pre_sale_date = re.search(
-                r'售许可证发证日期：</td><tdalign="left"class="padingleft3px"style="line-height:25px;">(.*?)</td></tr><tr><tdheight="25"align="right"><palign="left">土地使用权证',
-                html).group(1).rstrip('<br/>').split('<br/>')  # 预售证书日期
-            if not co_pre_sale_date:
-                return comm
+            co_name = re.search('项目名称：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 小区名
+            co_address = re.search('项目地址：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 地址
+            co_investor = re.search('投资商：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 投资商
+            co_is_build = re.search('是否在建：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 是否在建
+            co_type = re.search('项目类型：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 项目类型
+            co_size = re.search('占地面积：.*?padingleft3px">(.*?)<', html, re.S | re.M).group(1)  # 占地面积
+            co_build_size = re.search('建筑面积：.*?padingleft3px">(.*?)<', html, re.S | re.M).group(1)  # 建筑面积
+            co_build_start_time = re.search('开工日期（计划）：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 开工时间
+            co_build_end_time = re.search('竣工日期（计划）：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 竣工时间
+            co_volumetric = re.search('容积率：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 容积率
+            co_green = re.search('绿化率：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 绿化率
+            # 预售证书为列表
+            co_pre_sale_list_str = re.search('预\(现\)售许可证：.*?height:25px;"(.*?)</td>', html, re.S | re.M).group(
+                1)  # 预售证书
+            co_pre_sale = []
+            for i in re.findall('>(.*?)<', co_pre_sale_list_str, re.S | re.M):
+                co_pre_sale.append(i)
+            # 预售证书时间也是列表
+            co_pre_sale_data_list_str = re.search('预\(现\)售许可证发证日期：.*?height:25px;"(.*?)</td>', html, re.S | re.M).group(
+                1)  # 预售证书日期
+            co_pre_sale_date = []
+            for i in re.findall('>(.*?)<', co_pre_sale_data_list_str, re.S | re.M):
+                co_pre_sale_date.append(i)
+
+            co_land_use = re.search('土地使用权证：.*?padingleft3px">(.*?)</td>', html, re.S | re.M).group(1)  # 土地使用证
+
             comm.co_id = co_id
             comm.co_name = co_name
-            comm.co_address = co_adress
+            comm.co_address = co_address
             comm.co_investor = co_investor
             comm.co_is_build = co_is_build
             comm.co_type = co_type
@@ -149,18 +114,14 @@ class Baise(Crawler):
                 return comm
             else:
                 for i in build_url_list:
-                    try:
-                        build_url = i.xpath('p/a/@href')[0]
-                        building_url = 'http://www.bsfcj.com/PubInfo/' + build_url
-                        building = Building(1)
-                        building_obj = self.get_build_detail(building_url, building, co_id, )
-                        building_obj.insert_db()
-                    except Exception as e:
-                        continue
+                    build_url = i.xpath('p/a/@href')[0]
+                    building_url = 'http://www.bsfcj.com/PubInfo/' + build_url
+                    building = Building(1)
+                    building_obj = self.get_build_detail(building_url, building, co_id, )
+                    building_obj.insert_db()
                 return comm
         except Exception as e:
-            print(e)
-            print('retry')
+            print('小区页面解析错误，url=', href, e)
 
     @retry(tries=3)
     def get_build_detail(self, building_url, building, co_id):
@@ -209,18 +170,13 @@ class Baise(Crawler):
             # 获取房号超链接
             house_url_list = re.findall(r"window.open\('(.+?)'\)", html)
             for i in house_url_list:
-                try:
-                    house_url = 'http://www.bsfcj.com/PubInfo/' + i
-                    house = House(1)
-                    house_obj = self.get_house_detail(house_url, house, co_id, bu_id)
-                    house_obj.insert_db()
-                except Exception as e:
-                    print('continue', e)
-                    continue
+                house_url = 'http://www.bsfcj.com/PubInfo/' + i
+                house = House(1)
+                house_obj = self.get_house_detail(house_url, house, co_id, bu_id)
+                house_obj.insert_db()
             return building
         except Exception as e:
-            print(e)
-            print('retry')
+            print('楼栋解析或者请求的过程中出现错误,url=', building_url, e)
 
     @retry(tries=3)
     def get_house_detail(self, house_url, house, co_id, bu_id):
@@ -237,10 +193,7 @@ class Baise(Crawler):
             ho_share_size = tree.xpath('//tr[5]/td[2]/text()')[0].replace('M²', '')  # 预测分摊面积
             orientation = tree.xpath('//tr[6]/td[2]/text()')[0]  # 朝向
             ho_price = tree.xpath('//tr[6]/td[4]/text()')  # 价格
-            if ho_price:
-                ho_price = ho_price[0].replace('元/M²', '')
-            else:
-                return house
+
             house.co_id = co_id
             house.bu_id = bu_id
             house.ho_name = ho_name
@@ -254,6 +207,4 @@ class Baise(Crawler):
             house.ho_price = ho_price
             return house
         except Exception as e:
-            print(e)
-            print('retry')
-
+            print('房号请求或者解析过程之中出现问题,url=', house_url, e)
