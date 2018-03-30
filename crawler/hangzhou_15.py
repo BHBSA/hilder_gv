@@ -4,7 +4,7 @@ city：杭州
 CO_INDEX: 15
 小区数：2066
 """
-import time
+from retry import retry
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
@@ -41,12 +41,12 @@ class Hangzhou(Crawler):
                     if response.status_code is 200:
                         break
                 except Exception as e:
-                    print(all_url)
-                    print('小区列表页加载不出来')
+                    print('小区列表页加载不出来', all_url, e)
             html = response.text
             comm_url_list = re.findall('build_word01" onclick="toPropertyInfo\((.*?)\);', html, re.S | re.M)
             self.get_comm_info(comm_url_list)
 
+    @retry(tries=3)
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
             try:
@@ -75,11 +75,16 @@ class Hangzhou(Crawler):
                 print('comm:', count)
                 self.get_build_info(build_all_url)
             except Exception as e:
-                print(e)
+                print('小区页面', comm_url, e)
 
+    @retry(tries=3)
     def get_build_info(self, build_all_url):
         build_url = 'http://www.tmsf.com/' + build_all_url[0]
-        response = requests.get(build_url, headers=self.headers)
+        try:
+            response = requests.get(build_url, headers=self.headers)
+        except Exception as e:
+            print('楼栋错误', build_url, e)
+            return
         html = response.text
         build_code_list = re.findall("javascript:doPresell\('(.*?)'\)", html)
         sid = re.findall('id="sid" value="(.*?)"', html)[0]
@@ -106,6 +111,7 @@ class Hangzhou(Crawler):
                 except Exception as e:
                     print(e)
 
+    @retry(tries=3)
     def get_house_info(self, build_num, sid):
         house_url = 'http://www.tmsf.com/newhouse/NewPropertyHz_showbox.jspx?buildingid=' + build_num + '&sid=' + sid
         house = House(co_index)
