@@ -17,11 +17,11 @@ from retry import retry
 
 class Baise(Crawler):
     url = 'http://www.bsfcj.com/PubInfo/HouseSource.asp'
+    co_index = 1
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
     }
 
-    @retry(tries=3)
     def get_all_page_url(self):
         try:
             res = requests.get(url=self.url, headers=self.headers)
@@ -33,10 +33,8 @@ class Baise(Crawler):
                 url_list.append(self.url + '?page=' + str(i))
             return url_list
         except Exception as e:
-            print('获取所有页面错误, url=', self.url, e)
-            raise
+            print('获取所有页面错误, co_index, url={}'.format(self.co_index, self.url), e)
 
-    @retry(tries=3)
     def start_crawler(self):
         url_list = self.get_all_page_url()
         for url in url_list:
@@ -56,7 +54,7 @@ class Baise(Crawler):
                     comm = self.get_comm_detail(href, comm)
                     comm.insert_db()
                 except Exception as e:
-                    print(e)
+                    print('小区列表页解析有错,co_index={},'.format(self.co_index), e)
 
     def get_comm_detail(self, href, comm):
         try:
@@ -121,9 +119,8 @@ class Baise(Crawler):
                     building_obj.insert_db()
                 return comm
         except Exception as e:
-            print('小区页面解析错误，url=', href, e)
+            print('小区页面解析错误，co_index={},url={}'.format(self.co_index, href), e)
 
-    @retry(tries=3)
     def get_build_detail(self, building_url, building, co_id):
         try:
             res = requests.get(url=building_url, headers=self.headers)
@@ -176,9 +173,8 @@ class Baise(Crawler):
                 house_obj.insert_db()
             return building
         except Exception as e:
-            print('楼栋解析或者请求的过程中出现错误,url=', building_url, e)
+            print('楼栋解析或者请求的过程中出现错误,co_index={},url={}'.format(self.co_index, building_url), e)
 
-    @retry(tries=3)
     def get_house_detail(self, house_url, house, co_id, bu_id):
         try:
             res = requests.get(url=house_url, headers=self.headers)
@@ -207,4 +203,4 @@ class Baise(Crawler):
             house.ho_price = ho_price
             return house
         except Exception as e:
-            print('房号请求或者解析过程之中出现问题,url=', house_url, e)
+            print('房号请求或者解析过程之中出现问题,co_index={},url={}'.format(self.co_index, house_url), e)
