@@ -44,11 +44,11 @@ def do_request(url, request_type, headers, encode, post_data=None):
     """
     try:
         if request_type is 'get':
-            result = requests.get(url, headers=headers, )
+            result = requests.get(url, headers=headers, timeout=10)
             html_str = decode(result, encode)
             return html_str
         else:
-            result = requests.post(url, data=post_data, headers=headers, )
+            result = requests.post(url, data=post_data, headers=headers, timeout=10)
             html_str = decode(result, encode)
             return html_str
     except Exception as e:

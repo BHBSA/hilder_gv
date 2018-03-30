@@ -4,7 +4,7 @@ city：杭州
 CO_INDEX: 15
 小区数：2066
 """
-
+import time
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
@@ -22,7 +22,7 @@ class Hangzhou(Crawler):
     def __init__(self):
         self.headers = {
             'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36'
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36',
         }
 
     def start_crawler(self):
@@ -35,11 +35,14 @@ class Hangzhou(Crawler):
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
             all_url = 'http://www.tmsf.com/newhouse/property_searchall.htm?&page=' + str(i)
-            try:
-                response = requests.get(all_url, headers=self.headers, timeout=5)
-            except Exception as e:
-                print(e)
-                continue
+            while True:
+                try:
+                    response = requests.get(all_url, headers=self.headers, timeout=10)
+                    if response.status_code is 200:
+                        break
+                except Exception as e:
+                    print(all_url)
+                    print('小区列表页加载不出来')
             html = response.text
             comm_url_list = re.findall('build_word01" onclick="toPropertyInfo\((.*?)\);', html, re.S | re.M)
             self.get_comm_info(comm_url_list)
@@ -69,63 +72,56 @@ class Hangzhou(Crawler):
                 build_all_url = p.get_details()
                 global count
                 count += 1
-                print(count)
+                print('comm:', count)
                 self.get_build_info(build_all_url)
             except Exception as e:
                 print(e)
 
     def get_build_info(self, build_all_url):
-        bu_all_url_list = {}
-        for i in build_all_url:
-            build_url = 'http://www.tmsf.com/' + i
-            response = requests.get(build_url)
-            html = response.text
-            build_code_list = re.findall("javascript:doPresell\('(.*?)'\)", html)
-            co_id = re.findall('id="sid" value="(.*?)"', html)
-            if not co_id:
+        build_url = 'http://www.tmsf.com/' + build_all_url[0]
+        response = requests.get(build_url, headers=self.headers)
+        html = response.text
+        build_code_list = re.findall("javascript:doPresell\('(.*?)'\)", html)
+        sid = re.findall('id="sid" value="(.*?)"', html)[0]
+        propertyid = re.findall('id="propertyid" value="(.*?)"', html)[0]
+        co_id = sid + '_' + propertyid
+        for presellid in build_code_list:
+            build_detail_url = build_url + '?presellid=' + presellid
+            try:
+                result = requests.get(build_detail_url, headers=self.headers, timeout=10).text
+            except Exception as e:
+                print("楼栋错误", build_detail_url)
                 continue
-            for i in build_code_list:
+            build_num_html = re.search("幢　　号.*?面　　积：", result, re.S | re.M).group()
+            build_num_list = re.findall('<a.*?</a>', build_num_html, re.S | re.M)
+            for i in build_num_list:
                 try:
                     build = Building(co_index)
-                    build_num_url = 'http://www.tmsf.com/newhouse/property_330184_10442053_control.htm?presellid=' + i
-                    build.co_id = 'search" name="search" action="/newhouse/property_(.*?)_control'
-                    build.bu_num = 'javascript:doBuilding.*?>(.*?)<'
-                    build.bu_id = "javascript:doBuilding\('(.*?)'\)"
-                    p_2 = ProducerListUrl(page_url=build_num_url,
-                                          request_type='get', encode='utf-8',
-                                          analyzer_rules_dict=build.to_dict(),
-                                          current_url_rule="javascript:doBuilding\('(.*?)'",
-                                          analyzer_type='regex',
-                                          headers=self.headers)
-                    build_num_list = p_2.get_details()
-                    for i in build_num_list:
-                        # build.bu_id = i
-                        bu_all_url_list[i] = co_id[0]
+                    build_num = re.search("doBuilding\('(.*?)'\)", i, re.S | re.M).group(1)
+                    build.bu_num = re.search("doBuilding.*?>(.*?)<", i, re.S | re.M).group(1)
+                    build.bu_id = build_num
+                    build.co_id = co_id
+                    build.insert_db()
+                    self.get_house_info(build_num, sid)
                 except Exception as e:
                     print(e)
-                # self.get_house_info(bu_all_url_list)
 
-    def get_house_info(self, bu_all_url_list):
-        for i in bu_all_url_list:
-            try:
-                house_url = 'http://www.tmsf.com/newhouse/NewPropertyHz_showbox.jspx?buildingid=' + i + '&sid=' + \
-                            bu_all_url_list[i]
-                house = House(co_index)
-                house.bu_id = 'buildingid":(.*?),'
-                house.co_build_size = 'builtuparea":(.*?),'
-                house.ho_price = 'declarationofroughprice":(.*?),'
-                house.ho_name = 'houseno":(.*?),'
-                house.ho_true_size = 'setinsidefloorarea":(.*?),'
-                house.ho_share_size = 'poolconstructionarea":(.*?),'
-                house.ho_type = 'houseusage":(.*?),'
-                p_2 = ProducerListUrl(page_url=house_url,
-                                      request_type='get', encode='utf-8',
-                                      analyzer_rules_dict=house.to_dict(),
-                                      analyzer_type='regex',
-                                      headers=self.headers)
-                p_2.get_details()
-            except Exception as e:
-                print(e)
+    def get_house_info(self, build_num, sid):
+        house_url = 'http://www.tmsf.com/newhouse/NewPropertyHz_showbox.jspx?buildingid=' + build_num + '&sid=' + sid
+        house = House(co_index)
+        house.bu_id = 'buildingid":(.*?),'
+        house.co_build_size = 'builtuparea":(.*?),'
+        house.ho_price = 'declarationofroughprice":(.*?),'
+        house.ho_name = 'houseno":(.*?),'
+        house.ho_true_size = 'setinsidefloorarea":(.*?),'
+        house.ho_share_size = 'poolconstructionarea":(.*?),'
+        house.ho_type = 'houseusage":(.*?),'
+        p_2 = ProducerListUrl(page_url=house_url,
+                              request_type='get', encode='utf-8',
+                              analyzer_rules_dict=house.to_dict(),
+                              analyzer_type='regex',
+                              headers=self.headers)
+        p_2.get_details()
 
 
 if __name__ == '__main__':
