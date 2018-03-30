@@ -57,7 +57,7 @@ class Comm:
         self.co_type = co_type  # 小区类型/物业类型 :商品房/商品房/别墅
         self.co_build_type = co_build_type  # 建筑类型:独栋,小高层,高层多层
         self.co_green = co_green  # 绿化率
-        self.co_is_build = co_is_build  # 竣工/是否在建 1 已经完成/竣工 0未完成/正在建立
+        self.co_is_build = co_is_build  # 竣工/是否在建
         self.co_all_size = co_all_size # 总面积
         self.co_size = co_size  # 占地面的
         self.co_residential_size = co_residential_size # 住宅面积
