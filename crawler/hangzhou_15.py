@@ -41,7 +41,7 @@ class Hangzhou(Crawler):
                     if response.status_code is 200:
                         break
                 except Exception as e:
-                    print('小区列表页加载不出来', all_url, e)
+                    print('小区列表页加载不出来,co_index={},url={}'.format(co_index, all_url), e)
             html = response.text
             comm_url_list = re.findall('build_word01" onclick="toPropertyInfo\((.*?)\);', html, re.S | re.M)
             self.get_comm_info(comm_url_list)
@@ -75,7 +75,7 @@ class Hangzhou(Crawler):
                 print('comm:', count)
                 self.get_build_info(build_all_url)
             except Exception as e:
-                print(co_index, '小区页面', comm_url, e)
+                print('小区页面,co_index={},url={}'.format(co_index, comm_url), e)
 
     @retry(tries=3)
     def get_build_info(self, build_all_url):
@@ -83,7 +83,7 @@ class Hangzhou(Crawler):
         try:
             response = requests.get(build_url, headers=self.headers)
         except Exception as e:
-            print(co_index, '楼栋错误', build_url, e)
+            print('楼栋错误,co_index={},url={}'.format(co_index, build_url), e)
             return
         html = response.text
         build_code_list = re.findall("javascript:doPresell\('(.*?)'\)", html)
@@ -95,7 +95,7 @@ class Hangzhou(Crawler):
             try:
                 result = requests.get(build_detail_url, headers=self.headers, timeout=10).text
             except Exception as e:
-                print(co_index, "楼栋错误", build_detail_url, e)
+                print("楼栋错误,co_index={},url={}".format(co_index, build_detail_url), e)
                 continue
             build_num_html = re.search("幢　　号.*?面　　积：", result, re.S | re.M).group()
             build_num_list = re.findall('<a.*?</a>', build_num_html, re.S | re.M)
@@ -127,7 +127,7 @@ class Hangzhou(Crawler):
                                   headers=self.headers)
             p_2.get_details()
         except Exception as e:
-            print(co_index, '房号错误', house_url, e)
+            print('房号错误,co_index={},url={}'.format(co_index, house_url), e)
 
 
 if __name__ == '__main__':

@@ -42,9 +42,9 @@ class Beijing(Crawler):
                 page = math.ceil(int(page_num) / 15)
                 return page
             else:
-                print('错误')
+                pass
         except Exception as e:
-            print('retry')
+            print('page页面错误,co_index={},url={}'.format(co_index, self.url), e)
             raise
 
     @retry(tries=3)
@@ -69,8 +69,7 @@ class Beijing(Crawler):
                 count += 1
                 print(count)
             except Exception as e:
-                print(url)
-                print(e)
+                print('小区错误，co_index={},url={}'.format(co_index, url), e)
 
     @retry(tries=3)
     def get_comm_detail(self, url, comm):
@@ -121,8 +120,7 @@ class Beijing(Crawler):
                 building.insert_db()
                 self.get_build_detail(build_url, co_id)
             except Exception as e:
-                print(url)
-                print(e)
+                print('楼栋错误,co_index={},url={}'.format(co_index, url), e)
 
     def get_build_detail(self, build_url, co_id):
         url = 'http://www.bjjs.gov.cn' + build_url
@@ -137,7 +135,7 @@ class Beijing(Crawler):
                 ho_name = re.search('<a.*?>(.*?)<', i, re.S | re.M).group(1)
                 self.get_house_info(house_url, ho_name, bu_id, co_id)
             except Exception as e:
-                print(e)
+                print('房号错误,co_index={},url={}'.format(co_index))
 
     def get_house_info(self, house_url, ho_name, bu_id, co_id):
         house = House(co_index)
