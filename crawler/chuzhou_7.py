@@ -16,6 +16,7 @@ building_id = 0
 count = 0
 co_index = 7
 
+
 class Chuzhou(Crawler):
     def __init__(self):
         self.url = 'http://www.czhome.com.cn/complexPro.asp?page=1&districtID=0&projectAdr=&projectName=&buildingType=0&houseArea=0&averagePrice=0&selState=-1'
@@ -52,16 +53,14 @@ class Chuzhou(Crawler):
             response = requests.get(url, headers=self.headers)
             html = response.content.decode('gbk')
             tree = etree.HTML(html)
-            area_list = tree.xpath('//*[@id="Table8"]/tr/td[6][not(@bgcolor="e7e7e7")]/text()')
             comm_url_list = tree.xpath('//*[@id="Table8"]/tr/td[2]/a/@href')
             for i in range(len(comm_url_list)):
                 try:
                     comm = Comm(7)
-                    comm.area = area_list[i]
                     comm_url = 'http://www.czhome.com.cn/' + comm_url_list[i]
                     self.get_comm_info(comm_url, comm)
                 except Exception as e:
-                    print("co_index={},小区:{}无法提取".format(co_index,comm_url))
+                    print("co_index={},小区:{}无法提取".format(co_index, comm_url))
                     print(e)
 
     @retry(retry(3))
@@ -72,8 +71,10 @@ class Chuzhou(Crawler):
         co_id = re.search('projectID=(\d+?)&', comm_url).group(1)
         # 小区名称
         co_name = re.search('项目名称：(.*?)<', html).group(1)
-        # 小区地址
-        co_address = re.search('所在区名：(.*?)<', html).group(1)
+        # 所在区域
+        co_area = re.search('所在区名：(.*?)<', html).group(1)
+        # 项目地址
+        co_address = re.search('项目地址：(.*?)<', html).group(1)
         # 开发商
         co_develops = re.search('企业名称：<(.*?)>(.*?)<', html).group(2)
         # 小区总套数
@@ -85,13 +86,14 @@ class Chuzhou(Crawler):
 
         comm.co_id = co_id
         comm.co_name = co_name
+        comm.co_area = co_area
         comm.co_address = co_address
         comm.co_develops = co_develops
         comm.co_all_house = co_all_house
         comm.co_all_size = co_all_size
         comm.co_residential_size = co_residential_size
         comm.insert_db()
-        # self.get_build_info(co_id, co_name)
+        self.get_build_info(co_id, co_name)
 
         global count
         count += 1
@@ -109,7 +111,7 @@ class Chuzhou(Crawler):
             url = 'http://www.czhome.com.cn/' + build_url
             result = requests.get(url, headers=self.headers)
             if result.status_code is not 200:
-                print("co_index={},预售url:{}连接失败".format(co_index,url))
+                print("co_index={},预售url:{}连接失败".format(co_index, url))
                 continue
             html = result.content.decode('gbk')
             tree = etree.HTML(html)
@@ -126,7 +128,7 @@ class Chuzhou(Crawler):
                     url = 'http://www.czhome.com.cn/' + bu_url
                     response = requests.get(url, headers=self.headers)
                     if response.status_code is not 200:
-                        print("co_index={},楼栋url:{}连接失败".format(co_index,url))
+                        print("co_index={},楼栋url:{}连接失败".format(co_index, url))
                         continue
                     html = response.content.decode('gbk')
                     tree = etree.HTML(html)
