@@ -14,7 +14,7 @@ from retry import retry
 
 building_id = 0
 count = 0
-
+co_index = 7
 
 class Chuzhou(Crawler):
     def __init__(self):
@@ -60,7 +60,8 @@ class Chuzhou(Crawler):
                     comm.area = area_list[i]
                     comm_url = 'http://www.czhome.com.cn/' + comm_url_list[i]
                     self.get_comm_info(comm_url, comm)
-                except BaseException as e:
+                except Exception as e:
+                    print("co_index={},小区:{}无法提取".format(co_index,comm_url))
                     print(e)
 
     @retry(retry(3))
@@ -81,7 +82,7 @@ class Chuzhou(Crawler):
         co_all_size = re.search('总面积<(.*?)><(.*?)<(.*?)>(.*?)<', html).group(4).replace('㎡', '')
         # 建筑面积
         co_residential_size = re.search('住宅面积<(.*?)<(.*?)<(.*?)<(.*?)>(.*?)<', html).group(5).replace('㎡', '')
-        self.get_build_info(co_id, co_name)
+
         comm.co_id = co_id
         comm.co_name = co_name
         comm.co_address = co_address
@@ -90,6 +91,8 @@ class Chuzhou(Crawler):
         comm.co_all_size = co_all_size
         comm.co_residential_size = co_residential_size
         comm.insert_db()
+        # self.get_build_info(co_id, co_name)
+
         global count
         count += 1
         print(count)
@@ -106,6 +109,7 @@ class Chuzhou(Crawler):
             url = 'http://www.czhome.com.cn/' + build_url
             result = requests.get(url, headers=self.headers)
             if result.status_code is not 200:
+                print("co_index={},预售url:{}连接失败".format(co_index,url))
                 continue
             html = result.content.decode('gbk')
             tree = etree.HTML(html)
@@ -122,6 +126,7 @@ class Chuzhou(Crawler):
                     url = 'http://www.czhome.com.cn/' + bu_url
                     response = requests.get(url, headers=self.headers)
                     if response.status_code is not 200:
+                        print("co_index={},楼栋url:{}连接失败".format(co_index,url))
                         continue
                     html = response.content.decode('gbk')
                     tree = etree.HTML(html)
