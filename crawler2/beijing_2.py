@@ -135,7 +135,7 @@ class Beijing(Crawler):
                 ho_name = re.search('<a.*?>(.*?)<', i, re.S | re.M).group(1)
                 self.get_house_info(house_url, ho_name, bu_id, co_id)
             except Exception as e:
-                print('房号错误,co_index={},url={}'.format(co_index))
+                print('房号错误,co_index={},url={}'.format(co_index, house_url), e)
 
     def get_house_info(self, house_url, ho_name, bu_id, co_id):
         house = House(co_index)
