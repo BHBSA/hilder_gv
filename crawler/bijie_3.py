@@ -103,15 +103,28 @@ class Bijie(Crawler):
                 house_url = 'http://www.gzbjfc.com/Controls/HouseControls/FloorView.aspx?dongID=' + dong_ID + '&qu=%E6%AF%95%E8%8A%82&yszh=' + yszh + '&zhlx=xs&danyuan=all'
                 response = requests.get(house_url, headers=self.headers)
                 html = response.text
-
                 bu_id = re.findall('dongID=(.*?)&', html, re.S | re.M)[0]
-                ho_name_list = re.findall('<span.*?>(.*?)<', html, re.S | re.M)
-                info_list = re.findall("<div class=.*?title='(.*?)'.*?<span", html, re.S | re.M)
-                for i in range(len(ho_name_list)):
+                info_str = re.search('<div class="HouseFloorView".*', html, re.S | re.M).group()
+                for k in re.findall('<div class.*?</table></div>', info_str, re.S | re.M):
                     house = House(co_index)
+                    if '层' in k:
+                        continue
+                    if '单元' in k:
+                        continue
+                    print(k)
+                    house.info = k
+                    house.ho_name = re.search('span.*?>(.*?)</span>', k, re.S | re.M).group(1)
+                    house.ho_true_size = re.search('title.*\n(.*?)\n', k).group(1)
                     house.bu_id = bu_id
-                    house.ho_name = ho_name_list[i]
-                    house.info = info_list[i]
                     house.insert_db()
+
+                # ho_name_list = re.findall('<span.*?>(.*?)<', html, re.S | re.M)
+                # info_list = re.findall("<div class=.*?title='(.*?)'.*?<span", html, re.S | re.M)
+                # for i in range(len(ho_name_list)):
+                #     house = House(co_index)
+                #     house.bu_id = bu_id
+                #     house.ho_name = ho_name_list[i]
+                #     house.info = info_list[i]
+                #     house.insert_db()
             except Exception as e:
                 print('房号错误,co_index={},url={}'.format(co_index, house_url), e)
