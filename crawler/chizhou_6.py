@@ -15,6 +15,7 @@ from retry import retry
 
 class Chizhou(Crawler):
     def __init__(self):
+        self.co_index = 6
         self.url = 'http://www.czfdc.gov.cn/spf/gs.php'
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
@@ -29,7 +30,7 @@ class Chizhou(Crawler):
         html = response.text
         tree = etree.HTML(html)
         page = tree.xpath('//div[@id="page_list"]/a/span/text()')[-1]
-        print(page)
+        print('co_index={},page={}'.format(self.co_index, page))
         return page
 
     def is_none(self, xpath_adv):
@@ -51,19 +52,15 @@ class Chizhou(Crawler):
                 tree = etree.HTML(html)
                 comm_url_list = tree.xpath('//td[@align="left"]/a/@href')
 
-                for i in comm_url_list:
-                    try:
-                        count += 1
-                        print(count)
-                        comm = Comm(6)
-                        comm_url = 'http://www.czfdc.gov.cn/spf/' + i
-                        self.get_comm_info(comm_url, comm)
-                    except Exception as e:
-                        continue
+                for j in comm_url_list:
+                    count += 1
+                    print(count)
+                    comm = Comm(6)
+                    comm_url = 'http://www.czfdc.gov.cn/spf/' + j
+                    self.get_comm_info(comm_url, comm)
             except Exception as e:
-                print(e)
+                print('co_index={},翻页有问题，url={}'.format(self.co_index, url), e)
                 continue
-
 
     @retry(retry(3))
     def get_comm_info(self, comm_url, comm):
@@ -84,7 +81,12 @@ class Chizhou(Crawler):
             co_all_house = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[4]/tr[7]/td[2]/text()')
             co_all_house = self.is_none(co_all_house)
             # 预售证书
-            co_pre_sale = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[4]/tr[4]/td[2]/a/text()')
+            # co_pre_sale = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[4]/tr[4]/td[2]/a/text()')
+            pre_sale_str = re.search('预售许可证号：(.*?)开发商名称：',html,re.S | re.M).group(1)
+            co_pre_sale = []
+            for pre_sale in re.findall("_blank'>(.*?)<", pre_sale_str, re.S | re.M):
+                co_pre_sale.append(pre_sale)
+
             # 开发商
             co_develops = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[4]/tr[5]/td[2]/a/text()')
             co_develops = self.is_none(co_develops)
@@ -98,14 +100,15 @@ class Chizhou(Crawler):
             comm.co_pre_sale = co_pre_sale
             comm.co_develops = co_develops
             comm.co_size = co_size
+            comm.insert_db()
+
             build_url = tree.xpath('//*[@id="main"]/table/tr/td[2]/table[1]/tr/td[1]/a/@href')
             build_url = self.is_none(build_url)
             build_url = 'http://www.czfdc.gov.cn/spf/' + build_url
             self.get_build_info(build_url, co_id)
             # 插入数据库
-            comm.insert_db()
         except Exception as e:
-            print(e)
+            print('co_index={},小区错误，url='.format(self.co_index, comm_url), e)
 
     @retry(retry(3))
     def get_build_info(self, build_url, co_id):
@@ -118,12 +121,11 @@ class Chizhou(Crawler):
                 building = Building(6)
                 bu_detail_url = re.search("location='(.*?)'", i).group(1)
                 bu_detail_url = 'http://www.czfdc.gov.cn/spf/' + bu_detail_url
-                building = self.get_build_detail_info(bu_detail_url, building, co_id)
-                building.co_id = co_id
-                # 插入数据库
-                building.insert_db()
+
+                self.get_build_detail_info(bu_detail_url, building, co_id)
+
         except Exception as e:
-            print(e)
+            print('co_index={},楼栋url，url={}'.format(self.co_index, build_url), e)
 
     @retry(retry(3))
     def get_build_detail_info(self, bu_detail_url, building, co_id):
@@ -146,6 +148,10 @@ class Chizhou(Crawler):
             building.bu_all_house = bu_all_house
             building.bu_name = bu_name
             building.bu_id = bu_id
+            building.co_id = co_id
+            # 插入数据库
+            building.insert_db()
+
             house_url_list = tree.xpath('/html/body/table[4]/tr/td/table[2]/tr/td[not(@bgcolor="#ffffff")]/a/@href')
             for i in house_url_list:
                 house = House(6)
@@ -153,7 +159,7 @@ class Chizhou(Crawler):
                 self.get_house_info(house_url, house, co_id, bu_id)
             return building
         except Exception as e:
-            print(e)
+            print('co_index={},楼栋错误,url={}'.format(self.co_index, bu_detail_url), e)
 
     @retry(retry(3))
     def get_house_info(self, house_url, house, co_id, bu_id):
@@ -188,9 +194,4 @@ class Chizhou(Crawler):
             house.ho_room_type = ho_room_type
             house.insert_db()
         except Exception as e:
-            print(e)
-
-
-if __name__ == '__main__':
-    c = Chizhou()
-    c.start_crawler()
+            print('co_index={}, 房号错误，url={}'.format(self.co_index, house_url), e)
