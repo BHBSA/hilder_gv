@@ -11,9 +11,11 @@ author: 吕三利
 from crawler_base import Crawler
 from lxml import etree
 from comm_info import Building, House
-import requests
+import requests, re
 from tool import Tool
 from producer import ProducerListUrl
+
+co_index = 9
 
 
 class Dongwan(Crawler):
@@ -21,6 +23,9 @@ class Dongwan(Crawler):
         self.url = 'http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/ProjectInfo.aspx?new=1'
         self.link_url = 'http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/'
         self.co_index = 9
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
+        }
 
     def start_crawler(self):
         town_list = self.get_town_name()
@@ -41,38 +46,60 @@ class Dongwan(Crawler):
     def get_house_detail(house_url_list):
         print(house_url_list)
         for i in house_url_list:
-            h = House(9)
-            h.bu_num = '项目名称.*?>(.*?)（<'  # 项目名称
-            h.ho_name = 'target=\'_blank\'>(.*?)</a>'
-            h.info = '建筑面积：.*?</a></td>'
-            p = ProducerListUrl(page_url=i,
-                                request_type='get',
-                                analyzer_rules_dict=h.to_dict(),
-                                analyzer_type='regex', )
-            p.get_details()
+            try:
+                h = House(9)
+                h.ho_name = 'target=\'_blank\'>(.*?)</a>'
+                h.bu_id = 'roomTable.aspx\?id=(.*?)&'
+                h.info = "(建筑面积：.*?)'>"
+                p = ProducerListUrl(page_url=i,
+                                    request_type='get',
+                                    analyzer_rules_dict=h.to_dict(),
+                                    analyzer_type='regex', )
+                p.get_details()
+            except Exception as e:
+                print('房号错误，co_index={},url={}'.format(co_index, i), e)
         print('房号放入完成')
 
-    @staticmethod
-    def get_build_detail(all_building_url_list):
+    def get_build_detail(self, all_building_url_list):
         house_url_list = []
         for i in all_building_url_list:
-            b = Building(9)
-            b.bo_develops = '//*[@id="content_1"]/div[3]/text()[2]'  # 开发商
-            b.bu_num = '//*[@id="content_1"]/div[3]/text()[3]'  # 项目名称
-            b.bu_build_size = '//*[@id="houseTable_1"]/tr[2]/td[6]/a/text()'  # 销售面积
-            b.bu_pre_sale = '//*[@id="houseTable_1"]/tr[2]/td[1]/a/text()'  # 预售证书
-            b.bu_address = '//*[@id="houseTable_1"]/tr[2]/td[2]/a/text()'  # 坐落
-            b.bu_floor = '//*[@id="houseTable_1"]/tr[2]/td[3]/a/text()'  # 总层数
-            b.bu_all_house = '//*[@id="houseTable_1"]/tr[2]/td[4]/a/text()'  # 总套数
-            b.bu_type = '//*[@id="houseTable_1"]/tr[2]/td[5]/a/text()'  # 房屋用途
-            p = ProducerListUrl(page_url=i, request_type='get',
-                                current_url_rule='//*[@id="houseTable_1"]/tr[2]/td[2]/a/@href',
-                                analyzer_rules_dict=b.to_dict(), analyzer_type='xpath', )
-            url_list = p.get_details()
-            complete_url = []
-            for k in url_list:
-                complete_url.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + k)
-            house_url_list = complete_url + house_url_list
+            try:
+                response = requests.get(i, headers=self.headers)
+                html = response.text
+                tree = etree.HTML(html)
+                bo_develops = tree.xpath('//*[@id="content_1"]/div[3]/text()[2]')[0]  # 开发商
+                bu_build_size = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[6]/a/text()')  # 销售面积
+                if bu_build_size:
+                    bu_build_size = bu_build_size[0]
+                bu_pre_sale = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[1]/a/text()')[0]  # 预售证书
+                bu_address = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[2]/a/text()')[0]  # 坐落
+                bu_floor = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[3]/a/text()')[0]  # 总层数
+                bu_all_house = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[4]/a/text()')[0]  # 总套数
+                bu_type = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[5]/a/text()')[0]  # 房屋用途
+                build_html = re.search('houseTable_1.*?当前共有', html, re.S | re.M).group()
+                build_detail_html = re.findall('class.*?</a></td>.*?</a></td>.*?</a></td>', build_html, re.S | re.M)
+                url_list = []
+                for bu in build_detail_html:
+                    try:
+                        build = Building(co_index)
+                        build.bu_id = re.search("href='roomTable.aspx\?id=(.*?)&", bu, re.S | re.M).group(1)
+                        build.bu_num = re.search("_blank.*?_blank'>(.*?)</a></td><td>", bu, re.S | re.M).group(
+                            1).strip()
+                        build.bo_develops = bo_develops
+                        build.bu_build_size = bu_build_size
+                        build.bu_pre_sale = bu_pre_sale
+                        build.bu_address = bu_address
+                        build.bu_floor = bu_floor
+                        build.bu_all_house = bu_all_house
+                        build.bu_type = bu_type
+                        build.insert_db()
+                        house_url = re.search("(roomTable.aspx\?id=.*?&vc=.*?)'", bu, re.S | re.M).group(1)
+                        url_list.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + house_url)
+                    except Exception as e:
+                        print('楼栋错误，co_index={},url={}'.format(co_index, i), e)
+                house_url_list = url_list + house_url_list
+            except Exception as e:
+                print('楼栋错误，co_index={},url={}'.format(co_index, i), e)
         return house_url_list
 
     @staticmethod
