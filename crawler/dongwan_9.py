@@ -5,8 +5,6 @@ CO_INDEX : 9
 author: 吕三利
 小区数量 : 60    2018/2/24
 
-2018/3/9 少区域
-
 """
 from crawler_base import Crawler
 from lxml import etree
@@ -26,6 +24,42 @@ class Dongwan(Crawler):
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36',
         }
+        self.area_list = ['东莞市莞城区',
+                          '东莞市东城区',
+                          '东莞市万江区',
+                          '东莞市南城区',
+                          '东莞市石龙镇',
+                          '东莞市虎门镇',
+                          '东莞市中堂镇',
+                          '东莞市望牛墩镇',
+                          '东莞市麻涌镇',
+                          '东莞市石碣镇',
+                          '东莞市高埗镇',
+                          '东莞市道滘镇',
+                          '东莞市洪梅镇',
+                          '东莞市长安镇',
+                          '东莞市沙田镇',
+                          '东莞市厚街镇',
+                          '东莞市松山湖',
+                          '东莞市寮步镇',
+                          '东莞市大岭山镇',
+                          '东莞市大朗镇',
+                          '东莞市黄江镇',
+                          '东莞市樟木头镇',
+                          '东莞市凤岗镇',
+                          '东莞市塘厦镇',
+                          '东莞市谢岗镇',
+                          '东莞市清溪镇',
+                          '东莞市常平镇',
+                          '东莞市桥头镇',
+                          '东莞市横沥镇',
+                          '东莞市东坑镇',
+                          '东莞市企石镇',
+                          '东莞市石排镇',
+                          '东莞市茶山镇',
+                          '东莞市虎门港',
+                          '东莞市生态产业园',
+                          ]
 
     def start_crawler(self):
         town_list = self.get_town_name()
@@ -51,6 +85,7 @@ class Dongwan(Crawler):
                 h.ho_name = 'target=\'_blank\'>(.*?)</a>'
                 h.bu_id = 'roomTable.aspx\?id=(.*?)&'
                 h.info = "(建筑面积：.*?)'>"
+                h.ho_build_size = re.search('建筑面积：(.*?) ', info).group(1)
                 p = ProducerListUrl(page_url=i,
                                     request_type='get',
                                     analyzer_rules_dict=h.to_dict(),
@@ -92,6 +127,10 @@ class Dongwan(Crawler):
                         build.bu_floor = bu_floor
                         build.bu_all_house = bu_all_house
                         build.bu_type = bu_type
+                        for k in self.area_list:
+                            if k in bu_address:
+                                build.area = k
+                                continue
                         build.insert_db()
                         house_url = re.search("(roomTable.aspx\?id=.*?&vc=.*?)'", bu, re.S | re.M).group(1)
                         url_list.append('http://dgfc.dg.gov.cn/dgwebsite_v2/Vendition/' + house_url)
