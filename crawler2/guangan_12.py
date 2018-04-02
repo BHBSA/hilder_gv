@@ -1,7 +1,3 @@
-'''
-楼栋数据加载不出来
-'''
-
 """
 url = http://www.gafdc.cn/newhouse/houselist.aspx?hou=0-0-0-0-0-0-&page=1
 city : 广安
@@ -43,12 +39,18 @@ class Guangan(Crawler):
         # 遍历所有小区url
         for i in all_url_list:
             comm_url = 'http://www.gafdc.cn/newhouse/' + str(i.replace('index', 'base'))
-            self.get_comm_info(comm_url)
+            try:
+                self.get_comm_info(comm_url)
+            except Exception as e:
+                print('小区错误,co_index={},url={}'.format(co_index, comm_url), e)
         all_build_url_list = []
         for i in all_url_list:
             build_url = 'http://www.gafdc.cn/newhouse/' + str(i.replace('index', 'table'))
             house_url_list = self.get_build_info(build_url)
-            all_build_url_list += house_url_list
+            if house_url_list:
+                all_build_url_list += house_url_list
+            else:
+                print('楼栋错误，此小区没有楼栋，co_index={},url={}'.format(co_index, build_url))
         all_house_url_list = []
         form_data_list = []
         for i in all_build_url_list:
@@ -63,19 +65,25 @@ class Guangan(Crawler):
 
     def get_house_info(self, form_data_list):
         for data in form_data_list:
-            url = 'http://www.gafdc.cn/newhouse/GetBuildTableByAjax.ashx'
-            response = requests.post(url=url, data=data)
-            html = response.text
-            ho_name_list = re.findall("border-333333'>(.*?)<", html)
-            if not ho_name_list:
-                continue
-            for i in range(0, len(ho_name_list)):
-                h = House(co_index)
-                h.bu_id = re.findall("onclick=GetData\(.*?,'(.*?)'.*?border-F9D6BA", html)[0]
-                h.ho_name = i
-                h.ho_type = re.findall('物业类别：(.*?) ', html)[i]
-                h.ho_build_size = re.findall('建筑面积：(.*?) ', html)[i]
-                h.insert_db()
+            house_url = 'http://www.gafdc.cn/newhouse/GetBuildTableByAjax.ashx'
+            try:
+                response = requests.post(url=house_url, data=data,headers=self.headers)
+                html = response.text
+                ho_info_html = re.findall("<td width='95'.*?</td>", html, re.S | re.M)
+                bu_id_html = re.search("^.*?overflow-x:auto;", html, re.S | re.M).group()
+                bu_id = re.findall("GetData\('.*?','(.*?)'\)", bu_id_html, re.S | re.M)[-1]
+                for i in ho_info_html:
+                    try:
+                        h = House(co_index)
+                        h.bu_id = bu_id
+                        h.ho_name = re.search('<td.*?>(.*?)<', i, re.S | re.M).group(1)
+                        h.ho_type = re.search('物业类别：(.*?) ', i, re.S | re.M).group(1)
+                        h.ho_build_size = re.search('建筑面积：(.*?) ', html).group(1)
+                        h.insert_db()
+                    except Exception as e:
+                        print('房屋报错，co_index={},url={}'.format(co_index, house_url), e)
+            except Exception as e:
+                print('房屋报错，co_index={},url={}'.format(co_index, house_url), e)
 
     def get_build_info(self, all_build_url_list):
         b = Building(co_index)
@@ -104,17 +112,26 @@ class Guangan(Crawler):
         return comm_url_list
 
     def get_comm_info(self, all_url_list):
-        c = Comm(co_index)
-        c.co_name = "class='newtopleft font-k'>(.*?)</li>"
-        c.co_id = 'form1" method="post" action="house_base\.aspx\?id=(.*?)"'
-        c.co_address = "项目位置：</li><li class='DetaimidR font-f'>(.*?)</li></ul>"
-        c.co_develops = "开发商：</li><li class='DetaimidR font-f'>(.*?)</li>"
-        c.co_volumetric = "容积率：</li><li class='DetaimidR font-f'>(.*?)<"
-        c.co_green = "绿化率：</li><li class='DetaimidR font-f'>(.*?)<"
-        data_list = c.to_dict()
-        p = ProducerListUrl(page_url=all_url_list,
-                            request_type='get', encode='utf-8',
-                            analyzer_rules_dict=data_list,
-                            analyzer_type='regex',
-                            headers=self.headers)
-        p.get_details()
+        try:
+            c = Comm(co_index)
+            c.co_name = "class='newtopleft font-k'>(.*?)</li>"
+            c.co_id = 'form1" method="post" action="house_base\.aspx\?id=(.*?)"'
+            c.co_address = "项目位置：</li><li class='DetaimidR font-f'>(.*?)</li></ul>"
+            c.area = "地区/商圈：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_develops = "开发商：</li><li class='DetaimidR font-f'>(.*?)</li>"
+            c.co_volumetric = "容积率：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_green = "绿化率：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_all_house = "总户数：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_open_time = "开盘时间：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_land_use = "国土使用证：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_plan_pro = "规划许可证：</li><li class='DetaimidR font-f'>(.*?)<"
+            c.co_build_size = "建筑面积：</li><li class='DetaimidR font-f'>(.*?)<"
+            data_list = c.to_dict()
+            p = ProducerListUrl(page_url=all_url_list,
+                                request_type='get', encode='utf-8',
+                                analyzer_rules_dict=data_list,
+                                analyzer_type='regex',
+                                headers=self.headers)
+            p.get_details()
+        except Exception as e:
+            print('小区错误，co_index={},url={}'.format(co_index, all_url_list), e)
