@@ -1,6 +1,4 @@
-"""
-毕节和贵阳是相同的网站
-"""
+
 
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
@@ -8,6 +6,8 @@ from get_page_num import AllListUrl
 from producer import ProducerListUrl
 from urllib import parse
 import re
+import requests
+from  lxml import etree
 
 url = 'http://www.gyfc.net.cn/2_proInfo/index.aspx'
 co_index = '13'
@@ -34,111 +34,101 @@ class Guiyang(Crawler):
             all_url_list.append('http://www.gyfc.net.cn/2_proInfo/index.aspx/?page=' + str(i))
         print(all_url_list)
 
-        build_list_url = self.get_comm_info(all_url_list)
+        self.get_comm_info(all_url_list)
         # 获取所有楼栋列表页 http://www.gyfc.net.cn/pro_query/index.aspx?yszh=2017005&qu=2
-        all_bu_detail_url = self.get_build_detail_url(build_list_url)
-        house_url_list = self.get_build_detail(all_bu_detail_url)
-        ture_house_url_list = self.get_true_house_url(house_url_list)
-
-        self.get_house_detail(ture_house_url_list)
-        print('小区数据入库成功')
-
-    def get_house_detail(self, house_url_list):
-        for i in house_url_list:
-            h = House(co_index)
-            h.bu_id = 'yszh=(.*?)".*?id'
-            h.ho_name = 'span class=\'.*?>(.*?)<'
-            h.info = 'title=\'(.*?)\'>.*?<span'
-
-            data_list = h.to_dict()
-            p = ProducerListUrl(headers=self.headers,
-                                analyzer_rules_dict=data_list,
-                                page_url=i,
-                                analyzer_type='regex',
-                                request_type='get',
-                                encode='gbk', )
-            p.get_details()
-
-    def get_true_house_url(self, complete_url_list):
-        true_list = []
-        for k in complete_url_list:
-            p = ProducerListUrl(current_url_rule="src='(index/floorView\.aspx.*?)'",
-                                page_url=k,
-                                headers=self.headers,
-                                analyzer_type='regex',
-                                request_type='get',
-                                encode='gbk',
-                                )
-            true_url_list = p.get_current_page_url()
-            new_url_list = []
-            for i in true_url_list:
-                qu = re.findall('qu=(.*?)&', i)[0]
-                url_encode = parse.quote(qu)
-                replace_str = re.sub(qu, url_encode, i)
-                new_url_list.append('http://www.gyfc.net.cn/pro_query/' + replace_str)
-            true_list = new_url_list + true_list
-        return true_list
-
-    def get_build_detail(self, all_house_detail_url):
-        house_url = []
-        for i in all_house_detail_url:
-            b = Building(co_index)
-            b.co_name = '项目名称：<span.*?">(.*?)</span>'
-            b.bu_id = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 楼栋id，预(销)售证号
-            b.bu_build_size = '1_info_all1_listJZMJ">(.*?)</span>'  # 建筑面积
-            b.size = '1_info_all1_litZDMJ">(.*?)</span>'  # 占地面积
-            b.bu_pre_sale = '>预\(销\)售证号.*?"20">(.*?)&nbsp'  # 预(销)售证号
-            b.bo_develops = '>开发商.*?height="20">(.*?)</td>'  # 开发商
-            # b.bo_build_start_time = '开工时间(.*?),'  # 开工时间
-            # b.bo_build_end_time = '竣工时间(.*?)</sp'  # 竣工时间
-
-            current_url_rule = '(FloorList\.aspx?.*?)">'  # 楼层表
-
-            data_list = b.to_dict()
-            p = ProducerListUrl(headers=self.headers,
-                                analyzer_rules_dict=data_list,
-                                page_url=i,
-                                analyzer_type='regex',
-                                request_type='get',
-                                encode='gbk',
-                                current_url_rule=current_url_rule)
-            url_list = p.get_details()
-            complete_url_list = []
-            for k in url_list:
-                complete_url_list.append('http://www.gyfc.net.cn/pro_query/' + k)
-            house_url = house_url + complete_url_list
-
-        return house_url
-
-    def get_build_detail_url(self, build_list_url):
-        bu_url = []
-        for i in build_list_url:
-            p = ProducerListUrl(
-                current_url_rule='//*[@id="proInfodetail_panResult"]/table/tr/td/div/table/tr/td[1]/table/tr[1]/td[3]/a/@href',
-                analyzer_type='xpath',
-                headers=self.headers,
-                encode='gbk',
-                page_url=i)
-            all_build_detail_url = p.get_current_page_url()
-            bu_url = bu_url + all_build_detail_url
-        return bu_url
 
     def get_comm_info(self, all_url_list):
-        url_list = []
         for i in all_url_list:
-            c = Comm(co_index)
-            c.co_name = '>楼盘名称.*?auto">(.*?)&nbsp'  # 15个匹配结果
-            c.co_id = 'margin: 8px"><a href="http://www\.gyfc\.net\.cn/2_proInfo/LoupanDetail\.aspx\?lpid=(.*?)".*?查看详细'
-            c.co_address = '>楼盘地址.*?<td>(.*?)&nbsp'
+            res = requests.get(i,headers=self.headers)
+            con = res.content.decode('gbk')
+            current_url_list = re.findall('<a href="(.*?)"  target="_blank">查看详细',con)
+            for current_url in current_url_list:
+                co_id = re.search('id=(\d+)',current_url).group(1)
+                res = requests.get(current_url,headers=self.headers)
+                con = res.content.decode('gbk')
+                if '尾页' in con:
+                    b = AllListUrl(first_page_url=current_url, page_count_rule='总页数.*?<b>(\d+)</b>',
+                             analyzer_type='regex',
+                             request_method='get',
+                             headers=self.headers,
+                             encode='gbk')
 
-            data_list = c.to_dict()
+                    page_count = b.get_page_count()
+                    for i in range(1,int(page_count)+1):
+                        url =  current_url + "&page=" + str(i)
+                        comm_page = requests.get(url,headers=self.headers)
+                        comm_con = comm_page.content.decode('gbk')
+                        self.comm_info_parse(comm_con,co_id)
+                else:
+                    self.comm_info_parse(con,co_id)
 
-            p = ProducerListUrl(page_url=i,
-                                request_type='get', encode='gbk',
-                                current_url_rule='margin: 8px"><a href="(.*?)".*?查看详细',
-                                analyzer_rules_dict=data_list,
-                                analyzer_type='regex',
-                                headers=self.headers)
-            current_url_list = p.get_details()
-            url_list = current_url_list + url_list
-        return url_list
+
+    def comm_info_parse(self,comm_page,co_id):
+        comm = Comm(co_index)
+        detail_url_list = re.findall('预售证号.*?href="(.*?)" target', comm_page,re.S|re.M)[1:]
+
+        for detail_url in detail_url_list:
+            detail_res = requests.get(detail_url, headers=self.headers)
+            detail_con = detail_res.content.decode('gbk')
+            comm.co_id = co_id
+            comm.co_name = re.search('项目名称.*?>(.*?)</span>', detail_con).group(1)
+            comm.co_type = re.search('性质.*?">(.*?)<', detail_con, re.S | re.M).group(1)
+            comm.co_develops = re.search('开发商：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+            comm.co_build_size = re.search('建筑面积：.*?">(.*?)</span', detail_con, re.S | re.M).group(1)
+            comm.co_size = re.search('占地面积：.*?">(.*?)</span', detail_con, re.S | re.M).group(1)
+            comm.co_land_use = re.search('土地使用权证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+            comm.co_plan_useland = re.search('用地规划许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+            comm.co_plan_project = re.search('工程规划许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+            comm.co_work_pro = re.search('施工许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+            comm.insert_db()
+
+            bu_list_html  = etree.HTML(comm_page)
+
+            # bu_list_url = bu_list_html.xpath("//div[@class='content2']/div[3]/a/@href")
+            bu_list_url = detail_url.replace('index','donginfo')
+            bu_pre = re.search('yszh=(.*?)&',bu_list_url).group(1)
+            bu_res = requests.get(bu_list_url,headers=self.headers)
+            bu_con = bu_res.content.decode('gbk')
+            self.get_build_info(bu_con,co_id,bu_pre)
+
+
+    def get_build_info(self,bu_con,co_id,bu_pre):
+        bu = Building(co_index)
+        bu_info = etree.HTML(bu_con)
+        for i in bu_info.xpath("//table[@id='ContentPlaceHolder1_dong_info1_dg1']//tr")[2:-1]:
+            bu.bu_id = i.xpath("./td/text()")[0]
+            bu.bu_num = i.xpath("./td/text()")[1]
+            bu.bu_all_house = i.xpath("./td/text()")[2]
+            bu.bu_pre_sale = bu_pre
+
+            bu.insert_db()
+            # house_url = i.xpath("./td/a/@href")[0]
+            house_url = "http://www.gyfc.net.cn/pro_query/index/floorView.aspx?dongID="+str(bu.bu_id)+"&danyuan=%C8%AB%B2%BF&qu=%B9%F3%D1%F4"+"&yszh="+str(bu_pre)
+            house_info = requests.get(house_url,headers=self.headers)
+            self.get_house_info(house_info,bu.bu_id,co_id)
+
+    def get_house_info(self,house_info,bu_id,co_id):
+        ho = House(co_index)
+        house_con = house_info.content.decode('gbk')
+        for k in re.findall('<div class.*?</table></div>', house_con, re.S | re.M)[1:]:
+            try:
+                if '层' in k:
+                    continue
+                if '单元' in k:
+                    continue
+                else:
+                    ho.ho_build_size = re.search('title.*\n(.*?)\n',k).group(1)
+                    ho.bu_id = bu_id
+                    ho.co_id = co_id
+                    try:
+                        ho.ho_room_type = re.search("\n(.*?)\\'><table",k).group(1)
+                    except:
+                        ho.ho_room_type = None
+
+                    ho.ho_type = re.search('title=.*?\n(.*?)\n(.*?)\n(.*?)',k).group(2)
+
+                    ho.ho_name = re.search("<span class=.*?>(.*?)</span>",k).group(1)
+                    ho.insert_db()
+            except Exception as e:
+                print(e, k)
+                continue
