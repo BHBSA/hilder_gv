@@ -1,7 +1,3 @@
-'''
-楼栋数据加载不出来
-'''
-
 """
 url = http://www.gafdc.cn/newhouse/houselist.aspx?hou=0-0-0-0-0-0-&page=1
 city : 广安
