@@ -15,8 +15,7 @@ import yaml
 from lib.mongo import Mongo
 
 setting = yaml.load(open('config_local.yaml'))
-CO_ID = 0
-
+co_index = 8
 
 class Cixi(Crawler):
     def __init__(self):
@@ -41,10 +40,8 @@ class Cixi(Crawler):
         html = response.text
         tree = etree.HTML(html)
         comm_url_list = tree.xpath('//ul[@class="NewsList"]/li/a/@href')
-        # comm_area = tree.xpath('//*[@id="Content"]/div[2]/div[4]/table/tr/td[2]/a/text()')
         for i in range(len(comm_url_list)):
             comm = Comm(8)
-            # comm.area = comm_area[i]
             comm_url = 'http://www.cxsfdcglzx.com/touming/' + comm_url_list[i]
             print(comm_url)
             self.get_comm_info(comm_url, comm)
@@ -56,6 +53,7 @@ class Cixi(Crawler):
             html = response.text
             tree = etree.HTML(html)
             co_address = tree.xpath('//*[@id="PageB_Location"]/text()')[0]  # 小区地址
+            co_name = re.search('id="PageB_ItemName".*?>(.*?)<', html, re.S | re.M).group(1)
             co_develops = tree.xpath('//*[@id="PageB_CompName"]/text()')[0]  # 开发商
             co_pre_sale = tree.xpath('//*[@id="PageB_PermitNo"]/text()')[0]  # 预售证书
             co_build_end_time = tree.xpath('//*[@id="PageB_FinishDate"]/text()')[0]  # 竣工时间
@@ -66,19 +64,21 @@ class Cixi(Crawler):
             comm.co_pre_sale = co_pre_sale
             comm.co_build_end_time = co_build_end_time
             comm.co_build_size = co_build_size
+            comm.co_name = co_name
+            co_id = re.search('aspx\?(.*?)$', comm_url).group(1)
+            comm.co_id = co_id
+            comm.insert_db()
             for i in build_url_list:
-                building = Building(8)
                 url = 'http://www.cxsfdcglzx.com/touming/' + i
                 print(url)
-                self.get_build_info(url, comm, building)
+                self.get_build_info(url, co_id)
         except BaseException as e:
             print(e)
 
     @retry(retry(3))
-    def get_build_info(self, url, comm, building):
+    def get_build_info(self, url, co_id):
         try:
-            coll = Mongo(setting['db'], setting['port'], setting['db_name'],
-                         setting['coll_comm']).get_collection_object()
+            building = Building(co_index)
             response = requests.get(url)
             html = response.text
             tree = etree.HTML(html)
@@ -94,7 +94,7 @@ class Cixi(Crawler):
             bu_price = tree.xpath('//*[@id="lb_buildavg"]/text()')
             bu_price = self.is_none(bu_price)  # 住宅价格
             bu_id = re.search('\?(\d+)$', url).group(1)  # 楼栋id
-            building.co_id = CO_ID
+            building.co_id = co_id
             building.bu_name = bu_name
             building.bu_num = bu_num
             building.bu_all_house = bu_all_house
@@ -103,13 +103,14 @@ class Cixi(Crawler):
             building.bu_live_size = bu_live_size
             building.bu_price = bu_price
             building.bu_id = bu_id
+            building.insert_db()
             house_info_html = re.findall('<tr id="row3">(.*)$', html, re.S | re.M)[0]
             for i in re.findall('(<td.*?>.*?</td>)', house_info_html, re.S | re.M):
                 if '<br>' not in i:
                     continue
                 ho_name_list = re.findall('<td.*?>(.*?)<br>', i, re.S | re.M)
                 ho_true_size_list = re.findall('<td.*?>.*?<br>(.*?)<br>', i, re.S | re.M)
-                co_type = re.findall('<td.*?>.*?<br>.*?<br>(.*?)<br>', i, re.S | re.M)
+                ho_type = re.findall('<td.*?>.*?<br>.*?<br>(.*?)<br>', i, re.S | re.M)[0]
                 for i in range(len(ho_name_list)):
                     try:
                         if 'font' in ho_name_list[i]:
@@ -119,21 +120,12 @@ class Cixi(Crawler):
                         house = House(8)
                         house.ho_name = ho_name
                         house.ho_true_size = ho_true_size_list[i]
-                        house.co_id = CO_ID
+                        house.co_id = co_id
                         house.bu_id = bu_id
-                        comm.co_type = co_type
+                        house.ho_type = ho_type
                         house.insert_db()
 
                     except Exception as e:
                         print(e)
-            comm_list = coll.find_one({'co_name': co_name})
-            if not comm_list:
-                global CO_ID
-                CO_ID += 1
-                building.bu_id = bu_id
-                comm.co_name = co_name
-                comm.co_id = CO_ID
-                comm.insert_db()
-            building.insert_db()
         except BaseException as e:
             print(e)

@@ -76,21 +76,25 @@ class Dongwan(Crawler):
 
         self.get_house_detail(house_url_list)
 
-    @staticmethod
-    def get_house_detail(house_url_list):
+    def get_house_detail(self, house_url_list):
         print(house_url_list)
         for i in house_url_list:
             try:
-                h = House(9)
-                h.ho_name = 'target=\'_blank\'>(.*?)</a>'
-                h.bu_id = 'roomTable.aspx\?id=(.*?)&'
-                h.info = "(建筑面积：.*?)'>"
-                h.ho_build_size = '建筑面积：(.*?) '
-                p = ProducerListUrl(page_url=i,
-                                    request_type='get',
-                                    analyzer_rules_dict=h.to_dict(),
-                                    analyzer_type='regex', )
-                p.get_details()
+                response = requests.get(i, headers=self.headers)
+                html = response.text
+                house_html = re.search('id=.roomTable.*?id="remarkDiv"', html, re.S | re.M).group()
+                house_info_list = re.findall('<td.*?title.*?</td>', house_html, re.S | re.M)
+                bu_id = re.search('roomTable.aspx\?id=(.*?)&', html, re.S | re.M).group(1)
+                for i in house_info_list:
+                    house = House(co_index)
+                    house.bu_id = bu_id
+                    house.ho_build_size = re.search('建筑面积：(.*?) ', i, re.S | re.M).group(1)
+                    house.info = re.search("(建筑面积：.*?)'>", i, re.S | re.M).group(1)
+                    house.ho_name = re.search("<td.*?>(.*?)</td>", i, re.S | re.M).group(1)
+                    if 'id' in house.ho_name:
+                        house.ho_name = re.search('<a.*?>(.*?)</a>', house.ho_name, re.S | re.M).group(1)
+                    house.insert_db()
+
             except Exception as e:
                 print('房号错误，co_index={},url={}'.format(co_index, i), e)
         print('房号放入完成')
@@ -109,28 +113,28 @@ class Dongwan(Crawler):
                 bu_pre_sale = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[1]/a/text()')  # 预售证书
                 if bu_pre_sale:
                     bu_pre_sale = bu_pre_sale[0]
-                bu_address = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[2]/a/text()')[0]  # 坐落
                 bu_floor = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[3]/a/text()')[0]  # 总层数
                 bu_all_house = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[4]/a/text()')[0]  # 总套数
                 bu_type = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[5]/a/text()')[0]  # 房屋用途
                 build_html = re.search('houseTable_1.*?当前共有', html, re.S | re.M).group()
                 build_detail_html = re.findall('class.*?</a></td>.*?</a></td>.*?</a></td>', build_html, re.S | re.M)
+                bu_num = re.findall('项目名称：</b>(.*?)</div>', html, re.S | re.M)[0].strip()
                 url_list = []
                 for bu in build_detail_html:
                     try:
                         build = Building(co_index)
                         build.bu_id = re.search("href='roomTable.aspx\?id=(.*?)&", bu, re.S | re.M).group(1)
-                        build.bu_num = re.search("_blank.*?_blank'>(.*?)</a></td><td>", bu, re.S | re.M).group(
+                        build.bu_address = re.search("_blank.*?_blank'>(.*?)</a></td><td>", bu, re.S | re.M).group(
                             1).strip()
                         build.bo_develops = bo_develops
                         build.bu_build_size = bu_build_size
                         build.bu_pre_sale = bu_pre_sale
-                        build.bu_address = bu_address
+                        build.bu_num = bu_num
                         build.bu_floor = bu_floor
                         build.bu_all_house = bu_all_house
                         build.bu_type = bu_type
                         for k in self.area_list:
-                            if k in bu_address:
+                            if k in build.bu_address:
                                 build.area = k
                                 continue
                         build.insert_db()
