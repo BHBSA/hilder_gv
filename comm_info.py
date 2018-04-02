@@ -49,7 +49,7 @@ class Comm:
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
                  co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm', co_use=None,
-                 co_land_type=None, co_plan_pro=None, co_work_pro=None, co_all_size=None,co_residential_size=None):
+                 co_land_type=None, co_plan_pro=None, co_work_pro=None, co_all_size=None,co_residential_size=None, co_plan_useland= None,co_plan_project=None):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -78,6 +78,8 @@ class Comm:
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
         self.co_use = co_use  # 用途
         self.co_plan_pro = co_plan_pro  # 规划许可证
+        self.co_plan_useland = co_plan_useland # 用地规划
+        self.co_plan_project = co_plan_project # 施工规划
         self.co_work_pro = co_work_pro  # 施工许可证
         self.area = area  # 地区
 
