@@ -85,7 +85,7 @@ class Dongwan(Crawler):
                 h.ho_name = 'target=\'_blank\'>(.*?)</a>'
                 h.bu_id = 'roomTable.aspx\?id=(.*?)&'
                 h.info = "(建筑面积：.*?)'>"
-                h.ho_build_size = re.search('建筑面积：(.*?) ', info).group(1)
+                h.ho_build_size = '建筑面积：(.*?) '
                 p = ProducerListUrl(page_url=i,
                                     request_type='get',
                                     analyzer_rules_dict=h.to_dict(),
@@ -106,7 +106,9 @@ class Dongwan(Crawler):
                 bu_build_size = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[6]/a/text()')  # 销售面积
                 if bu_build_size:
                     bu_build_size = bu_build_size[0]
-                bu_pre_sale = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[1]/a/text()')[0]  # 预售证书
+                bu_pre_sale = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[1]/a/text()')  # 预售证书
+                if bu_pre_sale:
+                    bu_pre_sale = bu_pre_sale[0]
                 bu_address = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[2]/a/text()')[0]  # 坐落
                 bu_floor = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[3]/a/text()')[0]  # 总层数
                 bu_all_house = tree.xpath('//*[@id="houseTable_1"]/tr[2]/td[4]/a/text()')[0]  # 总套数
