@@ -149,11 +149,12 @@ class Foshan(Crawler):
                 house_detail_url = "http://fsfc.fsjw.gov.cn/hpms_project/roomview.jhtml?id="+str(house_code)
                 try:
                     res = requests.get(house_detail_url,headers=self.headers)
+                    house.ho_share_size = re.search('实测分摊面积.*?<td>(.*?)</td>', res.text, re.S | re.M).group(1)
+                    house.ho_price = re.search('总价.*?<td>(.*?)</td>', res.text, re.S | re.M).group(1)
                 except Exception as e:
                     print("co_index={},房屋详情页{}请求失败!".format(co_index,house_detail_url))
                     print(e)
                     continue
-                house.ho_share_size = re.search('实测分摊面积.*?<td>(.*?)</td>',res.text,re.S|re.M).group(1)
-                house.ho_price = re.search('总价.*?<td>(.*?)</td>',res.text,re.S|re.M).group(1)
+
                 house.insert_db()
 
