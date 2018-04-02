@@ -117,6 +117,7 @@ class Guangan(Crawler):
             c.co_name = "class='newtopleft font-k'>(.*?)</li>"
             c.co_id = 'form1" method="post" action="house_base\.aspx\?id=(.*?)"'
             c.co_address = "项目位置：</li><li class='DetaimidR font-f'>(.*?)</li></ul>"
+            c.area = "地区/商圈：</li><li class='DetaimidR font-f'>(.*?)<"
             c.co_develops = "开发商：</li><li class='DetaimidR font-f'>(.*?)</li>"
             c.co_volumetric = "容积率：</li><li class='DetaimidR font-f'>(.*?)<"
             c.co_green = "绿化率：</li><li class='DetaimidR font-f'>(.*?)<"
