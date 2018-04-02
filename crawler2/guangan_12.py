@@ -15,6 +15,8 @@ url = 'http://www.gafdc.cn/newhouse/houselist.aspx?hou=0-0-0-0-0-0-&page=1'
 co_index = '12'
 city = '广安'
 
+count = 0
+
 
 class Guangan(Crawler):
     def __init__(self):
@@ -67,7 +69,7 @@ class Guangan(Crawler):
         for data in form_data_list:
             house_url = 'http://www.gafdc.cn/newhouse/GetBuildTableByAjax.ashx'
             try:
-                response = requests.post(url=house_url, data=data,headers=self.headers)
+                response = requests.post(url=house_url, data=data, headers=self.headers)
                 html = response.text
                 ho_info_html = re.findall("<td width='95'.*?</td>", html, re.S | re.M)
                 bu_id_html = re.search("^.*?overflow-x:auto;", html, re.S | re.M).group()
@@ -133,5 +135,8 @@ class Guangan(Crawler):
                                 analyzer_type='regex',
                                 headers=self.headers)
             p.get_details()
+            global count
+            count += 1
+            print(count)
         except Exception as e:
             print('小区错误，co_index={},url={}'.format(co_index, all_url_list), e)
