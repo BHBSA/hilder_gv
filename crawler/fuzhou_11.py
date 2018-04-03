@@ -13,6 +13,8 @@ from comm_info import Comm, Building, House
 import requests, re
 from retry import retry
 
+co_index = 11
+
 
 class Fuzhou(Crawler):
     def __init__(self):
@@ -40,14 +42,13 @@ class Fuzhou(Crawler):
             comm_url_list = tree.xpath('//dt[@class="name"]/a/@href')
             area_list = tree.xpath('//dl[@class="houseList_n"]/dd[3]/text()')
             for i in range(len(comm_url_list)):
+                url = 'http://www.fzfgj.cn/' + comm_url_list[i]
                 try:
                     comm = Comm(11)
-                    comm.area = area_list[i]
-                    url = 'http://www.fzfgj.cn/' + comm_url_list[i]
+                    comm.area = area_list[i].replace('所属区域:', '')
                     self.get_comm_info(url, comm)
                 except BaseException as e:
-                    print(e)
-                    continue
+                    print('小区错误，co_index={},url={}'.format(co_index, url), e)
 
     @retry(retry(3))
     def get_comm_info(self, url, comm):
@@ -96,22 +97,22 @@ class Fuzhou(Crawler):
                     bu_id = re.search('building_id=(.*?)$', bu_id).group(1)
                     # 建筑面积
                     bu_build_size = i.xpath('string(td[3])').replace('�O', '')
-                    # self.get_build_info(bu_id, co_id)
                     build.co_id = co_id
                     build.bu_id = bu_id
                     build.bu_all_house = bu_all_house
                     build.bu_name = bu_name
                     build.bu_build_size = bu_build_size
                     build.insert_db()
+                    self.get_house_info(bu_id, co_id)
                 except Exception as e:
-                    continue
+                    print('楼栋错误，co_index={},url={}'.format(co_index, url), e)
         except BaseException as e:
-            print(e)
+            print('楼栋错误，co_index={},url={}'.format(co_index, url), e)
 
     @retry(retry(3))
-    def get_build_info(self, bu_id, co_id):
+    def get_house_info(self, bu_id, co_id):
+        url = 'http://www.fzfgj.cn/website/presale/home/HouseTableControl/GetData.aspx?Building_ID=' + bu_id
         try:
-            url = 'http://www.fzfgj.cn/website/presale/home/HouseTableControl/GetData.aspx?Building_ID=' + bu_id
             response = requests.get(url=url, headers=self.headers)
             xml = response.text
             tree = etree.XML(xml)
@@ -124,7 +125,6 @@ class Fuzhou(Crawler):
             for i in house_info_list:
                 try:
                     house = House(11)
-                    # ho_num = i.xpath('HOUSE_NUMBER/text()')[0]
                     ho_name = i.xpath('ROOM_NUMBER/text()')[0]
                     ho_build_size = i.xpath('BUILD_AREA/text()')[0]
                     ho_true_size = i.xpath('BUILD_AREA_INSIDE/text()')[0]
@@ -137,13 +137,10 @@ class Fuzhou(Crawler):
                     house.ho_true_size = ho_true_size
                     house.ho_share_size = ho_share_size
                     house.ho_floor = ho_floor
-                    # house.ho_num = ho_num
                     house.ho_name = ho_name
                     house.ho_type = ho_type
                     house.insert_db()
                 except Exception as e:
-                    print(e)
-                    print('房号入库错误')
-                    continue
+                    print('房号错误，co_index={},url={}'.format(co_index, url_2), e)
         except BaseException as e:
-            print(e)
+            print('房号错误，co_index={},url={}'.format(co_index, url), e)
