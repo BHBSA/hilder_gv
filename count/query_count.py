@@ -12,14 +12,19 @@ db = client['gv']
 @app.route("/query_all")
 def query_all():
     print('开始查询')
-    comm_collection = db['community']
-    build_collection = db['building']
-    house_collection = db['house']
+    comm_collection = db['community_2018_3_29']
+    build_collection = db['building_2018_3_29']
+    house_collection = db['house_2018_3_29']
     all_info = {}
-    count = 0
-    for value in city_dict.city_index.values():
-        count = count + 1
-        print(count)
+    sort_num = []
+    co_index_list = city_dict.city_index.values()
+
+    for num in co_index_list:
+        sort_num.append(int(num))
+
+    sort_num.sort()
+    for value in sort_num:
+        # print(value)
         info_dict = {}
         city_count = comm_collection.find({'co_index': int(value)}).count()
         bu_count = build_collection.find({'co_index': int(value)}).count()
@@ -28,6 +33,7 @@ def query_all():
         info_dict["小区"] = str(city_count)
         info_dict["楼栋"] = str(bu_count)
         info_dict["房号"] = str(house_count)
+        print(value,info_dict)
         all_info[str(value)] = info_dict
     # all_info =  str(all_info).replace("},","},\r\n")
     # return render_template('query_all.html', count_dict=all_info)
@@ -37,9 +43,9 @@ def query_all():
 @app.route("/", methods=['POST', 'GET'])
 def query():
 
-    comm_collection = db['community']
-    build_collection = db['building']
-    house_collection = db['house']
+    comm_collection = db['community_2018_3_29']
+    build_collection = db['building_2018_3_29']
+    house_collection = db['house_2018_3_29']
 
     if request.method == 'GET':
         return render_template('hello.html',)
