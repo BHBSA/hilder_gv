@@ -60,7 +60,12 @@ class Haikou(Crawler):
                     'page': page,
                     'webUrl': 1,
                 }
-                response = self.s.post(url, data=load, headers=headers)
+                try:
+                    response = self.s.post(url, data=load, headers=headers)
+                except Exception as e:
+                    print("co_index={},小区错误".format(co_index),e)
+
+                    continue
                 self.get_comm_info(response, co_id)
 
     def get_comm_info(self, comm_res, co_id):
@@ -72,9 +77,9 @@ class Haikou(Crawler):
         comm.co_develops = re.search('开 发 商：.*?<td.*?>(.*?)<', con, re.S | re.M).group(1)
         comm.co_all_size = re.search('建设用地面积.*?<td>(.*?)</td>', con, re.S | re.M).group(1)
         comm.co_size = re.search('占地面积.*?<td>(.*?)</td>', con, re.S | re.M).group(1)
-        comm.co_land_use = re.search('项目总建筑面积：.*?<td>(.*?)</td>', con, re.S | re.M).group(1)
-        comm.co_plan_pro = re.search('土地使用证号.*?<td>(.*?)<', con, re.S | re.M).group(1)
-        comm.co_build_size = re.search('规划许可证号.*?<td>(.*?)<', con, re.S | re.M).group(1)
+        comm.co_build_size = re.search('项目总建筑面积：.*?<td>(.*?)</td>', con, re.S | re.M).group(1)
+        comm.co_land_use = re.search('土地使用证号.*?<td>(.*?)<', con, re.S | re.M).group(1)
+        comm.co_plan_pro = re.search('规划许可证号.*?<td>(.*?)<', con, re.S | re.M).group(1)
         comm.insert_db()
 
         build_id_list = re.findall("onclick=.doview\('(\d+)'\)", con, re.S | re.M)
@@ -90,7 +95,10 @@ class Haikou(Crawler):
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36',
                 'Referer': 'http://hkrealestate.haikou.gov.cn/wp_myself/housequery/projectBuildingList.php'
             }
-            build_info = self.s.post('http://hkrealestate.haikou.gov.cn/wp_myself/housequery/projectBuildHouseAction.php', data=formdata, headers=header)
+            try:
+                build_info = self.s.post('http://hkrealestate.haikou.gov.cn/wp_myself/housequery/projectBuildHouseAction.php', data=formdata, headers=header)
+            except Exception as e:
+                print("co_idnex={},楼栋错误".format(co_index),e)
 
             build_con = build_info.text
             bu.bu_id = build_id
