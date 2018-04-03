@@ -83,7 +83,7 @@ class Dongwan(Crawler):
                 response = requests.get(i, headers=self.headers)
                 html = response.text
                 house_html = re.search('id=.roomTable.*?id="remarkDiv"', html, re.S | re.M).group()
-                house_info_list = re.findall('<td.*?title.*?</td>', house_html, re.S | re.M)
+                house_info_list = re.findall('<td class=.*?title.*?</td>', house_html, re.S | re.M)
                 bu_id = re.search('roomTable.aspx\?id=(.*?)&', html, re.S | re.M).group(1)
                 for i in house_info_list:
                     house = House(co_index)
