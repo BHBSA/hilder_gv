@@ -58,23 +58,32 @@ class Jieyang(object):
                 comm.insert_db()
                 for bu in range(0, len(build_list)):
                     try:
-                        building = Building(co_index)
+
                         build_url = 'http://www.jyfg.cn/HouseWebSetup/PublicReport/PubRptHouseList.aspx?BuildingSN=' + \
                                     build_list[bu]
-                        building.bu_name = bu_name_list[bu]
-                        building.bu_floor = bu_floor_list[bu]
+                        res = requests.get(build_url,headers=self.headers)
+                        con = res.content.decode('gbk')
+                        building = Building(co_index)
+
                         building.co_id = comm.co_id
                         building.bu_id = build_list[bu]
+                        building.bu_num = re.search('栋号.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_build_size = re.search('总建筑面积.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_floor = re.search('层数.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_all_house = re.search('预售套数.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_pre_sale_date = re.search('有效期.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_type = re.search('土地用途.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
+                        building.bu_pre_sale = re.search('许可证编号.*?<span.*?">(.*?)</span',con,re.S|re.M).group(1)
                         building.insert_db()
-                        resp = requests.get(build_url)
-                        html = resp.text
-                        house_list = re.findall('房号:<a href="(.*?)"', html)
+
+                        house_list = re.findall('房号:<a href="(.*?)"', con)
                         for ho in house_list:
                             try:
                                 house = House(co_index)
                                 house_url = 'http://www.jyfg.cn/HouseWebSetup/PublicReport/' + ho
                                 respon = requests.get(house_url)
                                 html = respon.text
+                                house.co_id = comm.co_id
                                 house.bu_id = building.bu_id
                                 house.ho_name = re.search('房号:.*?<span.*?>(.*?)<', html, re.M | re.S).group(1)
                                 house.ho_build_size = re.search('预测建筑面积:.*?<span.*?>(.*?)<', html, re.M | re.S).group(1)
@@ -82,13 +91,20 @@ class Jieyang(object):
                                 house.ho_share_size = re.search('预测分摊面积:.*?<span.*?>(.*?)<', html, re.M | re.S).group(1)
                                 house.ho_type = re.search('房屋用途:.*?<span.*?>(.*?)<', html, re.M | re.S).group(1)
                                 house.ho_room_type = re.search('户型结构:.*?<span.*?>(.*?)<', html, re.M | re.S).group(1)
+
                                 house.insert_db()
                             except Exception as e:
+                                print("co_index={},房屋{}信息提取失败".format(co_index,house_url))
                                 print(e)
+                                continue
                     except Exception as e:
                         print(e)
+                        print('co_idnex={},楼栋{}提取失败'.format(co_index,build_url))
+                        continue
             except Exception as e:
+                print('co_index={},小区{}提取失败'.format(co_index,comm_url))
                 print(e)
+                continue
 
 
 if __name__ == '__main__':
