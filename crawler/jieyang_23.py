@@ -42,17 +42,15 @@ class Jieyang(object):
                 html_build = result.text
                 tree = etree.HTML(html_build)
                 build_list = tree.xpath('//tr[@class="Row"]/td[1]/text()')
-                bu_name_list = tree.xpath('//tr[@class="Row"]/td[5]/text()')
-                bu_floor_list = tree.xpath('//tr[@class="Row"]/td[6]/text()')
                 area = tree.xpath('//*[@id="LabSCFW"]/text()')[0]
                 comm.co_id = comm_list[co]
                 comm.area = area
                 comm.co_develops = co_develops_list[co]
-                comm.co_address_list = co_address_list[co]
-                comm.co_open_time_list = co_open_time_list[co]
-                comm.co_pre_sale_list = co_pre_sale_list[co]
-                comm.co_all_house_list = co_all_house_list[co]
-                comm.co_build_size_list = co_build_size_list[co]
+                comm.co_address = co_address_list[co]
+                comm.co_open_time = co_open_time_list[co]
+                comm.co_pre_sale = co_pre_sale_list[co]
+                comm.co_all_house = co_all_house_list[co]
+                comm.co_build_size = co_build_size_list[co]
                 comm.co_develops = co_develops_list[co]
                 comm.co_name = co_name_list[co]
                 comm.insert_db()
