@@ -62,32 +62,41 @@ class Guiyang(Crawler):
                 else:
                     self.comm_info_parse(con,co_id)
 
-
     def comm_info_parse(self,comm_page,co_id):
         comm = Comm(co_index)
         detail_url_list = re.findall('预售证号.*?href="(.*?)" target', comm_page,re.S|re.M)[1:]
 
         for detail_url in detail_url_list:
-            detail_res = requests.get(detail_url, headers=self.headers)
+            try:
+                detail_res = requests.get(detail_url, headers=self.headers)
+            except Exception as e:
+                print("co_index={},小区{}请求失败".format(co_index,detail_url))
+                print(e)
+                continue
             detail_con = detail_res.content.decode('gbk')
-            comm.co_id = co_id
-            comm.co_name = re.search('项目名称.*?>(.*?)</span>', detail_con).group(1)
-            comm.co_type = re.search('性质.*?">(.*?)<', detail_con, re.S | re.M).group(1)
-            comm.co_develops = re.search('开发商：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
-            comm.co_build_size = re.search('建筑面积：.*?">(.*?)</span', detail_con, re.S | re.M).group(1)
-            comm.co_size = re.search('占地面积：.*?">(.*?)</span', detail_con, re.S | re.M).group(1)
-            comm.co_land_use = re.search('土地使用权证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
-            comm.co_plan_useland = re.search('用地规划许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
-            comm.co_plan_project = re.search('工程规划许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
-            comm.co_work_pro = re.search('施工许可证号：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
-            comm.insert_db()
+            try:
+                comm.co_id = co_id
+                comm.co_name = re.search('项目名称.*?>(.*?)</span>', detail_con).group(1)
+                comm.co_type = re.search('性质.*?">(.*?)<', detail_con, re.S | re.M).group(1)
+                comm.co_develops = re.search('开发商：.*?">(.*?)</', detail_con, re.S | re.M).group(1)
+                comm.co_build_size = re.search('建筑面积：.*?listJZMJ">(.*?)</span', detail_con, re.S | re.M).group(1)
+                comm.co_size = re.search('占地面积：.*?litZDMJ">(.*?)</span', detail_con, re.S | re.M).group(1)
+                comm.co_land_use = re.search('土地使用权证号：.*?5" >(.*?)</td', detail_con, re.S | re.M).group(1)
+                comm.co_plan_useland = re.search('用地规划许可证号：.*?" >(.*?)</td>', detail_con, re.S | re.M).group(1)
+                comm.co_plan_project = re.search('工程规划许可证号：.*?" >(.*?)</td>', detail_con, re.S | re.M).group(1)
+                comm.co_work_pro = re.search('施工许可证号：.*?">(.*?)</td>', detail_con, re.S | re.M).group(1)
+                comm.insert_db()
+            except Exception as e:
+                continue
 
-            bu_list_html  = etree.HTML(comm_page)
-
-            # bu_list_url = bu_list_html.xpath("//div[@class='content2']/div[3]/a/@href")
             bu_list_url = detail_url.replace('index','donginfo')
             bu_pre = re.search('yszh=(.*?)&',bu_list_url).group(1)
-            bu_res = requests.get(bu_list_url,headers=self.headers)
+            try:
+                bu_res = requests.get(bu_list_url,headers=self.headers)
+            except Exception as e:
+                print("co_index={},楼栋url{}未请求到".format(co_index,bu_list_url))
+                print(e)
+                continue
             bu_con = bu_res.content.decode('gbk')
             self.get_build_info(bu_con,co_id,bu_pre)
 
@@ -100,11 +109,16 @@ class Guiyang(Crawler):
             bu.bu_num = i.xpath("./td/text()")[1]
             bu.bu_all_house = i.xpath("./td/text()")[2]
             bu.bu_pre_sale = bu_pre
-
+            bu.co_id = co_id
             bu.insert_db()
             # house_url = i.xpath("./td/a/@href")[0]
             house_url = "http://www.gyfc.net.cn/pro_query/index/floorView.aspx?dongID="+str(bu.bu_id)+"&danyuan=%C8%AB%B2%BF&qu=%B9%F3%D1%F4"+"&yszh="+str(bu_pre)
-            house_info = requests.get(house_url,headers=self.headers)
+            try:
+                house_info = requests.get(house_url,headers=self.headers)
+            except Exception as e:
+                print("co_index={},房屋详情页{}请求失败".format(co_index,house_url))
+                print(e)
+                continue
             self.get_house_info(house_info,bu.bu_id,co_id)
 
     def get_house_info(self,house_info,bu_id,co_id):
@@ -120,9 +134,9 @@ class Guiyang(Crawler):
                     ho.ho_build_size = re.search('title.*\n(.*?)\n',k).group(1)
                     ho.bu_id = bu_id
                     ho.co_id = co_id
-                    try:
+                    if '室'or'厅' in k:
                         ho.ho_room_type = re.search("\n(.*?)\\'><table",k).group(1)
-                    except:
+                    else:
                         ho.ho_room_type = None
 
                     ho.ho_type = re.search('title=.*?\n(.*?)\n(.*?)\n(.*?)',k).group(2)
