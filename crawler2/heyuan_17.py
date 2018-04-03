@@ -57,7 +57,7 @@ class Heyuan(object):
             comm_url = 'http://183.63.60.194:8808/public/web/ysxm?ysxmid=' + i
             try:
                 # response = self.request_proxy(comm_url)
-                response = self.s.get(comm_url,headers=self.headers)
+                response = self.s.get(comm_url, headers=self.headers)
                 html = response.text
                 comm.co_id = re.search('ysxmid=(.*?)$', comm_url).group(1)
                 comm.co_develops = re.findall('kfsmc.*?<a.*?>(.*?)<', html, re.S | re.M)[0]
@@ -77,7 +77,7 @@ class Heyuan(object):
                 bu_url_list = re.findall('onmouseout.*?href="(.*?)"', html, re.S | re.M)
                 self.get_build_info(bu_address_list, bu_num_list, bu_floor_list, bu_url_list, comm.co_id)
             except Exception as e:
-                print('房号错误，co_index={},url={}'.format(co_index, comm_url), e)
+                print('小区错误，co_index={},url={}'.format(co_index, comm_url), e)
 
     def get_build_info(self, bu_address_list, bu_num_list, bu_floor_list, bu_url_list, co_id):
         for i in range(len(bu_url_list)):
@@ -93,14 +93,18 @@ class Heyuan(object):
             html = response.text
             house_html = re.search('var _table_html_.*?</script>', html, re.S | re.M).group()
             house_url_list = re.findall('房屋号：<a.*?href="(.*?)"', house_html, re.S | re.M)
-            self.get_house_info(house_url_list, build.bu_id)
+            try:
+                self.get_house_info(house_url_list, build.bu_id)
+            except Exception as e:
+                print('房号错误，co_index={},url={}'.format(co_index,
+                                                       'http://183.63.60.194:8808/public/web/' + bu_url_list[i]), e)
 
     def get_house_info(self, house_url_list, bu_id):
         for i in house_url_list:
             house = House(co_index)
             house_url = 'http://183.63.60.194:8808/public/web/' + i
             # response = self.request_proxy(house_url)
-            time.sleep(3)
+            time.sleep(1)
             response = self.s.get(house_url, headers=self.headers)
             if response.status_code is not 200:
                 print('房号错误，co_index={},url={}'.format(co_index, house_url))
