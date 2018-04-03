@@ -14,14 +14,14 @@ if __name__ == '__main__':
     chengdu_5 = Chengdu()
     Process(target=chengdu_5.start_crawler).start()
 
-    dongwan_9 = Dongwan()
-    Process(target=dongwan_9.start_crawler).start()
+    # dongwan_9 = Dongwan()
+    # Process(target=dongwan_9.start_crawler).start()
 
     cixi_8 = Cixi()
     Process(target=cixi_8.start_crawler).start()
 
-    guiyang_13 = Guiyang()
-    Process(target=guiyang_13.start_crawler).start()
+    # guiyang_13 = Guiyang()
+    # Process(target=guiyang_13.start_crawler).start()
 
     hechi_16 = Hechi()
     Process(target=hechi_16.start_crawler).start()
