@@ -107,11 +107,13 @@ class Haikou(Crawler):
     def get_house_info(self, con, co_id, build_id):
         html_str = re.search('houseTableData.*?特别申明',con, re.S | re.M).group()
         for info in re.findall('<div style.*?</div>', html_str,re.S | re.M):
-            ho = House(co_index)
-            ho.ho_name = re.search("'HC_HOUSENUMB':'(.*?)',", info, re.S | re.M).group(1)
-            ho.ho_room_type = re.search("'HC_HOUSETYPE':'(.*?)',", info, re.S | re.M).group(1)
-            ho.ho_build_size = re.search("'HC_STCTAREA':'(.*?)',", info, re.S | re.M).group(1)
-            ho.bu_id = build_id
-            ho.co_id = co_id
-            ho.insert_db()
-
+            try:
+                ho = House(co_index)
+                ho.ho_name = re.search("'HC_HOUSENUMB':'(.*?)',", info, re.S | re.M).group(1)
+                ho.ho_room_type = re.search("'HC_HOUSETYPE':'(.*?)',", info, re.S | re.M).group(1)
+                ho.ho_build_size = re.search("'HC_STCTAREA':'(.*?)',", info, re.S | re.M).group(1)
+                ho.bu_id = build_id
+                ho.co_id = co_id
+                ho.insert_db()
+            except Exception as e:
+                print('house error, co_index={}'.format(co_index))
