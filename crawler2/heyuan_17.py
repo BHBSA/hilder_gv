@@ -56,7 +56,6 @@ class Heyuan(object):
             comm = Comm(co_index)
             comm_url = 'http://183.63.60.194:8808/public/web/ysxm?ysxmid=' + i
             try:
-                # response = self.request_proxy(comm_url)
                 response = self.s.get(comm_url, headers=self.headers)
                 html = response.text
                 comm.co_id = re.search('ysxmid=(.*?)$', comm_url).group(1)
@@ -103,7 +102,6 @@ class Heyuan(object):
         for i in house_url_list:
             house = House(co_index)
             house_url = 'http://183.63.60.194:8808/public/web/' + i
-            # response = self.request_proxy(house_url)
             time.sleep(1)
             response = self.s.get(house_url, headers=self.headers)
             if response.status_code is not 200:
