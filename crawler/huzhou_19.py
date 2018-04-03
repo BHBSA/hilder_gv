@@ -60,21 +60,21 @@ class Huzhou(Crawler):
             except:
                 continue
 
-    def build(self,comm_html,sid):
-        bu = Building(co_index)
-
-        bu_num = comm_html.xpath("//div[@id='building_dd']//a")[1:]
-        bu_info = {}
-        bu_num_list = []
-        for bu_ in bu_num:
-            bu.bu_num = bu_.xpath("./text()")[0]
-            bu_id = bu_.xpath("./@id")[0]
-            bu.bu_id = re.search('\d+',bu_id).group(0)
-            bu.co_id = sid
-            bu.insert_db()
-            bu_info[bu.bu_num] = bu.bu_id
-            bu_num_list.append(bu.bu_num)
-        return bu_info,bu_num_list
+    # def build(self,comm_html,sid):
+    #     bu = Building(co_index)
+    #
+    #     bu_num = comm_html.xpath("//div[@id='building_dd']//a")[1:]
+    #     bu_info = {}
+    #     bu_num_list = []
+    #     for bu_ in bu_num:
+    #         bu.bu_num = bu_.xpath("./text()")[0]
+    #         bu_id = bu_.xpath("./@id")[0]
+    #         bu.bu_id = re.search('\d+',bu_id).group(0)
+    #         bu.co_id = sid
+    #         bu.insert_db()
+    #         bu_info[bu.bu_num] = bu.bu_id
+    #         bu_num_list.append(bu.bu_num)
+    #     return bu_info,bu_num_list
 
     def comm_info(self,co_develops,co_pre_sale,co_name,co_pre_sale_date,sid):
         co = Comm(co_index)
@@ -91,59 +91,61 @@ class Huzhou(Crawler):
         comm_html = etree.HTML(comm_res.text)
         value = comm_html.xpath("//input[@id='propertyid']/@value")[0]
         sid = comm_html.xpath("//input[@id='sid']/@value")[0]
-        detail_url = "http://hu.tmsf.com/newhouse/property_"+str(sid)+"_"+str(value)+"_price.htm"
+        # detail_url = "http://hu.tmsf.com/newhouse/property_"+str(sid)+"_"+str(value)+"_price.htm"
 
-        bu_info,bu_num_list = self.build(comm_html,value)
+        bu = Building(co_index)
+        bu_num = comm_html.xpath("//div[@id='building_dd']//a")[1:]
+        # bu_info,bu_num_list = self.build(comm_html,value)
         self.comm_info(co_develops,co_pre_sale,co_name,co_pre_sale_date,value)
-        page_html = requests.get(detail_url,headers=self.headers)
+        # page_html = requests.get(detail_url,headers=self.headers)
+        for bu_ in bu_num:
+            bu.bu_num = bu_.xpath("./text()")[0]
+            bu_id = bu_.xpath("./@id")[0]
+            bu.bu_id = re.search('\d+', bu_id).group(0)
+            bu.co_id = value
+            bu.insert_db()
+            detail_url = "http://hu.tmsf.com/newhouse/property_" + str(sid) + "_" + str(value) + "_price.htm?buildingid="+str(bu.bu_id)
+            page_html = requests.get(detail_url, headers=self.headers)
 
-        page = re.search('页数 \d+/(\d+)',page_html.text).group(1)
-        for i in range (1,int(page)+1):
-            detail_url = detail_url+"?page="+str(i)
+            page = re.search('页数 \d+/(\d+)',page_html.text).group(1)
+            for i in range (1,int(page)+1):
+                detail_url = detail_url+"?page="+str(i)
 
-            detail_res = requests.get(detail_url,headers=self.headers)
-            house_html = etree.HTML(detail_res.text)
-            house_url_list = house_html.xpath("//td[@width='100']/a/@href")
-            house_bu_num = house_html.xpath("//td[@width='100']/a/text()")
-            house_name = house_html.xpath("//td[@width='101'][1]/a/div/text()")
+                detail_res = requests.get(detail_url,headers=self.headers)
+                house_html = etree.HTML(detail_res.text)
+                house_url_list = house_html.xpath("//td[@width='100']/a/@href")
+                house_bu_num = house_html.xpath("//td[@width='100']/a/text()")
+                house_name = house_html.xpath("//td[@width='101'][1]/a/div/text()")
 
-            for index in range(1,len(house_url_list)+1):
-                try:
-                    ho.bu_num = house_bu_num[index]  # 楼号 栋号
-                    house_url = "http://hu.tmsf.com" + house_url_list[index]
-                    house_res = requests.get(house_url,headers=self.headers)
-                    house_html = house_res.text
+                for index in range(1,len(house_url_list)+1):
+                    try:
+                        ho.bu_num = house_bu_num[index]  # 楼号 栋号
+                        house_url = "http://hu.tmsf.com" + house_url_list[index]
+                        house_res = requests.get(house_url,headers=self.headers)
+                        house_html = house_res.text
+                        ho.bu_id = bu.bu_id
+                        ho.co_id = re.search('楼盘主页.*?_\d+_(\d+)_info',house_html).group(1) # 小区id
+                        ho.ho_name = house_name[index]  # 房号：3单元403
+                        # ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
 
-                    for bu_num in bu_num_list:
-                        if bu_num in ho.bu_num:
-                            ho.bu_id = bu_info[bu_num]
-                            break
-                            # bu_num_list.remove(bu_num)
-                        else:
-                            continue
+                        ho.ho_type = re.search('房屋用途：.*?>(.*?)<',house_html).group(1)  # 房屋类型：普通住宅 / 车库仓库
+                        ho.ho_floor = re.search('第(.*?)层',house_html).group(1)
 
-                    ho.co_id = re.search('楼盘主页.*?_\d+_(\d+)_info',house_html).group(1) # 小区id
-                    ho.ho_name = house_name[index]  # 房号：3单元403
-                    # ho.ho_num =  re.search('_(\d+).htm',house_url).group(1) # 房号id
+                        build_text = re.search('建筑面积：(.*?)平方米',house_html).group(1)
+                        build_num = re.findall('class="(.*?)"',build_text)
+                        ho.ho_build_size = self.number(build_num)  # 建筑面积
 
-                    ho.ho_type = re.search('房屋用途：.*?>(.*?)<',house_html).group(1)  # 房屋类型：普通住宅 / 车库仓库
-                    ho.ho_floor = re.search('第(.*?)层',house_html).group(1)
+                        size_text = re.search('套内面积：(.*?)平方米',house_html).group(1)
+                        size_num = re.findall('class="(.*?)"',size_text)
+                        ho.ho_true_size = self.number(size_num)  # 预测套内面积,实际面积
 
-                    build_text = re.search('建筑面积：(.*?)平方米',house_html).group(1)
-                    build_num = re.findall('class="(.*?)"',build_text)
-                    ho.ho_build_size = self.number(build_num)  # 建筑面积
+                        price_text = re.search('总　　价：(.*?)万元',house_html).group(1)# 价格
+                        price_num = re.findall('class="(.*?)"',price_text)
+                        ho.ho_price = self.number(price_num)
 
-                    size_text = re.search('套内面积：(.*?)平方米',house_html).group(1)
-                    size_num = re.findall('class="(.*?)"',size_text)
-                    ho.ho_true_size = self.number(size_num)  # 预测套内面积,实际面积
-
-                    price_text = re.search('总　　价：(.*?)万元',house_html).group(1)# 价格
-                    price_num = re.findall('class="(.*?)"',price_text)
-                    ho.ho_price = self.number(price_num)
-
-                    ho.insert_db()
-                except:
-                    continue
+                        ho.insert_db()
+                    except:
+                        continue
 
     def number(self,x):
         num_compile = {
