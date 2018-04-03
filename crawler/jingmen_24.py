@@ -72,7 +72,7 @@ class Jingmen(object):
             try:
                 build = Building(co_index)
                 build_url = 'http://www.jmfc.com.cn/' + i
-                build.bu_name = '<tr bgcolor="#FFFFFF">.*?<td.*?>(.*?)<'
+                build.bu_num = '<tr bgcolor="#FFFFFF">.*?<td.*?>(.*?)<'
                 build.co_id = '楼盘首页.*?aid-(.*?)/'
                 build.bu_id = '&addno=12&action=loupantable&lzbm=(.*?)&ql_xh='
                 build.bu_pre_sale = '<tr bgcolor="#FFFFFF">.*?<td.*?>.*?<.*?<td.*?>(.*?)<'
