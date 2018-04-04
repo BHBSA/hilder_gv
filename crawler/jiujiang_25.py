@@ -55,44 +55,31 @@ class Jiujiang(Crawler):
                 html = response.text
                 build = Building(co_index)
                 build.bu_id = pid
-                build.bu_num = re.search('楼栋座落.*?<td.*?>(.*?)<',html, re.S | re.M).group(1)
-                build.bu_pre_sale = re.search('预售证号.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-                build.bu_pre_sale_date = re.search('时间.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-                build.bu_all_house = re.search('dM.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
-                build.bu_address = re.search('售楼处地址.*?">(.*?)&nbsp',html,re.S|re.M).group(1)
+                build.bu_num = re.search('楼栋座落.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+                build.bu_address = re.search('楼栋座落.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+                build.bu_pre_sale = re.search('预售证号.*?">(.*?)&nbsp', html, re.S | re.M).group(1)
+                build.bu_pre_sale_date = re.search('时间.*?">(.*?)&nbsp', html, re.S | re.M).group(1)
+                build.bu_all_house = re.search('dM.*?">(.*?)&nbsp', html, re.S | re.M).group(1)
+                # build.bu_address = re.search('售楼处地址.*?">(.*?)&nbsp', html, re.S | re.M).group(1)
                 build.insert_db()
-            except:
-                continue
+            except Exception as e:
+                print('co_index={}, 楼栋错误,url={}'.format(co_index, build_url), e)
 
             house_url = 'http://www.jjzzfdc.com.cn/WebClient/ClientService/proxp.aspx?key=WWW_LPB_001&params=' + sid
             # print(house_url)
             result = requests.get(house_url)
             html_ = result.text
 
-            house = House(co_index)
-
-            ho_name_list = re.findall('<ONAME>(.*?)</ONAME>', html_, re.S | re.M)
-            ho_id_list = re.findall('<OSEQ>(.*?)</OSEQ>',html_,re.S|re.M)
-            ho_buil_size = re.findall('<BAREA>(.*?)</BAREA>',html_,re.S|re.M)
-            ho_floor = re.findall('<FORC>(.*?)</FORC>',html_,re.S|re.M)
-            ho_true_size = re.findall('<PAREA>(.*?)</PAREA>',html_,re.S|re.M)
-
-            for index in range(len(ho_name_list)):
+            for house_info in re.findall('<Result.*?</Result>', html_, re.S | re.M):
                 try:
+                    house = House(co_index)
                     house.bu_id = build.bu_id
                     house.bu_num = build.bu_num
-                    house.ho_name = ho_name_list[index]
-                    house.ho_num = ho_id_list[index]
-                    house.ho_build_size = ho_buil_size[index]
-                    house.ho_floor = ho_floor[index]
-                    house.ho_true_size = ho_true_size[index]
+                    house.ho_name = re.search('<ONAME>(.*?)</ONAME>', house_info, re.S | re.M).group(1)
+                    house.ho_num = re.search('<OSEQ>(.*?)</OSEQ>', house_info, re.S | re.M).group(1)
+                    house.ho_build_size = re.search('<BAREA>(.*?)</BAREA>', house_info, re.S | re.M).group(1)
+                    house.ho_floor = re.search('<FORC>(.*?)</FORC>', house_info, re.S | re.M).group(1)
+                    house.ho_true_size = re.search('<PAREA>(.*?)</PAREA>', house_info, re.S | re.M).group(1)
                     house.insert_db()
-                except:
-                    continue
-
-
-
-
-if __name__ == '__main__':
-    a = Jiujiang()
-    a.start_crawler()
+                except Exception as e:
+                    print('co_index={}, 房号错误'.format(co_index), e)
