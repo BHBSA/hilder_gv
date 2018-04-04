@@ -12,6 +12,7 @@ import re, requests
 url = 'http://183.63.60.194:8808/public/web/index?jgid=FC830662-EA75-427C-9A82-443B91E383CB'
 co_index = '17'
 city = '河源'
+count = 0
 
 
 class Heyuan(object):
@@ -56,6 +57,7 @@ class Heyuan(object):
             comm = Comm(co_index)
             comm_url = 'http://183.63.60.194:8808/public/web/ysxm?ysxmid=' + i
             try:
+                time.sleep(1)
                 response = self.s.get(comm_url, headers=self.headers)
                 html = response.text
                 comm.co_id = re.search('ysxmid=(.*?)$', comm_url).group(1)
@@ -75,6 +77,9 @@ class Heyuan(object):
                 bu_floor_list = re.findall('onmouseout.*?center.*?center.*?center.*?center">(.*?)<', html, re.S | re.M)
                 bu_url_list = re.findall('onmouseout.*?href="(.*?)"', html, re.S | re.M)
                 self.get_build_info(bu_address_list, bu_num_list, bu_floor_list, bu_url_list, comm.co_id)
+                global count
+                count += 1
+                print(count)
             except Exception as e:
                 print('小区错误，co_index={},url={}'.format(co_index, comm_url), e)
 
@@ -86,6 +91,7 @@ class Heyuan(object):
             build.bu_floor = bu_floor_list[i]
             build.co_id = co_id
             # response = self.request_proxy('http://183.63.60.194:8808/public/web/' + bu_url_list[i])
+            time.sleep(1)
             response = self.s.get('http://183.63.60.194:8808/public/web/' + bu_url_list[i], headers=self.headers)
             build.bu_id = re.search('ljzid=(.*?)$', bu_url_list[i]).group(1)
             build.insert_db()
