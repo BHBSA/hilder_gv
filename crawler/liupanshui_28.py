@@ -62,11 +62,11 @@ class Liupanshui(object):
                         comm.co_pre_sale = co_pre_sale_list[i]
                         comm.co_all_house = co_all_house_list[i]
                         comm.insert_db()
-                        global count
-                        count += 1
-                        print(count)
+                        # global count
+                        # count += 1
+                        # print(count)
                     except Exception as e:
-                        print(e)
+                        print('co_index={}, commiunty error'.format(co_index,), e)
                     build_url_list = re.findall("radiobuild' id='build(.*?)'", html, re.S | re.M)
                     build_name_list = re.findall("radiobuild.*?<span.*?>(.*?)<", html, re.S | re.M)
                     for i in range(0, len(build_url_list)):
@@ -135,7 +135,7 @@ class Liupanshui(object):
         all_comm_url_list += comm_url_list
         data = self.get_view_state(html)
         index += 1
-        print(index)
+        print('页码', index)
         if index == 53:
             return all_comm_url_list
         else:
