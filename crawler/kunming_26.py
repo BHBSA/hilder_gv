@@ -7,9 +7,10 @@ CO_INDEX : 26
 from comm_info import Comm, Building, House
 from get_page_num import AllListUrl
 import requests, re
+from urllib import parse
 from retry import retry
 
-url = 'http://www.kmhouse.org/moreHousePriceList.asp?page=1'
+url = 'http://www.kmhouse.org/moreHousePriceList.asp?'
 co_index = '26'
 city = '昆明'
 
@@ -34,20 +35,20 @@ class Kunming(object):
                        )
         page = b.get_page_count()
         for i in range(1, int(page) + 1):
+            index_url = 'http://www.kmhouse.org/moreHousePriceList.asp?page=' + str(i)
             try:
-                index_url = 'http://www.kmhouse.org/moreHousePriceList.asp?page=' + str(i)
                 response = requests.get(url=index_url, headers=self.headers)
                 html = response.content.decode('gbk')
                 comm_url_list = re.findall("cellspacing='3'.*?<a href='(.*?)'", html)
                 self.get_comm_info(comm_url_list)
             except Exception as e:
-                continue
+                print('page页错误，co_index={},url={}'.format(co_index, index_url), e)
 
     @retry(tries=3)
     def get_comm_detail(self, comm_detail_url):
+        comm_url = 'http://www.kmhouse.org' + comm_detail_url
         try:
             comm = Comm(co_index)
-            comm_url = 'http://www.kmhouse.org' + comm_detail_url
             response = requests.get(comm_url, headers=self.headers)
             html = response.content.decode('gbk')
             co_id = re.search('Preid=(.*?)&', comm_detail_url).group(1)
@@ -69,72 +70,66 @@ class Kunming(object):
             comm.insert_db()
             global count
             count += 1
-            print(count)
+            print('count：', count)
         except Exception as e:
-            print(e)
+            print('小区详情错误，co_index={},url={}'.format(co_index, comm_url), e)
 
     @retry(tries=3)
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
+            comm_url = "http://www.kmhouse.org" + i
             try:
-                comm_url = "http://www.kmhouse.org" + i
                 co_id = re.search("PreId=(.*?)&", i).group(1)
+                s = re.search('prename=(.*?)$', comm_url, re.S | re.M).group(1)
+                s_decode_str = parse.quote(s, encoding='gbk')
+                comm_url = comm_url.replace(s, s_decode_str)
                 response = requests.get(comm_url, headers=self.headers)
-                html = response.text
-                build_list = re.findall("</option><option value='(.*?)'", html, re.S | re.M)
+                html = response.content.decode('gbk')
                 comm_detail_url = re.findall('linkone" href="(.*?)"', html, re.S | re.M)[0]
                 self.get_comm_detail(comm_detail_url)
-                for index in range(len(build_list)):
-                    try:
-                        build = Building(co_index)
-                        build_url = 'http://www.kmhouse.org/newhouse/houseprice.asp?PreId=' + co_id + '&Aid=1'
-                        data = {
-                            'bid': build_list[index],
-                            'mess': '1',
-                            'aid': '1',
-                            'preid': co_id,
-                            'issearch': 'yes'
-                        }
-                        response = requests.post(build_url, data=data, headers=self.headers)
-                        html_new = response.content.decode('gbk')
-                        bu_num = re.findall('</option><option value=.*?>(.*?[栋幢座])', html_new, re.S | re.M)
-                        build.bu_num = bu_num[index]
-                        build.bu_id = build_list[index]
-                        build.co_id = co_id
-                        build.insert_db()
-                        all_page = re.search('页次:1/(.*?)\n', html_new).group(1)
-                        for i in range(1, int(all_page)):
-                            try:
-                                house_url = 'http://www.kmhouse.org/newhouse/houseprice.asp?page=' + str(
-                                    i) + '&aid=1&preid=' + co_id + '&bid=' + build_list[index] + '&issearch=yes'
-                                response = requests.get(house_url, headers=self.headers)
-                                html_house = response.content.decode('gbk')
-                                ho_name_list = re.findall("color='blue'>(.*?)<", html_house)
-                                co_build_structural_list = re.findall("color='blue'>.*?center >(.*?)<", html_house)
-                                co_use_list = re.findall(
-                                    "color='blue'>.*?center.*?center.*?center >(.*?)<", html_house)
-                                ho_build_size_list = re.findall(
-                                    "color='blue'>.*?center.*?center.*?center.*?center >(.*?)<",
-                                    html_house)
-                                ho_true_size_list = re.findall(
-                                    "color='blue'>.*?center.*?center.*?center.*?center.*?center >(.*?)<",
-                                    html_house)
-                                for i in range(0, len(ho_name_list)):
-                                    try:
-                                        house = House(co_index)
-                                        house.ho_name = ho_name_list[i]
-                                        house.co_build_structural = co_build_structural_list[i]
-                                        house.co_use = co_use_list[i]
-                                        house.ho_build_size = ho_build_size_list[i]
-                                        house.ho_true_size = ho_true_size_list[i]
-                                        house.bu_id = build_list[index]
-                                        house.insert_db()
-                                    except Exception as e:
-                                        print(e)
-                            except Exception as e:
-                                print(e)
-                    except Exception as e:
-                        print(e)
-                        continue
+                build_html = re.search('请选择幢号.*?</select>', html, re.S | re.M).group()
+                bu_info_list = re.findall("<option.*?</option>", build_html, re.S | re.M)
+                for info in bu_info_list:
+                    build = Building(co_index)
+                    build.bu_id = re.search("value='(.*?)'", info, re.S | re.M).group(1)
+                    build.bu_num = re.search("<option.*?>(.*?)<", info, re.S | re.M).group(1)
+                    build.co_id = co_id
+                    build.insert_db()
+                    self.get_build_info(build.bu_id, co_id)
             except Exception as e:
-                continue
+                print('小区错误，co_index={},url={}'.format(co_index, comm_url), e)
+
+    def get_build_info(self, bu_id, co_id):
+        build_url = 'http://www.kmhouse.org/newhouse/houseprice.asp?PreId=' + co_id + '&Aid=1'
+        try:
+            data = {
+                'bid': bu_id,
+                'mess': '1',
+                'aid': '1',
+                'preid': co_id,
+                'issearch': 'yes'
+            }
+            response = requests.post(build_url, data=data, headers=self.headers)
+            html_new = response.content.decode('gbk')
+            all_page = re.search('页次:1/(.*?)\n', html_new).group(1)
+            self.get_house_url(all_page, co_id, bu_id)
+        except Exception as e:
+            print('楼栋错误，co_index={},url={}'.format(co_index, build_url), e)
+
+    def get_house_url(self, all_page, co_id, bu_id):
+        for i in range(1, int(all_page)):
+            house_url = 'http://www.kmhouse.org/newhouse/houseprice.asp?page=' + str(
+                i) + '&aid=1&preid=' + co_id + '&bid=' + bu_id + '&issearch=yes'
+            try:
+                response = requests.get(house_url, headers=self.headers)
+                html_house = response.content.decode('gbk')
+                info_html = re.search('<table class=warp_table.*?</table>', html_house, re.S | re.M).group()
+                info_list = re.findall('<tr height=30>.*?</tr>', info_html, re.S | re.M)
+                for info in info_list:
+                    house = House(co_index)
+                    house.ho_name = re.search('<a.*?><.*?>(.*?)<', info, re.S | re.M).group(1)
+                    house.bu_id = bu_id
+                    house.co_id = co_id
+                    house.insert_db()
+            except Exception as e:
+                print('房号错误，co_index={},url={}'.format(co_index, house_url), e)
