@@ -61,48 +61,56 @@ class Nanping(object):
                 build_url_list = p.get_details()
                 self.get_build_info(build_url_list)
             except Exception as e:
-                print(e)
+                print("co_index={},小区{}错误".format(co_index,i),e)
 
     def get_build_info(self, build_url_list):
         for i in build_url_list:
             try:
                 build = Building(co_index)
                 build_url = 'http://www.fjnpfdc.com/House/' + i
-                build.co_name = "项目名称：.*?<td.*?>(.*?)<"
-                build.bu_num = "幢　　号：.*?<td.*?>(.*?)<"
-                build.co_use = "设计用途：.*?<td.*?>(.*?)<"
-                build.co_build_structural = "建筑结构：.*?<td.*?>(.*?)<"
-                build.bu_floor = "总 层 数：.*?<td.*?>(.*?)<"
-                build.bu_build_size = "总 面 积：.*?<td.*?>(.*?)<"
-                build.co_build_end_time = "竣工日期：.*?<td.*?>(.*?)<"
-                p = ProducerListUrl(page_url=build_url,
-                                    request_type='get', encode='gbk',
-                                    analyzer_rules_dict=build.to_dict(),
-                                    current_url_rule='<a href="(HouseInfo.*?)"',
-                                    analyzer_type='regex',
-                                    headers=self.headers)
-                house_url_list = p.get_details()
-                self.get_house_info(house_url_list)
-            except Exception as e:
-                print(e)
+                res = requests.get(build_url,headers=self.headers)
+                con = res.content.decode('gbk')
+                build.co_name = re.search("项目名称：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.bu_num = re.search("幢　　号：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.co_use = re.search("设计用途：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.co_build_structural = re.search("建筑结构：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.bu_floor = re.search("总 层 数：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.bu_build_size = re.search("总 面 积：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
+                build.co_build_end_time = re.search("竣工日期：.*?<td.*?>(.*?)<",con,re.S|re.M).group(1)
 
-    def get_house_info(self, house_url_list):
+                house_url_list = re.findall('<a href="(HouseInfo.*?)"',con)
+                # p = ProducerListUrl(page_url=build_url,
+                #                     request_type='get', encode='gbk',
+                #                     analyzer_rules_dict=build.to_dict(),
+                #                     current_url_rule='<a href="(HouseInfo.*?)"',
+                #                     analyzer_type='regex',
+                #                     headers=self.headers)
+                build.co_id = re.search('ProjectId=(.*?)&', i).group(1)
+                build.bu_id = re.search('BuildingId=(.*?)&P', i).group(1)
+                build.insert_db()
+                # house_url_list = p.get_details()
+                self.get_house_info(house_url_list,build.bu_id,build.co_id)
+            except Exception as e:
+                print("co_index={},楼栋{}错误".format(co_index,i),e)
+
+    def get_house_info(self, house_url_list,bu_id,co_id):
         for i in house_url_list:
             try:
                 house = House(co_index)
                 house_url = 'http://www.fjnpfdc.com/House/' + i
-                house.bu_num = '幢　　号：.*?<td>(.*?)<'
-                house.ho_name = '房　　号：.*?<td>(.*?)<'
-                house.co_name = '项目名称：.*?<td>(.*?)<'
-                house.ho_build_size = '建筑面积：.*?<td>(.*?)<'
-                house.ho_true_size = '套内面积：.*?<td>(.*?)<'
-                house.ho_share_size = '分摊面积：.*?<td>(.*?)<'
-                house.ho_floor = '所 在 层：.*?<td>(.*?)<'
-                p = ProducerListUrl(page_url=house_url,
-                                    request_type='get', encode='gbk',
-                                    analyzer_rules_dict=house.to_dict(),
-                                    analyzer_type='regex',
-                                    headers=self.headers)
-                p.get_details()
+                house_res = requests.get(house_url,headers=self.headers)
+                house_con = house_res.content.decode('gbk')
+
+                house.bu_id = bu_id
+                house.co_id = co_id
+                house.bu_num = re.search('幢　　号：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.ho_name = re.search('房　　号：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.co_name = re.search('项目名称：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.ho_build_size = re.search('建筑面积：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.ho_true_size = re.search('套内面积：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.ho_share_size = re.search('分摊面积：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+                house.ho_floor = re.search('所 在 层：.*?<td>(.*?)<',house_con,re.S|re.M).group(1)
+
+                house.insert_db()
             except Exception as e:
-                print(e)
+                print("co_index={},房屋{}错误".format(co_index,i),e)
