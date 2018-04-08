@@ -92,13 +92,18 @@ class Ningbo(object):
             response = requests.get(house_url, headers=self.headers)
             html = response.text
             info_list = re.findall('(房号：.*?")', html, re.S | re.M)
-            ho_name_list = re.findall('title=.*?center.*?center.*?<a.*?>(.*?)<', html, re.S | re.M)
+            # ho_name_list = re.findall('title=.*?center.*?center.*?<a.*?>(.*?)<', html, re.S | re.M)
             for index in range(len(info_list)):
                 try:
                     house = House(co_index)
-                    house.info = info_list[index]
-                    house.ho_name = ho_name_list[index]
+                    # house.info = info_list[index]
+                    # house.ho_name = ho_name_list[index]
+                    info = info_list[index]
+                    house.ho_name = re.search('房号：(.*?)&', info, re.S | re.M).group(1)
+                    house.ho_build_size = re.search('建筑面积：(.*?)&', info, re.S | re.M).group(1)
+                    house.ho_share_size = re.search('分摊面积：(.*?)&', info, re.S | re.M).group(1)
+                    house.info = info
                     house.bu_id = qrykey
                     house.insert_db()
                 except Exception as e:
-                    print(e)
+                    print('co_index={},房号错误,url ={} '.format(co_index, house_url), e)
