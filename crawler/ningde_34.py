@@ -46,7 +46,7 @@ class Ningde(object):
         for i in comm_detail_url_list:
             try:
                 comm = Comm(co_index)
-                comm_url = 'http://www.ndjsj.gov.cn/' + i
+                comm_url = 'http://www.ndjsj.gov.cn' + i
                 comm.co_develops = '公司名称：.*?<td.*?>(.*?)<'
                 comm.co_name = '项目名称：.*?<td.*?>(.*?)<'
                 comm.co_pre_sale = '预售许可证：.*?<td.*?>(.*?)<'
@@ -63,7 +63,7 @@ class Ningde(object):
                 build_url_list = p.get_details()
                 self.get_build_info(build_url_list)
             except Exception as e:
-                print(e)
+                print('宁德小区错误，url={}'.format(comm_url), e)
 
     def get_build_info(self, build_url_list):
         for i in build_url_list:
@@ -87,7 +87,7 @@ class Ningde(object):
                 house_url_list = p.get_details()
                 self.get_house_info(house_url_list)
             except Exception as e:
-                print(e)
+                print('宁德楼栋错误,url={}'.format(build_url), e)
 
     def get_house_info(self, house_url_list):
         for i in house_url_list:
@@ -110,4 +110,4 @@ class Ningde(object):
                                     headers=self.headers)
                 p.get_details()
             except Exception as e:
-                print(e)
+                print('宁德房号错误,url={}'.format(house_url), e)
