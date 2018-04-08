@@ -47,7 +47,7 @@ class Qingdao(object):
                 build_logo_list = re.findall('javascript:getBuilingList\("(.*?)"', html, re.S | re.M)
                 self.get_build_info(build_logo_list, i)
             except Exception as e:
-                print(e)
+                print('青岛小区问题,url post data is:={}'.format(data), e)
 
     def get_build_info(self, build_logo_list, preid):
         for build_logo in build_logo_list:
@@ -75,7 +75,7 @@ class Qingdao(object):
                     except Exception as e:
                         print(e)
             except Exception as e:
-                print(e)
+                print('青岛楼栋问题,url:={}'.format(build_url), e)
 
     def get_house_info(self, bu_id, co_id, house_id):
         house_url = 'https://www.qdfd.com.cn/qdweb/realweb/fh/FhHouseStatus.jsp?buildingID=' + bu_id + '&startID=' + house_id + '&projectID=' + co_id
@@ -89,4 +89,4 @@ class Qingdao(object):
                 house.ho_name = i
                 house.insert_db()
             except Exception as e:
-                print(e)
+                print('青岛房号问题,url:={}'.format(house_url), e)
