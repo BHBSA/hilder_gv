@@ -11,6 +11,7 @@ from get_page_num import AllListUrl
 from producer import ProducerListUrl
 import re, requests
 from lxml import etree
+from urllib import parse
 
 co_index = 44
 
@@ -21,15 +22,19 @@ class Shengzhen(Crawler):
         self.headers = {
             'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36',
-            'Referer':'http://ris.szpl.gov.cn/bol/index.aspx',
-            'Cookie':'ASP.NET_SessionId=inmqcanyxhbuxj55gynkeg45',
-            'Host':'ris.szpl.gov.cn',
-            'Origin':'http://ris.szpl.gov.cn',
-            'Upgrade-Insecure-Requests':'1',
+            'Referer':
+                'http://ris.szpl.gov.cn/bol/index.aspx',
+            'Cookie':
+                'ASP.NET_SessionId=lnxo1v45s03n1i452x3cv53l',
+            'Host':
+                'ris.szpl.gov.cn',
+            'Origin':
+                'http://ris.szpl.gov.cn',
+            # 'Upgrade-Insecure-Requests':'1',
 
-            'Content-Length': '7171',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Proxy-Connection': 'keep-alive',
+            # 'Content-Length': '7171',
+            # 'Content-Type': 'application/x-www-form-urlencoded',
+            # 'Proxy-Connection': 'keep-alive',
 
                }
     def start_crawler(self):
@@ -44,26 +49,21 @@ class Shengzhen(Crawler):
         formdata = {}
         comm_url_list = []
         for i in range(1, int(page) + 1):
-            formdata["__EVENTTARGET"] = None
-            formdata["__EVENTARGUMENT"] = None
-            formdata["__VIEWSTATEGENERATOR"] = "248CD702"
-            formdata["AspNetPager1_input"] = str(i)
-            formdata["__VIEWSTATEENCRYPTED"] = None
-            formdata["tep_name"]=None
-            formdata["organ_name"]=None
-            formdata["site_address"]=None
-            formdata["__VIEWSTATEENCRYPTED"]=None
-            # formdata["__EVENTARGUMENT"] = i
-            formdata["AspNetPager1"] = "go"
-            # formdata["__EVENTTARGET"] = "AspNetPager1"
-            res = requests.post(self.start_url, data=formdata, headers=self.headers)
-            con = etree.HTML(res.text)
 
+            res = requests.post(self.start_url, data=formdata,)
+            con  = res.content.decode('gbk')
+            con = etree.HTML(con)
             view_state = con.xpath("//input[@name='__VIEWSTATE']/@value")[0]
             valid = con.xpath("//input[@name='__EVENTVALIDATION']/@value")[0]
-
+            view_state = parse.quote_plus(view_state,encoding='gbk')
+            valid = parse.quote_plus(valid,encoding='gbk')
             formdata["__VIEWSTATE"] = view_state  # 保存当前页的信息作为下一页请求参数
             formdata["__EVENTVALIDATION"] = valid
+            formdata["__EVENTTARGET"] = 'AspNetPager1'
+            formdata["__VIEWSTATEGENERATOR"] = "248CD702"
+            formdata["__EVENTARGUMENT"] = str(i+1)
+            formdata["AspNetPager1_input"] = str(i)
+
             url_list = con.xpath("//tr[@bgcolor='#F5F9FC']/td[@bgcolor='white']/a/@href")
             comm_url_list.extend(url_list)
         self.comm_info(comm_url_list)
@@ -121,23 +121,23 @@ class Shengzhen(Crawler):
                 self.house_info(house_list, bu_id, co_id)
 
 
-def house_info(self, house_list, bu_id, co_id):
-    ho = House(co_index)
-    for house_url in house_list:
-        url = "http://ris.szpl.gov.cn/bol/" + house_url
-        res = requests.get(url, headers=self.headers)
-        ho.ho_num = re.search('id=(\d+)', house_url).group(1)
-        con = res.text
-        ho.bu_num = re.search('情况.*?">(.*?)&', con).group(1)
-        ho.bu_id = bu_id
-        ho.co_id = co_id
-        ho.ho_floor = re.search('楼层.*?">(\d+)&', con).group(1)
-        ho.ho_num = re.search('房号.*?">(\d+)&', con).group(1)
-        ho.ho_type = re.search('用途.*?">(\d+)&', con).group(1)
-        ho.ho_room_type = re.search('户型.*?">(\d+)&', con).group(1)
-        ho.ho_build_size = re.search('建筑面积<.*?">(\d+.\d+)平方米', con).group(1)
-        ho.ho_true_size = re.search('户内面积<.*?">(\d+.\d+)平方米', con).group(1)
-        ho.insert_db()
+    def house_info(self, house_list, bu_id, co_id):
+        ho = House(co_index)
+        for house_url in house_list:
+            url = "http://ris.szpl.gov.cn/bol/" + house_url
+            res = requests.get(url, headers=self.headers)
+            ho.ho_num = re.search('id=(\d+)', house_url).group(1)
+            con = res.text
+            ho.bu_num = re.search('情况.*?">(.*?)&', con).group(1)
+            ho.bu_id = bu_id
+            ho.co_id = co_id
+            ho.ho_floor = re.search('楼层.*?">(\d+)&', con).group(1)
+            ho.ho_num = re.search('房号.*?">(\d+)&', con).group(1)
+            ho.ho_type = re.search('用途.*?">(\d+)&', con).group(1)
+            ho.ho_room_type = re.search('户型.*?">(\d+)&', con).group(1)
+            ho.ho_build_size = re.search('建筑面积<.*?">(\d+.\d+)平方米', con).group(1)
+            ho.ho_true_size = re.search('户内面积<.*?">(\d+.\d+)平方米', con).group(1)
+            ho.insert_db()
 
 
 if __name__ == '__main__':
