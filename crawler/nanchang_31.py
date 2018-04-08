@@ -51,6 +51,7 @@ class Nanchang(object):
                 for j in re.findall('doc_nav_LD" href="(.*?)"', res.text, re.S | re.M):
                     build_url_list.append(j)
                 self.get_build_info(build_url_list, comm.co_id)
+
             except Exception as e:
                 print('小区错误，co_index={}, url={}'.format(co_index, comm_url), e)
 
@@ -76,33 +77,33 @@ class Nanchang(object):
                     build.bu_id = re.search("DisplayB_ld&hrefID=(.*?)'", info, re.S | re.M).group(1)
                     build.co_id = co_id
                     build.insert_db()
-                    house_url_list = re.findall("<tr>.*?<td>.*?<a href='(.*?)'", res.text, re.S | re.M)
-                    self.get_house_info(house_url_list)
+
                 except Exception as e:
                     print('楼栋错误，co_index={},url={}'.format(co_index, build_url), e)
+            house_url_list = re.findall("</span>.*?</td><td>.*?<a href='(.*?xs.*?)' target=\"_blank\">.*?查看", res.text,
+                                        re.S | re.M)
+
+            self.get_house_info(house_url_list)
 
     def get_house_info(self, house_url_list):
-        for i in house_url_list:
-            response = requests.get(i)
-            html = response.text
-            house_code_list = re.findall("<a href='javascript:void.*?ID='(.*?)'", html)
-            for house_code in house_code_list:
+        for url in house_url_list:
+            response = requests.get(url)
+
+            html = etree.HTML(response.text)
+            con = html.xpath("//tr[@align='center']")
+            for i in con:
                 try:
                     house = House(co_index)
-                    house_url = 'http://www.ncfdc.com.cn:5060/Module/BB/MyHouseInfo.aspx?bhid=' + house_code
                     # house.ho_num = 'NHOUSENO">(.*?)<'
-                    house.ho_name = 'VCHOUSENUM">(.*?)<'
-                    house.co_build_structural = 'NHSTRUCTNO_bin">(.*?)<'
-                    house.ho_floor = 'CLOCALNUM">(.*?)<'
-                    house.ho_build_size = 'NBUILDAREA">(.*?)<'
-                    house.ho_true_size = 'HOUSEINSIDE_AREA">(.*?)<'
-                    house.ho_type = 'NDESIGN_bin">(.*?)<'
-                    house.ho_room_type = 'HOUSETYPE">(.*?)<'
-                    house.bu_id = 'NSEATNUM">(.*?)<'
-                    p = ProducerListUrl(page_url=house_url,
-                                        request_type='get', encode='utf-8',
-                                        analyzer_rules_dict=house.to_dict(),
-                                        analyzer_type='regex')
-                    p.get_details()
+                    house.ho_name = i.xpath("./td/text()")[1]
+                    house.ho_floor = i.xpath("./td/text()")[0]
+                    house.ho_build_size = i.xpath("./td/text()")[3]
+                    house.ho_true_size = i.xpath("./td/text()")[4]
+                    house.ho_share_size = i.xpath("./td/text()")[5]
+                    house.ho_room_type = i.xpath("./td/text()")[2]
+                    house.ho_price = i.xpath("./td/text()")[-1]
+                    house.orientation = i.xpath("./td/text()")[-2]
+                    house.bu_id = re.search('ID=(\d+)',url).group(1)
+                    house.insert_db()
                 except Exception as e:
-                    print('房号错误，co_index={},url={}'.format(co_index, house_url), e)
+                    print('房号错误，co_index={},url={}'.format(co_index, url), e)
