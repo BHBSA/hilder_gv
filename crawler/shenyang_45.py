@@ -54,7 +54,7 @@ class Shenyang(Crawler):
         co.co_develops = tag.xpath("./td[@width='192']/text()")[0]
         co_id = tag.xpath("./td/a/@href")[0]
         co.co_id = re.search('mmcid=(\d+)&', co_id).group(1)
-        co.co_open_time = tag.xpath("./td[@width='192']/text()")[0]
+        co.co_open_time = tag.xpath("./td[@width='95']/text()")[0]
         buid_all_url = "http://www.syfc.com.cn" + co_id
         co.insert_db()
         global count
