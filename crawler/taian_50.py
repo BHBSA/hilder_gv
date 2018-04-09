@@ -32,7 +32,6 @@ class Taian(Crawler):
         self.get_build_url(all_now_list_url + all_future_list_url)
 
     def get_build_url(self, all_list_url):
-        # all_list_url 为dict [{'area':'', 'url':''},{}]
         # 存储小区的信息，存储楼栋的信息
         for i in all_list_url:
             try:
@@ -73,17 +72,27 @@ class Taian(Crawler):
                                 res = requests.get(url=com_url, headers=self.headers)
                                 house_detail_html = res.content.decode()
                                 h.co_name = re.search('项目名称：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
-                                h.ho_num = re.search('房　　号：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
-                                h.ho_build_size = re.search('建筑面积：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
+                                h.ho_name = re.search('房　　号：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
+                                h.ho_build_size = re.search('建筑面积：.*?<td>(.*?)</td>', house_detail_html,
+                                                            re.S | re.M).group(1)
                                 h.ho_type = re.search('房屋用途：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
-                                h.ho_true_size = re.search('套内面积：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(1)
-                                h.info = house_detail_html
+                                h.ho_floor = re.search('所 在 层：.*?<td>(.*?)</td>', house_detail_html, re.S | re.M).group(
+                                    1)
+                                h.ho_share_size = re.search('分摊面积：.*?<td>(.*?)</td>', house_detail_html,
+                                                            re.S | re.M).group(1)
+                                h.ho_room_type = re.search('房屋户型：.*?<td>(.*?)</td>', house_detail_html,
+                                                           re.S | re.M).group(1)
+                                h.ho_true_size = re.search('套内面积：.*?<td>(.*?)</td>', house_detail_html,
+                                                           re.S | re.M).group(1)
                                 h.insert_db()
                             except Exception as e:
+                                print('房号错误，co_index={},url={}'.format(self.co_index, com_url), e)
                                 continue
                     except Exception as e:
+                        print('楼栋错误，co_index={},url={}'.format(self.co_index, i['url']), e)
                         continue
             except Exception as e:
+                print('小区错误，co_index={},url={}'.format(self.co_index, i['url']), e)
                 continue
 
     def get_all_comm_info(self, url, now_page_count, mosaic):
@@ -94,7 +103,6 @@ class Taian(Crawler):
                     'pageNo': i
                 }
                 res = requests.post(url=url, data=data, headers=self.headers)
-                # print(res.content.decode())
                 html_str = res.content.decode()
                 page_url_list = []
                 for k in re.findall('<tr onmouseover.*?</tr>', html_str, re.S | re.M):
