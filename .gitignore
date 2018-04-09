@@ -103,5 +103,5 @@ ENV/
 *test*
 
 test.py
-
+.idea/
 *pyc
