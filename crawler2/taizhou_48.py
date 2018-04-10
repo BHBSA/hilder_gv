@@ -1,4 +1,7 @@
 """
+房号包找不到
+"""
+"""
 url = http://tz.tmsf.com/newhouse/property_searchall.htm
 city : 台州
 CO_INDEX : 48
@@ -13,7 +16,7 @@ from get_page_num import AllListUrl
 
 url = 'http://tz.tmsf.com/newhouse/property_searchall.htm'
 co_index = '27'
-city = '兰州'
+city = '台州'
 
 
 class Taizhou(object):
