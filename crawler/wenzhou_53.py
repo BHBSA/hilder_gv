@@ -24,16 +24,19 @@ class Wenzhou(object):
     def start_crawler(self):
         for i in range(119):
             all_page_url = url + '?currPage=' + str(i)
-            response = requests.get(all_page_url, headers=self.headers)
-            html = response.text
-            comm_url_list = re.findall("(FirstHandProjectInfo.*?)'", html, re.S | re.M)
-            self.get_comm_info(comm_url_list)
+            try:
+                response = requests.get(all_page_url, headers=self.headers)
+                html = response.text
+                comm_url_list = re.findall("(FirstHandProjectInfo.*?)'", html, re.S | re.M)
+                self.get_comm_info(comm_url_list)
+            except Exception as e:
+                print('page页错误，co_index={},url={},page={}'.format(co_index, all_page_url, i), e)
 
     def get_comm_info(self, comm_url_list):
         for i in comm_url_list:
+            comm_url = 'http://www.wzfg.com/realweb/stat/' + i
             try:
                 comm = Comm(co_index)
-                comm_url = 'http://www.wzfg.com/realweb/stat/' + i
                 response = requests.get(comm_url, headers=self.headers)
                 html = response.text
                 comm.co_develops = re.search('开发单位：.*?<a.*?>(.*?)<', html, re.S | re.M).group(1)
@@ -49,17 +52,17 @@ class Wenzhou(object):
                 comm.insert_db()
                 build_info_list = re.findall("floortitle' title='(.*?)'", html, re.S | re.M)
                 bu_num_list = re.findall("floortitle.*?>(.*?)<", html, re.S | re.M)
-                self.get_build_info(build_info_list, bu_num_list, comm.co_id)
+                self.get_build_info(build_info_list, bu_num_list, comm.co_id, comm_url)
             except Exception as e:
-                print(e)
+                print('小区错误，co_index={},url={}'.format(co_index, comm_url), e)
 
-    def get_build_info(self, build_info_list, bu_num_list, co_id):
+    def get_build_info(self, build_info_list, bu_num_list, co_id, comm_url):
         for i in range(len(bu_num_list)):
             try:
                 build = Building(co_index)
                 build.co_id = co_id
-                build.build_info = build_info_list[i]
+                build.info = build_info_list[i]
                 build.bu_num = bu_num_list[i]
                 build.insert_db()
             except Exception as e:
-                print(e)
+                print('楼栋错误，co_index={},url={}'.format(co_index, comm_url), e)
