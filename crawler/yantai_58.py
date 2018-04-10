@@ -91,6 +91,8 @@ class Yantai(object):
             house = House(co_index)
             house.ho_name = re.search('房号：(.*?)单元', i, re.S | re.M).group(1)
             house.ho_build_size = re.search('总面积：(.*?) 平方米', i, re.S | re.M).group(1)
+            house.ho_type =  re.search('用途：(.*?)户', i, re.S | re.M).group(1)
+            house.ho_price =  re.search('价格：(.*?) 元', i, re.S | re.M).group(1)
             house.bu_id = bu_id
             house.info = i
             house.insert_db()
