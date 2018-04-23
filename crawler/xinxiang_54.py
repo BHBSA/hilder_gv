@@ -42,33 +42,30 @@ class Xinxiang(object):
                 comm.co_build_size = re.search('已售总面积：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
                 comm.area = re.search('行政区别：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
                 comm.co_volumetric = re.search('容积率：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+                comm.co_id = i
                 comm.insert_db()
                 bu_html = re.search('<table class="table table-bordered itemInfoDetail.*?</table>', html,
                                     re.S | re.M).group()
-                bu_num_list = re.findall('<tr>.*?<td>(.*?)<', bu_html, re.S | re.M)
-                bu_all_house_list = re.findall('<tr>.*?<td>.*?<td>.*?<td>(.*?)<', bu_html, re.S | re.M)
-                bu_url_list = re.findall('<tr>.*?<td>.*?<td>.*?<td>.*?<td>.*?<td>.*?<a href="(.*?)"', bu_html,
-                                         re.S | re.M)
-                self.get_build_info(bu_num_list, bu_all_house_list, bu_url_list, comm.co_name)
+                build_info_list = re.findall('<tr>.*?</tr>', bu_html, re.S | re.M)[1:]
+                for i in build_info_list:
+                    try:
+                        build = Building(co_index)
+                        build.bu_num = re.search('<td>(.*?)<', i, re.S | re.M).group(1)
+                        build.bu_all_house = re.search('<td>.*?<td>.*?<td>(.*?)<', i, re.S | re.M).group(1)
+                        build.bu_id = re.search('buildId=(.*?)&', i, re.S | re.M).group(1)
+                        build.co_id = comm.co_id
+                        build.insert_db()
+                        house_url = re.search('<a href="(.*?)"', bu_html, re.S | re.M).group(1)
+                        response = requests.get(house_url, headers=self.headers)
+                        html = response.text
+                        house_url_list = re.findall('<td width="110">.*?<a.*?href="(.*?)"', html, re.S | re.M)
+                        self.get_house_info(house_url_list, build.bu_id, comm.co_id)
+                    except Exception as e:
+                        print('楼栋错误，co_index={},url={}'.format(co_index, house_url), e)
             except Exception as e:
-                print(e)
+                print('小区错误，co_index={},url={}'.format(co_index, comm_url), e)
 
-    def get_build_info(self, bu_num_list, bu_all_house_list, bu_url_list, co_name):
-        for i in range(len(bu_num_list)):
-            try:
-                build = Building(co_index)
-                build.bu_num = bu_num_list[i]
-                build.bu_all_house = bu_all_house_list[i]
-                build.co_name = co_name
-                build.insert_db()
-                response = requests.get(bu_url_list[i], headers=self.headers)
-                html = response.text
-                house_url_list = re.findall('<td width="110">.*?<a.*?href="(.*?)"', html, re.S | re.M)
-                self.get_house_info(house_url_list, build.bu_num, co_name)
-            except Exception as e:
-                print(e)
-
-    def get_house_info(self, house_url_list, bu_num, co_name):
+    def get_house_info(self, house_url_list, bu_id, co_id):
         for i in house_url_list:
             try:
                 house = House(co_index)
@@ -81,8 +78,8 @@ class Xinxiang(object):
                 house.ho_true_size = re.search('预测套内面积：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
                 house.ho_share_size = re.search('预测分摊面积：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
                 house.co_address = re.search('房屋坐落：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-                house.bu_num = bu_num
-                house.co_name = co_name
+                house.bu_id = bu_id
+                house.co_id = co_id
                 house.insert_db()
             except Exception as e:
-                print(e)
+                print('房号错误，co_index={},url={}'.format(co_index, i), e)

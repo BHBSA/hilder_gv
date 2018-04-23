@@ -100,8 +100,10 @@ ENV/
 
 *run*
 
+*log*
+
 *test*
 
 test.py
-
+.idea/
 *pyc

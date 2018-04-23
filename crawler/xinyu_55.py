@@ -4,7 +4,7 @@ city : 新余
 CO_INDEX : 55
 小区数量：
 对应关系：
-    小区与楼栋：co_name
+    小区与楼栋：co_id
     楼栋与房屋：bu_id
 """
 
@@ -18,6 +18,8 @@ co_index = '55'
 city = '新余'
 
 count = 0
+
+
 class Xinyu(object):
     def __init__(self):
         self.headers = {
@@ -60,25 +62,28 @@ class Xinyu(object):
                 comm.co_id = re.findall('PROJECT_XMBH">(.*?)<', html, re.S | re.M)[0]
                 comm.insert_db()
                 global count
-                count+=1
+                count += 1
                 print(count)
                 bu_info = re.search('id="buildInfo".*?value="(.*?)"', html, re.S | re.M).group(1)
-                self.get_build_info(bu_info, comm.co_name)
+                self.get_build_info(bu_info, comm.co_id, i)
             except Exception as e:
-                print(e)
+                print('小区错误,co_index={},url={}'.format(co_index, i), e)
 
-    def get_build_info(self, bu_info, co_name):
+    def get_build_info(self, bu_info, co_id, build_url):
         build_list = bu_info.split(';;')
         for i in build_list:
-            build = Building(co_index)
-            bu_code_list = i.split(',,')
-            build.bu_num = bu_code_list[1]
-            build.bu_id = bu_code_list[0]
-            build.co_name = co_name
-            build.insert_db()
-            self.get_house_info(build.bu_id, co_name)
+            try:
+                build = Building(co_index)
+                bu_code_list = i.split(',,')
+                build.bu_num = bu_code_list[1]
+                build.bu_id = bu_code_list[0]
+                build.co_id = co_id
+                build.insert_db()
+                self.get_house_info(build.bu_id, co_id)
+            except Exception as e:
+                print('楼栋错误,co_index={},url={}'.format(co_index, build_url), e)
 
-    def get_house_info(self, bu_id, co_name):
+    def get_house_info(self, bu_id, co_id):
         house_url = "http://www.xyfdc.gov.cn/wsba/Common/Agents/ExeFunCommon.aspx"
         payload = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<param funname=\"SouthDigital.Wsba.CBuildTableEx.GetBuildHTMLEx\">\r\n<item>" + \
                   bu_id + "</item>\r\n<item>1</item>\r\n<item>1</item>\r\n<item>80</item>\r\n<item>840</item>\r\n<item>g_oBuildTable</item>\r\n<item> 1=1</item>\r\n<item>1</item>\r\n<item>false</item>\r\n</param>\r\n"
@@ -89,11 +94,15 @@ class Xinyu(object):
         html = response.text
         house_info_list = re.findall("onclick=.g_oBuildTable.clickRoom.*? title='(.*?)'", html, re.S | re.M)
         for i in house_info_list:
-            house = House(co_index)
-            house.ho_name = re.search('房号：(.*?)单元：', i, re.S | re.M).group(1)
-            house.ho_build_size = re.search('总面积：(.*?)平方米', i, re.S | re.M).group(1)
-            house.ho_type = re.search('用途：(.*?)户型', i, re.S | re.M).group(1)
-            house.ho_room_type = re.search('户型：(.*?)状态', i, re.S | re.M).group(1)
-            house.info = i
-            house.bu_id = bu_id
-            house.insert_db()
+            try:
+                house = House(co_index)
+                house.ho_name = re.search('房号：(.*?)单元：', i, re.S | re.M).group(1)
+                house.ho_build_size = re.search('总面积：(.*?)平方米', i, re.S | re.M).group(1)
+                house.ho_type = re.search('用途：(.*?)户型', i, re.S | re.M).group(1)
+                house.ho_room_type = re.search('户型：(.*?)状态', i, re.S | re.M).group(1)
+                house.info = i
+                house.bu_id = bu_id
+                house.co_id = co_id
+                house.insert_db()
+            except Exception as e:
+                print('房号错误，co_index={},url={},data={}'.format(co_index, house_url, payload), e)
