@@ -49,7 +49,8 @@ class Comm:
                  co_investor=None, co_pre_sale=None, co_land_use=None, co_volumetric=None, co_owner=None,
                  co_build_type=None, co_build_structural=None, co_pre_sale_date=None, co_develops=None,
                  co_open_time=None, co_handed_time=None, co_all_house=None, area=None, data_type='comm', co_use=None,
-                 co_land_type=None, co_plan_pro=None, co_work_pro=None, co_all_size=None,co_residential_size=None, co_plan_useland= None,co_plan_project=None):
+                 co_land_type=None, co_plan_pro=None, co_work_pro=None, co_all_size=None, co_residential_size=None,
+                 co_plan_useland=None, co_plan_project=None):
         self.co_index = int(co_index)  # 网站id
         self.co_name = co_name  # 小区名称
         self.co_id = co_id  # 小区id
@@ -58,9 +59,9 @@ class Comm:
         self.co_build_type = co_build_type  # 建筑类型:独栋,小高层,高层多层
         self.co_green = co_green  # 绿化率
         self.co_is_build = co_is_build  # 竣工/是否在建
-        self.co_all_size = co_all_size # 总面积
+        self.co_all_size = co_all_size  # 总面积
         self.co_size = co_size  # 占地面的
-        self.co_residential_size = co_residential_size # 住宅面积
+        self.co_residential_size = co_residential_size  # 住宅面积
         self.co_build_size = co_build_size  # 建筑面积
         self.co_build_start_time = co_build_start_time  # 开工时间
         self.co_build_end_time = co_build_end_time  # 竣工时间
@@ -78,8 +79,8 @@ class Comm:
         self.co_build_structural = co_build_structural  # 建筑结构：钢筋混泥土
         self.co_use = co_use  # 用途
         self.co_plan_pro = co_plan_pro  # 规划许可证
-        self.co_plan_useland = co_plan_useland # 用地规划
-        self.co_plan_project = co_plan_project # 施工规划
+        self.co_plan_useland = co_plan_useland  # 用地规划
+        self.co_plan_project = co_plan_project  # 施工规划
         self.co_work_pro = co_work_pro  # 施工许可证
         self.area = area  # 地区
 
@@ -106,7 +107,8 @@ class Building:
     def __init__(self, co_index, co_id=None, bu_num=None, bu_id=None, bu_all_house=None,
                  bu_floor=None, bu_build_size=None, bu_live_size=None, bu_not_live_size=None, bu_price=None,
                  bu_pre_sale=None, bu_pre_sale_date=None, co_name=None, data_type='build', size=None, bo_develops=None,
-                 bo_build_start_time=None, bo_build_end_time=None, bo_address=None, bu_type=None, area=None):
+                 bo_build_start_time=None, bo_build_end_time=None, bo_address=None, bu_type=None, area=None,
+                 bu_all_size=None):
         self.co_index = int(co_index)  # 网站id
         self.co_id = co_id  # 小区id
         self.co_name = co_name  # 小区名称
@@ -128,6 +130,7 @@ class Building:
         self.bu_address = bo_address  # 楼栋坐落位置
 
         self.area = area  # 地区
+        self.bu_all_size = bu_all_size  # 总面积
 
         # self.time = datetime.datetime.now()
         self.data_type = data_type
