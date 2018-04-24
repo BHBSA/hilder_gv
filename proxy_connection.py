@@ -1,11 +1,12 @@
 import requests
 import random
 from lib.log import LogHandler
+import json
 
 log = LogHandler('proxy')
 
 class Proxy_contact():
-    def __init__(self,app_name=None,method=None,url=None,ban_word=None,formdata=None):
+    def __init__(self,app_name=None,method=None,url=None,ban_word=None,formdata=None,session=None,headers=None):
         self.user_agent_list = [
             {"User-Agent":"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50"},
             {"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50"},
@@ -14,11 +15,17 @@ class Proxy_contact():
             {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11"},
 
         ]           #pc端浏览器
+        self.m_user_agent = {
+            'User-Agent':
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
+        }
         self.app_name = app_name
         self.method = method
         self.url = url
         self.ban_word = ban_word
         self.formdata = formdata
+        self.session = session
+        self.headers = headers   #支持自定义headers
 
     def headers(self):
         index = random.randint(0,4)
@@ -30,7 +37,7 @@ class Proxy_contact():
 
     def contact(self):
         try:
-            if self.method == 'get':
+            if self.method == 'get':  #get请求
                 count = 0
                 while True:
                     proxy_ip = self.get_proxy()
@@ -50,14 +57,16 @@ class Proxy_contact():
                         log.debug("尝试第{}次重新连接".format(count))
                         continue
                 return res.content
-            elif self.method == 'post':
+
+            elif self.method == 'post':         #post请求(json格式返回) session保持会话
                 count = 0
                 while True:
                     proxy_ip = self.get_proxy()
                     proxies = {"http": ("http://" + proxy_ip)}
                     try:
-                        res = requests.post(self.url,data=self.formdata,proxies=proxies,headers=self.headers(),timeout=10)
-                        if res.status_code ==200:
+                        res = self.session.post(self.url,data=self.formdata,proxies=proxies,headers=self.headers,timeout=10)
+                        if res.status_code == 200:
+                            con_dict = json.loads(res.text)
                             self.post_back(proxy_ip, 0)
                             break
                         else:
@@ -67,7 +76,7 @@ class Proxy_contact():
                         count += 1
                         log.info("尝试第{}次重新连接".format(count))
                         continue
-                return res.content
+                return con_dict
             else:
                 log.error("method wrong！")
         except Exception as e:
