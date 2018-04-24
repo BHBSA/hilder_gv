@@ -7,18 +7,6 @@ log = LogHandler('proxy')
 
 class Proxy_contact():
     def __init__(self,app_name=None,method=None,url=None,ban_word=None,formdata=None,session=None,headers=None):
-        self.user_agent_list = [
-            {"User-Agent":"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_8; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50"},
-            {"User-Agent":"Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50"},
-            {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0"},
-            {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko"},
-            {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11"},
-
-        ]           #pc端浏览器
-        self.m_user_agent = {
-            'User-Agent':
-                'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
-        }
         self.app_name = app_name
         self.method = method
         self.url = url
@@ -26,14 +14,6 @@ class Proxy_contact():
         self.formdata = formdata
         self.session = session
         self.headers = headers   #支持自定义headers
-
-    def headers(self):
-        index = random.randint(0,4)
-        user_agent = self.user_agent_list[index]
-        headers = {
-            "User-Agent":user_agent["User-Agent"],
-        }
-        return headers
 
     def contact(self):
         try:
@@ -43,7 +23,7 @@ class Proxy_contact():
                     proxy_ip = self.get_proxy()
                     proxies = {"http": "http://" + proxy_ip}
                     try:
-                        res = requests.get(self.url,proxies=proxies,headers=self.headers(),timeout=10,)
+                        res = requests.get(self.url,proxies=proxies,headers=self.headers,timeout=10,)
                         if res.status_code == 200:
                             # if self.ban_word in res.content.decode(self.encode):
                             #     self.post_back(proxy_ip, 1)
