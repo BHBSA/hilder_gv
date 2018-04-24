@@ -13,6 +13,7 @@ from urllib import parse
 import random
 import time
 from lib.log import LogHandler
+from proxy_connection import Proxy_contact
 
 city = '武汉'
 co_index = '78'
@@ -25,27 +26,20 @@ class Wuhan(Crawler):
             'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.119Safari/537.36',
         }
-        self.proxies = [{"http": "http://192.168.0.96:4234"},
-                        {"http": "http://192.168.0.93:4234"},
-                        {"http": "http://192.168.0.90:4234"},
-                        {"http": "http://192.168.0.94:4234"},
-                        {"http": "http://192.168.0.98:4234"},
-                        {"http": "http://192.168.0.99:4234"},
-                        {"http": "http://192.168.0.100:4234"},
-                        {"http": "http://192.168.0.101:4234"},
-                        {"http": "http://192.168.0.102:4234"},
-                        {"http": "http://192.168.0.103:4234"}, ]
     def start_crawler(self):
-        proxy = self.proxies[random.randint(0, 9)]
-        index_res = requests.get(self.start_url,headers=self.headers,)
-        con = index_res.content.decode('gbk')
+        proxy = Proxy_contact(app_name='wuhan',method='get',url=self.start_url,headers=self.headers)
+        # index_res = requests.get(self.start_url,headers=self.headers,)
+        index_res = proxy.contact()
+        con = index_res.decode('gbk')
         page = re.search('共搜索到<FONT.*?(\d+)</FONT>页',con).group(1)
 
         for i in range(1,int(page)+1):
-            # proxy = self.proxies[random.randint(0,9)]
+
             url = self.start_url + "?page=" + str(i)
-            res = requests.get(url,headers=self.headers,)
-            html = etree.HTML(res.content.decode('gbk'))
+            page_proxy = Proxy_contact(app_name='wuhan',method='get',url=url,headers=self.headers)
+            # res = requests.get(url,headers=self.headers,)
+            res = page_proxy.contact()
+            html = etree.HTML(res.decode('gbk'))
             temp_url_list = html.xpath("//tr//td/a/@href")
             self.comm_info(temp_url_list)
             time.sleep(2)
@@ -57,8 +51,10 @@ class Wuhan(Crawler):
                 comm.co_id = re.search('Jh=(.*?\d+)',temp_url).group(1)
                 parse_url = parse.quote(comm.co_id,encoding='gbk')
                 comm_url = 'http://scxx.fgj.wuhan.gov.cn/3.asp?DengJh=' + parse_url
-                res = requests.get(comm_url,headers=self.headers)
-                con = res.content.decode('gb18030')
+                proxy = Proxy_contact(app_name='wuhan', method='get', url=comm_url,headers=self.headers)
+                res = proxy.contact()
+                # res = requests.get(comm_url,headers=self.headers)
+                con = res.decode('gb18030')
                 # comm.co_id = re.search('Jh=(.*?)',temp_url).group(1)
                 comm.co_name = re.search('项目名称.*?">(.*?)<',con,re.S|re.M).group(1)
                 comm.co_all_house = re.search('套数.*?">(.*?)&nbsp',con,re.S|re.M).group(1)
@@ -75,7 +71,7 @@ class Wuhan(Crawler):
                 comm.co_work_pro = re.search('施工许可证号.*?">(.*?)</',con,re.S|re.M).group(1)
 
                 comm.insert_db()
-                log.info('{}插入成功'.format(comm.co_name))
+                log.debug('{}插入成功'.format(comm.co_name))
             except Exception as e:
                 log.error('小区错误{}'.format(e))
                 continue
@@ -83,8 +79,10 @@ class Wuhan(Crawler):
             self.build_info(build_detail,comm.co_id)
 
     def build_info(self,build_detail,co_id):
-        build_res = requests.get(build_detail,headers=self.headers)
-        html = etree.HTML(build_res.content.decode('gb18030'))
+        proxy = Proxy_contact(app_name='wuhan',method='get',url=build_detail,headers=self.headers)
+        # build_res = requests.get(build_detail,headers=self.headers)
+        build_res = proxy.contact()
+        html = etree.HTML(build_res.decode('gb18030'))
         info_list = html.xpath("//tr[@bgcolor='#FFFFFF']")
         for info in info_list:
             try:
@@ -106,8 +104,10 @@ class Wuhan(Crawler):
             time.sleep(3)
 
     def house_info(self,bu_id,bu_url,co_id):
-        res = requests.get(bu_url,headers=self.headers)
-        html = etree.HTML(res.content.decode('gb18030'))
+        proxy = Proxy_contact(app_name='wuhan',method='get',url=bu_url,headers=self.headers)
+        res = proxy.contact()
+        # res = requests.get(bu_url,headers=self.headers)
+        html = etree.HTML(res.decode('gb18030'))
         con = html.xpath("//tr[@bgcolor='#FFFFFF']")
         for i in con :
             try:

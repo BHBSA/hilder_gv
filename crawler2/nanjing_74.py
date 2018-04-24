@@ -54,7 +54,7 @@ class Nanjing(Crawler):
                 co = Proxy_contact(app_name="nanjing", method='get', url=comm_url)
                 co_res = co.contact()
             except Exception as e:
-                print("co_index={},小区页面访问失败".format(co_index),e)
+                log.error("小区页面访问失败{}".format(e))
                 continue
             con = co_res.decode('gbk')
             comm = Comm(co_index)
@@ -96,7 +96,7 @@ class Nanjing(Crawler):
                 build_con = build_con.decode('gbk')
                 # build_res = requests.get(build_url,headers=self.headers)
             except Exception as e:
-                print("co_index={},楼栋请求失败".format(co_index),e)
+                log.error("楼栋请求失败",e)
                 continue
             # build_con = build_res.content.decode('gbk')
             html = etree.HTML(build_con)
@@ -119,7 +119,7 @@ class Nanjing(Crawler):
                 ho_con = ho_pro.contact()
                 ho_con = ho_con.decode('gbk')
             except Exception as e:
-                print("co_index={},小区请求失败".format(co_index),e)
+                log.error("房屋详情页请求失败",e)
                 continue
             # ho_con = ho_res.content.decode('gbk')
             ho = House(co_index)
