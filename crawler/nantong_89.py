@@ -6,14 +6,12 @@ CO_INDEX : 89
 """
 
 import requests
-from comm_info import Comm, Building, House
-from get_page_num import AllListUrl
+from comm_info import Comm
 import re
 
 url = 'http://newhouse.ntfdc.net/house_certification.aspx'
-co_index = '138'
+co_index = '89'
 city = '南通'
-count = 0
 
 
 class Nantong(object):
