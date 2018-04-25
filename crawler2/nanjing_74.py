@@ -28,10 +28,8 @@ class Nanjing(Crawler):
         self.start_url = 'http://www.njhouse.com.cn/2016/spf/list.php?saledate=&pgno='
 
     def start_crawler(self):
-
         # res = requests.get(self.start_url,headers=self.headers)
-
-        proxy = Proxy_contact(app_name="nanjing",method='get',url=self.start_url)
+        proxy = Proxy_contact(app_name="nanjing",method='get',url=self.start_url,headers=self.headers)
         # con = res.content.decode('gbk')
         con = proxy.contact()
         con = con.decode('gbk')
@@ -40,7 +38,7 @@ class Nanjing(Crawler):
         for i in range(1,int(page)+1):
             url = self.start_url + str(i)
             # index_res = requests.get(url,headers=self.headers)
-            proxy_page = Proxy_contact(app_name="nanjing", method='get', url=url)
+            proxy_page = Proxy_contact(app_name="nanjing", method='get', url=url,headers=self.headers)
             index_res = proxy_page.contact()
             index_res = index_res.decode('gbk')
             html = etree.HTML(index_res)
@@ -51,7 +49,7 @@ class Nanjing(Crawler):
         for temp in comm_url_list:
             comm_url = "http://www.njhouse.com.cn/2016/spf/"+temp
             try:
-                co = Proxy_contact(app_name="nanjing", method='get', url=comm_url)
+                co = Proxy_contact(app_name="nanjing", method='get', url=comm_url,headers=self.headers)
                 co_res = co.contact()
             except Exception as e:
                 log.error("小区页面访问失败{}".format(e))
@@ -77,7 +75,7 @@ class Nanjing(Crawler):
             build_temp = "http://www.njhouse.com.cn/2016/spf/sales.php?prjid="+str(comm.co_id)
             while True:
                 try:
-                    build_proxy = Proxy_contact(app_name="nanjing", method='get', url=build_temp)
+                    build_proxy = Proxy_contact(app_name="nanjing", method='get', url=build_temp,headers=self.headers)
                     build_temp_con = build_proxy.contact()
                     build_temp_con = build_temp_con.decode('gbk')
                     html = etree.HTML(build_temp_con)
@@ -91,7 +89,7 @@ class Nanjing(Crawler):
         for build_ in build_url_list:
             build_url = "http://www.njhouse.com.cn/2016/spf/"+ build_
             try:
-                build_pro = Proxy_contact(app_name="nanjing", method='get', url=build_url)
+                build_pro = Proxy_contact(app_name="nanjing", method='get', url=build_url,headers=self.headers)
                 build_con = build_pro.contact()
                 build_con = build_con.decode('gbk')
                 # build_res = requests.get(build_url,headers=self.headers)
@@ -107,7 +105,7 @@ class Nanjing(Crawler):
             bu.bu_num = re.search('13px;">(.*?)&nbsp&nbsp',build_con).group(1)
             bu.insert_db()
 
-            house_url_list = html.xpath("//td[@class='ks']/a[1]/@href")
+            house_url_list = html.xpath("//td/a[1]/@href")
             self.house_info(co_id,bu.bu_id,house_url_list)
 
     def house_info(self,co_id,bu_id,house_url_list):
@@ -115,23 +113,24 @@ class Nanjing(Crawler):
             house_url = "http://www.njhouse.com.cn/2016/spf/" + house_
             try:
                 # ho_res = requests.get(house_url,headers=self.headers)
-                ho_pro = Proxy_contact(app_name="nanjing", method='get', url=house_url ,)
+                ho_pro = Proxy_contact(app_name="nanjing", method='get', url=house_url ,headers=self.headers)
                 ho_con = ho_pro.contact()
                 ho_con = ho_con.decode('gbk')
+
+                # ho_con = ho_res.content.decode('gbk')
+                ho = House(co_index)
+                ho.co_id = co_id
+                ho.bu_id = bu_id
+                ho.ho_name = re.search('房号.*?;">(.*?)</td',ho_con,re.S|re.M).group(1)
+                ho.ho_price = re.search('价格.*?<td>(.*?)元',ho_con,re.S|re.M).group(1)
+                ho.ho_floor = re.search('楼层.*?;">(.*?)</td',ho_con,re.S|re.M).group(1)
+                ho.ho_build_size = re.search('建筑面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
+                ho.ho_true_size = re.search('套内面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
+                ho.ho_share_size = re.search('分摊面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
+                ho.ho_type = re.search('房屋类型.*?<td>(.*?)</td',ho_con,re.S|re.M).group(1)
             except Exception as e:
-                log.error("房屋详情页请求失败",e)
+                log.error("房屋详情页错误",e)
                 continue
-            # ho_con = ho_res.content.decode('gbk')
-            ho = House(co_index)
-            ho.co_id = co_id
-            ho.bu_id = bu_id
-            ho.ho_name = re.search('房号.*?;">(.*?)</td',ho_con,re.S|re.M).group(1)
-            ho.ho_price = re.search('价格.*?<td>(.*?)元',ho_con,re.S|re.M).group(1)
-            ho.ho_floor = re.search('楼层.*?;">(.*?)</td',ho_con,re.S|re.M).group(1)
-            ho.ho_build_size = re.search('建筑面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
-            ho.ho_true_size = re.search('套内面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
-            ho.ho_share_size = re.search('分摊面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
-            ho.ho_type = re.search('房屋类型.*?<td>(.*?)</td',ho_con,re.S|re.M).group(1)
 
             ho.insert_db()
 
