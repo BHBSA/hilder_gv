@@ -88,24 +88,25 @@ class Nanjing(Crawler):
     def build_info(self,build_url_list,co_id):
         for build_ in build_url_list:
             build_url = "http://www.njhouse.com.cn/2016/spf/"+ build_
-            try:
+
+            while True:
                 build_pro = Proxy_contact(app_name="nanjing", method='get', url=build_url,headers=self.headers)
                 build_con = build_pro.contact()
                 build_con = build_con.decode('gbk')
-                # build_res = requests.get(build_url,headers=self.headers)
-            except Exception as e:
-                log.error("楼栋请求失败",e)
-                continue
-            # build_con = build_res.content.decode('gbk')
-            html = etree.HTML(build_con)
-            bu = Building(co_index)
-            bu.co_id = co_id
-            bu.bu_id = re.search('buildid=(\d+)',build_).group(1)
-            bu.bu_all_house = html.xpath("//tr[@class='yll']/td/text()")[1]
-            bu.bu_num = re.search('13px;">(.*?)&nbsp&nbsp',build_con).group(1)
-            bu.insert_db()
+                html = etree.HTML(build_con)
+                bu = Building(co_index)
+                bu.co_id = co_id
+                try:
+                    bu.bu_id = re.search('buildid=(\d+)', build_).group(1)
+                    bu.bu_all_house = html.xpath("//tr[@class='yll']/td/text()")[1]
+                    bu.bu_num = re.search('13px;">(.*?)&nbsp&nbsp', build_con).group(1)
+                    bu.insert_db()
+                    house_url_list = html.xpath("//td/a[1]/@href")
+                    break
+                except Exception as e:
+                    log.error("楼栋请求失败",e)
+                    continue
 
-            house_url_list = html.xpath("//td/a[1]/@href")
             self.house_info(co_id,bu.bu_id,house_url_list)
 
     def house_info(self,co_id,bu_id,house_url_list):
