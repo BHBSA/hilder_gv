@@ -6,7 +6,7 @@ author: 吕三利
 import requests
 from lxml import etree
 import re
-from comm_info import Comm, Building
+from comm_info import Comm, Building, House
 from crawler_base import Crawler
 from retry import retry
 
@@ -143,10 +143,35 @@ class AllInOne(Crawler):
                     building.bu_price = bu_price
                     # 插入
                     building.insert_db()
+                    house_url = re.search(r'href="/(tt/business/buildingRooms_view.*?)"', html, re.M | re.S).group(1)
+                    self.get_house_info(house_url, build_id, co_id)
                 except Exception as e:
                     build_detail_url = self.URL_FRONT + build_url
                     print('楼栋错误：', build_detail_url)
         comm.insert_db()
+
+    def get_house_info(self, house_url, build_id, co_id):
+        ho_url = self.URL_FRONT.replace('/xmlpzs', '') + house_url
+        response = requests.get(ho_url)
+        html = response.content.decode('gbk')
+        row_max = int(re.search("点击可选中该行所有房屋！'>(.*?)<", html, re.S | re.M).group(1).strip())
+        col_max = int(re.findall("层房序号：(\d+)'", html, re.S | re.M)[-1].strip())
+        info_list = re.findall("title='点击可选中该行所有房屋！' >.\[(.*?)\]", html, re.S | re.M)
+        for row in range(1, row_max + 1):
+            all_house = info_list[row].split('/')[0]
+            build_size = info_list[row].split('/')[1]
+            for col in range(1, col_max + 1):
+                house = House(co_index=self.CO_INDEX)
+                if col >= 10:
+                    ho_name = str(row) + str(col)
+                else:
+                    ho_name = str(row) + '0' + str(col)
+                house.ho_name = ho_name
+                house.all_house = all_house
+                house.build_size = build_size
+                house.bu_id = build_id
+                house.co_id = co_id
+                house.insert_db()
 
     @retry(tries=3)
     def get_build_detail(self, build_url):
@@ -205,5 +230,5 @@ if __name__ == '__main__':
     ]
 
     # for i in sp_list_no_p:
-    #     baiyin = Baiyin(url=i['url'], url_front=i['url_front'], co_index=i['co_index'], )
-    #     Process(target=baiyin.start_crawler).start()
+    #     baiyin = AllInOne(url=i['url'], url_front=i['url_front'], co_index=i['co_index'], )
+    #     baiyin.start_crawler()
