@@ -51,7 +51,7 @@ class Nanning(Crawler):
                     co.co_develops = re.search('公司名称.*?strong>(.*?)</s',co_res.text,re.S|re.M).group(1)
                     co.co_address = re.search('项目坐落.*?">(.*?)</',co_res.text,re.S|re.M).group(1)
                     co.co_pre_sale = re.search('预售证号.*?td>(.*?)</',co_res.text,re.S|re.M).group(1)
-                    co.co_pre_sale_date = re.search('时间.*?td>(.*?)</',co_res.text,re.S|re.M).group(1)
+                    co.co_pre_sale_date = re.search('批准时间.*?td>(.*?)</',co_res.text,re.S|re.M).group(1)
                     co.co_build_size = re.search('预售面积.*?">(.*?)</',co_res.text,re.S|re.M).group(1)
                     co.insert_db()
 
