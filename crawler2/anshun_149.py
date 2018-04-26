@@ -7,8 +7,7 @@ author: 程纪文
 
 from crawler_base import Crawler
 from comm_info import Comm, Building, House
-from get_page_num import AllListUrl
-from producer import ProducerListUrl
+
 import re, requests
 from lxml import etree
 import time
@@ -16,6 +15,7 @@ from lib.log import LogHandler
 
 co_index = '149'
 city =  '安顺'
+log = LogHandler('anshun_149')
 
 class Anshun(Crawler):
     def __init__(self):
@@ -36,19 +36,23 @@ class Anshun(Crawler):
 
     def comm_info(self,comm_url_list):
         for comm_url in comm_url_list:
-            url = "http://as.gzfcxx.cn"+comm_url
-            res =requests.get(url,headers=self.headers)
-            co = Comm(co_index)
-            co.co_name = re.search('项目名称.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
-            co.co_id = re.search('yszh=(\d+)',comm_url).group(1)
-            co.co_develops = re.search('开发商.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
-            co.co_address = re.search('坐落.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
-            co.co_pre_sale = re.search('许可证.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
-            co.co_handed_time = re.search('交房时间.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
-            co.insert_db()
+            try:
+                url = "http://as.gzfcxx.cn"+comm_url
+                res =requests.get(url,headers=self.headers)
+                co = Comm(co_index)
+                co.co_name = re.search('项目名称.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
+                co.co_id = re.search('yszh=(\d+)',comm_url).group(1)
+                co.co_develops = re.search('开发商.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
+                co.co_address = re.search('坐落.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
+                co.co_pre_sale = re.search('许可证.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
+                co.co_handed_time = re.search('交房时间.*?ck">(.*?)<',res.text,re.S|re.M).group(1)
+                co.insert_db()
 
-            html = etree.HTML(res.text)
-            build_detail = html.xpath("//a[@class='a3']/@href")[0]
+                html = etree.HTML(res.text)
+                build_detail = html.xpath("//a[@class='a3']/@href")[0]
+            except Exception as e:
+                log.error('小区信息错误',e)
+                continue
             self.build_info(build_detail,co.co_id)
 
     def build_info(self,build_detail,co_id):
@@ -57,27 +61,34 @@ class Anshun(Crawler):
         html = etree.HTML(res.text)
         build_info_list = html.xpath("//div[@class='box']//font/a/@href")
         for build_url in build_info_list:
-            url = 'http://as.gzfcxx.cn'+build_url
-            ho_res = requests.get(url,headers=self.headers)
-            ho_html = etree.HTML(ho_res.text)
-            bu = Building(co_index)
-            bu.co_id = co_id
-            bu.bu_id = re.search('dongID=(\d+)',build_url).group(1)
-            bu.bu_num = ho_html.xpath("//option[@selected='selected']/text()")[0]
-            bu.insert_db()
-            temp  = re.search("\?(.*?dongID=\d+)", build_url).group(1)
-            real_url = 'http://as.gzfcxx.cn/Controls/HouseControls/FloorView.aspx?' + temp
-            house_res = requests.get(real_url,headers=self.headers)
-            ho_html = etree.HTML(house_res.text)
-            info = ho_html.xpath("//table[@class='C1 T0 F0']/..")
+            try:
+                url = 'http://as.gzfcxx.cn'+build_url
+                ho_res = requests.get(url,headers=self.headers)
+                ho_html = etree.HTML(ho_res.text)
+                bu = Building(co_index)
+                bu.co_id = co_id
+                bu.bu_id = re.search('dongID=(\d+)',build_url).group(1)
+                bu.bu_num = ho_html.xpath("//option[@selected='selected']/text()")[0]
+                bu.insert_db()
+                temp  = re.search("\?(.*?dongID=\d+)", build_url).group(1)
+                real_url = 'http://as.gzfcxx.cn/Controls/HouseControls/FloorView.aspx?' + temp
+                house_res = requests.get(real_url,headers=self.headers)
+                ho_html = etree.HTML(house_res.text)
+                info = ho_html.xpath("//table[@class='C1 T0 F0']/..")
+            except Exception as e:
+                log.error('楼栋信息错误',e)
+                continue
             for i in info:
-                ho = House(co_index)
-                ho_info = i.xpath("./@title")[0]
-                ho.ho_build_size = re.search('(\d+).(\d+)',ho_info,re.S|re.M).group(1)
-                ho.ho_name = i.xpath(".//span/text()")[0]
-                ho.bu_id = bu.bu_id
-                ho.co_id = co_id
-                ho.insert_db()
+                try:
+                    ho = House(co_index)
+                    ho_info = i.xpath("./@title")[0]
+                    ho.ho_build_size = re.search('(\d+).(\d+)',ho_info,re.S|re.M).group(1)
+                    ho.ho_name = i.xpath(".//span/text()")[0]
+                    ho.bu_id = bu.bu_id
+                    ho.co_id = co_id
+                    ho.insert_db()
+                except Exception as e:
+                    log.error('房间信息错误',e)
 
 
 
