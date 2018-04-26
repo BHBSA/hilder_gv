@@ -54,7 +54,7 @@ class Guigang(Crawler):
             floor = bo.xpath(".//p[2]/text()")[0]
             bu = Building(co_index)
             bu.bu_pre_sale = bo.xpath(".//p[3]/text()")[0]
-            bu.bu_num = re.search('zh=(\d+)',ho_url).group(1)
+            bu.bu_num = re.search('zh=(.*?)',ho_url).group(1)
             bu.bu_id = re.search('n=(\d+)',ho_url).group(1)
             bu.co_id = co_id
             bu.bu_floor = re.search('总层数.*?(\d+)',floor).group(1)

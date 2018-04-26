@@ -29,6 +29,9 @@ class Proxy_contact():
                             #     self.post_back(proxy_ip, 1)
                             self.post_back(proxy_ip, 0)
                             break
+                        elif count == 200:
+                            log.error('重连失败！')
+                            break
                         else:
                             continue
                     except:
@@ -49,6 +52,9 @@ class Proxy_contact():
                             con_dict = json.loads(res.text)
                             self.post_back(proxy_ip, 0)
                             break
+                        elif count == 200:
+                            log.error('重连失败！')
+                            break
                         else:
                             continue
                     except:
@@ -67,10 +73,11 @@ class Proxy_contact():
         api_1 = "http://192.168.0.191:8999/get_one_proxy"
         app_name = self.app_name
         data = {"app_name":app_name,}
-
-        proxy_ip = requests.post(api_1, data=data).text
-
-        return proxy_ip
+        try:
+            proxy_ip = requests.post(api_1, data=data).text
+            return proxy_ip
+        except Exception as e:
+            log.error(e)
 
     def post_back(self,ip,code):
         api_2="http://192.168.0.191:8999/send_proxy_status"
@@ -79,5 +86,8 @@ class Proxy_contact():
             "ip":ip,
             "status_code":code,
         }
-        requests.post(api_2, data=data)
+        try:
+            requests.post(api_2, data=data)
+        except Exception as e:
+            log.error(e)
 

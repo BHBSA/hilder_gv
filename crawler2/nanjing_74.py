@@ -104,7 +104,7 @@ class Nanjing(Crawler):
                     house_url_list = html.xpath("//td/a[1]/@href")
                     break
                 except Exception as e:
-                    log.error("楼栋请求失败",e)
+                    log.error("楼栋请求失败{}".format(e))
                     continue
 
             self.house_info(co_id,bu.bu_id,house_url_list)
@@ -130,7 +130,7 @@ class Nanjing(Crawler):
                 ho.ho_share_size = re.search('分摊面积.*?<td>(.*?)m',ho_con,re.S|re.M).group(1)
                 ho.ho_type = re.search('房屋类型.*?<td>(.*?)</td',ho_con,re.S|re.M).group(1)
             except Exception as e:
-                log.error("房屋详情页错误",e)
+                log.error("房屋详情页错误{}".format(e))
                 continue
 
             ho.insert_db()
