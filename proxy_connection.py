@@ -64,7 +64,7 @@ class Proxy_contact():
 
 
     def get_proxy(self):
-        api_1 = "http://127.0.0.1:8999/get_one_proxy"
+        api_1 = "http://192.168.0.191:8999/get_one_proxy"
         app_name = self.app_name
         data = {"app_name":app_name,}
 
@@ -73,7 +73,7 @@ class Proxy_contact():
         return proxy_ip
 
     def post_back(self,ip,code):
-        api_2="http://127.0.0.1:8999/send_proxy_status"
+        api_2="http://192.168.0.191:8999/send_proxy_status"
         data = {
             "app_name":self.app_name,
             "ip":ip,
