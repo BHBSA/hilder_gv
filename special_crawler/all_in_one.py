@@ -151,15 +151,15 @@ class AllInOne(Crawler):
         comm.insert_db()
 
     def get_house_info(self, house_url, build_id, co_id):
-        ho_url = self.URL_FRONT.replace('/xmlpzs', '') + house_url
+        ho_url = self.URL_FRONT.replace('bit-xxzs/xmlpzs/', '') + house_url
         response = requests.get(ho_url)
         html = response.content.decode('gbk')
-        row_max = int(re.search("点击可选中该行所有房屋！'>(.*?)<", html, re.S | re.M).group(1).strip())
+        row_max = len(re.findall("点击可选中该行所有房屋！'>(.*?)<", html, re.S | re.M))
         col_max = int(re.findall("层房序号：(\d+)'", html, re.S | re.M)[-1].strip())
-        info_list = re.findall("title='点击可选中该行所有房屋！' >.\[(.*?)\]", html, re.S | re.M)
+        info_list = re.findall("title='点击可选中该行所有房屋！' >.*?\[(.*?)\]", html, re.S | re.M)
         for row in range(1, row_max + 1):
-            all_house = info_list[row].split('/')[0]
-            build_size = info_list[row].split('/')[1]
+            all_house = info_list[row-1].split('/')[0]
+            build_size = info_list[row-1].split('/')[1]
             for col in range(1, col_max + 1):
                 house = House(co_index=self.CO_INDEX)
                 if col >= 10:
@@ -227,6 +227,9 @@ if __name__ == '__main__':
         # 东营
         {'url': 'http://www.dyfc.gov.cn/bit-xxzs/xmlpzs/nowwebissue.asp?',
          'url_front': 'http://www.dyfc.gov.cn/bit-xxzs/xmlpzs/', 'co_index': '1026', },
+        # 庆阳
+        {'url': 'http://60.165.104.70/bit-xxzs/xmlpzs/webissue.asp',
+         'url_front': 'http://60.165.104.70/bit-xxzs/xmlpzs/', 'co_index': '155', },
     ]
 
     # for i in sp_list_no_p:
