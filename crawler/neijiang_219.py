@@ -7,12 +7,11 @@ CO_INDEX : 151
 """
 
 import requests
-from lxml import etree
 from comm_info import Comm, Building, House
 import re
 
 url = 'http://125.65.245.138/Client/Nanjiang/Scripts/Paging/PagingHandler.ashx?MLandAgentName=&ProjectName=&ProjectAddress=&PrePressionCertNo=&&act=Project&curPage=1&pageSize=10000'
-co_index = '151'
+co_index = '219'
 city = '内江'
 count = 0
 
@@ -43,7 +42,7 @@ class Neijiang(object):
         comm.co_build_size = re.search('项目总规划面积（㎡）：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
         comm.co_build_start_time = re.search('计划开工日期：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
         comm.co_build_end_time = re.search('计划竣工日期：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
-        comm.area = re.search('所属片区：', html, re.S | re.M).group(1)
-        comm.co_size = re.search('占地面积（㎡）：', html, re.S | re.M).group(1)
+        comm.area = re.search('所属片区：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
+        comm.co_size = re.search('占地面积（㎡）：.*?<td.*?>(.*?)<', html, re.S | re.M).group(1)
         comm.co_id = co_id
         comm.insert_db()
