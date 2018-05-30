@@ -3,17 +3,16 @@ url = http://thfdc.net/
 city : 通化
 CO_INDEX : 121
 小区数量：
-对应关系：
+对应关系：f/t/t
 """
 
 import requests
-from lxml import etree
-from comm_info import Comm, Building, House
+from comm_info import Building, House
 import re
 
 url = 'http://thfdc.net/'
 co_index = '121'
-city = '内江'
+city = '通化'
 count = 0
 
 
@@ -47,10 +46,13 @@ class Tonghua(object):
         html = response.text
         house_info_list = re.findall('<tr onClick=.*?</tr>', html, re.S | re.M)
         for i in house_info_list:
-            house = House(co_index)
-            house.ho_name = re.search('<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
-            house.area = re.search('<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
-            house.ho_build_size = re.search('<td.*?<td.*?<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
-            house.ho_type = re.search('<td.*?<td.*?<td.*?<td.*?<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
-            house.bu_id = bu_id
-            house.insert_db()
+            try:
+                house = House(co_index)
+                house.ho_name = re.search('<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
+                house.area = re.search('<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
+                house.ho_build_size = re.search('<td.*?<td.*?<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
+                house.ho_type = re.search('<td.*?<td.*?<td.*?<td.*?<td.*?<td.*?<td.*?>(.*?)<', i, re.S | re.M).group(1)
+                house.bu_id = bu_id
+                house.insert_db()
+            except Exception as e:
+                print('房号错误，co_index={},url={}'.format())
