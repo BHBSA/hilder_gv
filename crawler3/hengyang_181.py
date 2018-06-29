@@ -41,7 +41,7 @@ class Hengyang(Crawler):
         formdata = {}
         for i in range(1,int(page)+1):
             if i == 1:
-                html = etree.HTML(index_res.content.decode())
+                html = etree.HTML(index_res.content.decode('gbk'))
                 self.parse(index_res)
                 viewstate = html.xpath("//input[@id='__VIEWSTATE']/@value")[0]
                 valid = html.xpath("//input[@id='__EVENTVALIDATION']/@value")[0]
@@ -56,7 +56,6 @@ class Hengyang(Crawler):
 
             else:
                 page_res = requests.post(self.start_url,data=formdata,headers=self.headers)
-                self.parse(index_res)
                 viewstate = html.xpath("//input[@id='__VIEWSTATE']/@value")[0]
                 valid = html.xpath("//input[@id='__EVENTVALIDATION']/@value")[0]
                 formdata = {
@@ -70,47 +69,54 @@ class Hengyang(Crawler):
                 self.parse(page_res)
 
     def parse(self,res):
-        html = etree.HTML(res.content.decode())
+        html = etree.HTML(res.content.decode('gbk'))
         bu_list = html.xpath("//div[@class='listCon']")
         for i in bu_list:
             temp = i.xpath("./a[@class='listCon2']/@href")[0]
             name = i.xpath("./a[@class='listCon1']/@title")[0]
             url = "http://www.hyfc365.com"+temp
-            bu_res = requests.get(url,headers=self.headers)
-            content = bu_res.content.decode('gbk')
-            bu = Building(co_index)
-            bu.bu_num = name
-            project_id = re.search('ID=(.*)',temp).group(1)
-            bu.bu_pre_sale = re.search('预售证名称.*?">(.*?)</span',content,re.S|re.M).group(1)
-            bu.bu_pre_sale_date = re.search('申领时间.*?">(.*?)</span',content,re.S|re.M).group(1)
-            bu.bo_develops = re.search('申领单位.*?">(.*?)</span',content,re.S|re.M).group(1)
-            bu.bu_build_size = re.search('"SALE_HOUSE_AREA">(.*?)<',content,re.S|re.M).group(1)
-            bu.bu_all_house = re.search('"SALE_HOUSE_COUNT">(.*?)<',content,re.S|re.M).group(1)
+            try:
+                bu_res = requests.get(url,headers=self.headers)
+                content = bu_res.content.decode('gbk')
+                bu = Building(co_index)
+                bu.bu_num = name
+                project_id = re.search('ID=(.*)',temp).group(1)
+                bu.bu_pre_sale = re.search('预售证名称.*?NAME">(.*?)</span',content,re.S|re.M).group(1)
+                bu.bu_pre_sale_date = re.search('申领时间.*?">(.*?)</span',content,re.S|re.M).group(1)
+                bu.bo_develops = re.search('申领单位.*?">(.*?)</span',content,re.S|re.M).group(1)
+                bu.bu_build_size = re.search('"SALE_HOUSE_AREA">(.*?)<',content,re.S|re.M).group(1)
+                bu.bu_all_house = re.search('"SALE_HOUSE_COUNT">(.*?)<',content,re.S|re.M).group(1)
 
-            detail_url = 'http://www.hyfc365.com/RealEstate/Project/BuildingList.aspx?ID=' + project_id
-            detail_res = requests.get(detail_url)
-            bu_id = re.search("BUILDING_ID=(.*?)'",detail_res.text).group(1)
-            bu.bu_id = bu_id
-            bu.insert_db()
+                detail_url = 'http://www.hyfc365.com/RealEstate/Project/BuildingList.aspx?ID=' + project_id
+                detail_res = requests.get(detail_url)
+                bu_id = re.search("BUILDING_ID=(.*?)'",detail_res.text).group(1)
+                bu.bu_id = bu_id
+                bu.insert_db()
+            except Exception as e:
+                log.error("{}楼栋页面解析失败{}".format(url,e))
+                continue
             self.house_parse(bu_id)
 
     def house_parse(self,bu_id):
         logic_url = 'http://www.hyfc365.com/WebRecordManager/HouseTableControl/GetData.aspx?Building_ID='+bu_id
-        res = requests.get(logic_url)
-        logic_id = re.search('<LOGICBUILDING_ID>(.*?)<',res.text).group(1)
-        house_url = 'http://www.hyfc365.com/WebRecordManager/HouseTableControl/GetData.aspx?LogicBuilding_ID='+logic_id
-        ho_res = requests.get(house_url)
-        html = etree.HTML(ho_res.text)
-        house_list = html.xpath("//t_house")
-        for i in house_list:
-            ho = House(co_index)
-            ho.bu_id = bu_id
-            ho.ho_name = i.xpath('./room_number/text()')[0]
-            ho.ho_build_size = i.xpath('./build_area/text()')[0]
-            ho.ho_share_size = i.xpath('./build_area_share/text()')[0]
-            ho.ho_true_size = i.xpath('./build_area_inside/text()')[0]
-            ho.ho_floor = i.xpath('./floor_realright/text()')[0]
-            ho.insert_db()
+        try:
+            res = requests.get(logic_url)
+            logic_id = re.search('<LOGICBUILDING_ID>(.*?)<',res.text).group(1)
+            house_url = 'http://www.hyfc365.com/WebRecordManager/HouseTableControl/GetData.aspx?LogicBuilding_ID='+logic_id
+            ho_res = requests.get(house_url)
+            html = etree.HTML(ho_res.text)
+            house_list = html.xpath("//t_house")
+            for i in house_list:
+                ho = House(co_index)
+                ho.bu_id = bu_id
+                ho.ho_name = i.xpath('./room_number/text()')[0]
+                ho.ho_build_size = i.xpath('./build_area/text()')[0]
+                ho.ho_share_size = i.xpath('./build_area_share/text()')[0]
+                ho.ho_true_size = i.xpath('./build_area_inside/text()')[0]
+                ho.ho_floor = i.xpath('./floor_realright/text()')[0]
+                ho.insert_db()
+        except Exception as e:
+            log.error("{}房屋解析失败{}".format(logic_url,e))
 
 
 
