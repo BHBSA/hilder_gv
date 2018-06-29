@@ -10,18 +10,12 @@ import re, requests
 import time
 from lxml import etree
 from lib.log import LogHandler
-from lib.bloom_filter import BloomFilter
-import yaml
+import random
 
 co_index = '161'
 city_name = '苏州'
 log = LogHandler('苏州')
-setting = yaml.load(open('config_local.yaml'))
-bf = BloomFilter(host=setting['redies_host'],
-                 port=setting['redis_port'],
-                 key='article_test',
-                 blockNum=1,
-                 db=0, )
+
 
 class Suzhou(Crawler):
     def __init__(self):
@@ -64,7 +58,7 @@ class Suzhou(Crawler):
                         '__EVENTVALIDATION':validation_,
                         'ctl00$MainContent$ddl_RD_CODE':region,
                         '__EVENTTARGET':'ctl00$MainContent$OraclePager1$ctl12$PageList',
-                        'ctl00$MainContent$OraclePager1$ctl12$PageList':i-1,}
+                        'ctl00$MainContent$OraclePager1$ctl12$PageList':1,}
                 else:
                     page_res = requests.post(path_url,data=data)
                     page_html = etree.HTML(page_res.text)
@@ -76,25 +70,29 @@ class Suzhou(Crawler):
                             '__EVENTVALIDATION': validation_,
                             'ctl00$MainContent$ddl_RD_CODE': region,
                             '__EVENTTARGET': 'ctl00$MainContent$OraclePager1$ctl12$PageList',
-                            'ctl00$MainContent$OraclePager1$ctl12$PageList': i - 1, }
+                            'ctl00$MainContent$OraclePager1$ctl12$PageList': i,}
                     self.co_parse(page_html,path_url,region)
 
     def co_parse(self,page_html,path_url,region):
-        url_list = page_html.xpath('//td/a/@href')
+        url_list = page_html.xpath('//td//a/@href')
         for url in url_list[:9]:
-            co_url = path_url.replace('SaleInfoProListIndex.aspx','')+url
-            self.headers['Referer'] = path_url
-            co_res = requests.get(co_url,headers=self.headers)
-            co = Comm(co_index)
-            co.area = region
-            co.co_name = re.search('项目名称.*?NAME">(.*?)</span',co_res.text,re.S|re.M).group(1)
-            co.co_id = re.search('ID=(.*)',url).group(1)
-            co.co_develops = re.search('公司名称.*?Com">(.*?)</span',co_res.text,re.S|re.M).group(1)
-            co.co_address = re.search('项目地址.*?Add">(.*?)</span',co_res.text,re.S|re.M).group(1)
-            co.insert_db()
-            page = re.search('共&nbsp(\d+)&nbsp页',co_res.text).group(1)
+            try:
+                co_url = path_url.replace('SaleInfoProListIndex.aspx','')+url
+                self.headers['Referer'] = path_url
+                co_res = requests.get(co_url,headers=self.headers)
+                co = Comm(co_index)
+                co.area = region
+                co.co_name = re.search('项目名称.*?NAME">(.*?)</span',co_res.text,re.S|re.M).group(1)
+                co.co_id = re.search('ID=(.*)',url).group(1)
+                co.co_develops = re.search('公司名称.*?Com">(.*?)</span',co_res.text,re.S|re.M).group(1)
+                co.co_address = re.search('项目地址.*?Add">(.*?)</span',co_res.text,re.S|re.M).group(1)
+                co.insert_db()
+                page = re.search('共&nbsp(\d+)&nbsp页',co_res.text).group(1)
+            except:
+                log.error("{}访问失败".format(co_url))
+                continue
             self.bu_parse(co.co_id,page,co_url,co_res,path_url)
-            time.sleep(5)
+            time.sleep(random.randint(1,5))
 
     def bu_parse(self,co_id,page,co_url,co_res,path_url):
         html = etree.HTML(co_res.text)
