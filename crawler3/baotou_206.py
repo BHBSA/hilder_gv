@@ -30,17 +30,21 @@ class Baotou(Crawler):
             html = etree.HTML(res.content.decode())
             temp_list = html.xpath("//tr/td[@align='left']/a")
             for temp in temp_list:
-                temp_url = temp.xpath("./@href")[0]
-                co_res = requests.get(temp_url,headers=self.headers)
-                content = co_res.content.decode()
-                co = Comm(co_index)
-                co.co_id = re.search('id=(\d+)',temp_url).group(1)
-                co.co_name = re.search('项 目 名 称.*?">(.*?)</td',content,re.S|re.M).group(1)
-                co.co_develops = re.search('开发建设单位.*?">(.*?)</td',content,re.S|re.M).group(1)
-                co.co_address = re.search('项 目 座 落.*?">(.*?)</td',content,re.S|re.M).group(1)
-                co.co_pre_sale = re.search('预销售许可证号.*?">(.*?)</td',content,re.S|re.M).group(1)
-                co.co_pre_sale_date = re.search('发证日期.*?">(.*?)</td',content,re.S|re.M).group(1)
-                co.insert_db()
+                try:
+                    temp_url = temp.xpath("./@href")[0]
+                    co_res = requests.get(temp_url,headers=self.headers)
+                    content = co_res.content.decode()
+                    co = Comm(co_index)
+                    co.co_id = re.search('id=(\d+)',temp_url).group(1)
+                    co.co_name = re.search('项 目 名 称.*?">(.*?)</td',content,re.S|re.M).group(1)
+                    co.co_develops = re.search('开发建设单位.*?">(.*?)</td',content,re.S|re.M).group(1)
+                    co.co_address = re.search('项 目 座 落.*?">(.*?)</td',content,re.S|re.M).group(1)
+                    co.co_pre_sale = re.search('预销售许可证号.*?">(.*?)</td',content,re.S|re.M).group(1)
+                    co.co_pre_sale_date = re.search('发证日期.*?">(.*?)</td',content,re.S|re.M).group(1)
+                    co.insert_db()
+                except Exception as e:
+                    log.error("{}小区解析失败{}".format(temp_url,e))
+                    continue
 
 
 

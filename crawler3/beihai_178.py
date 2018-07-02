@@ -33,23 +33,29 @@ class Beihai(Crawler):
             page_html = etree.HTML(page_res.content.decode('gbk'))
             tab_list = page_html.xpath("//td[@class='mframe-m-mid']/table")
             for tab in tab_list[2:-2]:
-                tmp_url = tab.xpath(".//td/a[2]/@href")[0]
-                numberbj = re.search('id=(\d+)&',tmp_url).group(1)
-                unid = re.search('unid=(\d+)',tmp_url).group(1)
-                pro_url = 'http://www.beihaire.gov.cn/news/list.asp?numberbj='+str(numberbj)+'&unid='+str(unid)
-                co_res = requests.get(pro_url,headers=self.headers)
-                co_html = etree.HTML(co_res.content.decode('gbk'))
-                co_list = co_html.xpath("//tr[@style]")
+                try:
+                    tmp_url = tab.xpath(".//td/a[2]/@href")[0]
+                    numberbj = re.search('id=(\d+)&',tmp_url).group(1)
+                    unid = re.search('unid=(\d+)',tmp_url).group(1)
+                    pro_url = 'http://www.beihaire.gov.cn/news/list.asp?numberbj='+str(numberbj)+'&unid='+str(unid)
+                    co_res = requests.get(pro_url,headers=self.headers)
+                    co_html = etree.HTML(co_res.content.decode('gbk'))
+                    co_list = co_html.xpath("//tr[@style]")
+                except:
+                    continue
                 self.parse(co_list)
     def parse(self,co_list):
         for project in co_list[2:]:
-            co = Comm(co_index)
-            co.co_pre_sale_date = project.xpath("./td[1]/font/text()")[0]
-            co.co_develops = project.xpath("./td[2]/font/text()")[0]
-            co.co_pre_sale = project.xpath("./td[3]/font/text()")[0]
-            co.co_name = project.xpath("./td[4]/font/text()")[0]
-            co.co_address = project.xpath("./td[5]/font/text()")[0]
-            co.co_use = project.xpath("./td[8]/font/text()")[0]
-            co.co_all_house = project.xpath("./td[11]/font/text()")[0]
-            co.co_build_size = project.xpath("./td[10]/font/text()")[0]
-            co.insert_db()
+            try:
+                co = Comm(co_index)
+                co.co_pre_sale_date = project.xpath("./td[1]/font/text()")[0]
+                co.co_develops = project.xpath("./td[2]/font/text()")[0]
+                co.co_pre_sale = project.xpath("./td[3]/font/text()")[0]
+                co.co_name = project.xpath("./td[4]/font/text()")[0]
+                co.co_address = project.xpath("./td[5]/font/text()")[0]
+                co.co_use = project.xpath("./td[8]/font/text()")[0]
+                co.co_all_house = project.xpath("./td[11]/font/text()")[0]
+                co.co_build_size = project.xpath("./td[10]/font/text()")[0]
+                co.insert_db()
+            except Exception as e:
+                log.error("{}小区解析失败".format(project))
