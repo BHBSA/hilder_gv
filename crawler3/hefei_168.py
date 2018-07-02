@@ -35,16 +35,20 @@ class Hefei(Crawler):
         time.sleep(2)
         elements = driver.find_elements_by_xpath("//span[@class='nav1']")
         for element in elements:
-            link = element.find_element_by_xpath('./a')
-            id = link.get_attribute('id')
-            link.get_attribute('onclick')
-            link.click()
-            windows = driver.window_handles
-            driver.switch_to_window(windows[-1])
-            data = driver.page_source
-            driver.close()
-            driver.switch_to_window(windows[0])
-            self.project_info(data,id)
+            try:
+                link = element.find_element_by_xpath('./a')
+                id = link.get_attribute('id')
+                link.get_attribute('onclick')
+                link.click()
+                windows = driver.window_handles
+                driver.switch_to_window(windows[-1])
+                data = driver.page_source
+                driver.close()
+                driver.switch_to_window(windows[0])
+                self.project_info(data,id)
+            except Exception as e:
+                log.error("{}".format(e))
+                continue
         driver.quit()
 
     def project_info(self,data,id):

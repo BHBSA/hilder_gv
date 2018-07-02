@@ -14,6 +14,8 @@ import time
 co_index = '206'
 city_name = '包头'
 log = LogHandler('包头')
+# ip = "http://%(user)s:%(pass)s@%(host)s:%(port)s" % {"host": "http-pro.abuyun.com", "port": "9010",
+#                                                      "user": "HRH476Q4A852N90P", "pass": "05BED1D0AF7F0715"}
 
 class Baotou(Crawler):
     def __init__(self):
@@ -26,7 +28,7 @@ class Baotou(Crawler):
     def start_crawler(self):
         for i in range(1, 40):
             url = 'http://zfbzj.baotou.gov.cn/index.php?m=content&c=permit&a=init&page='+str(i)
-            res = requests.get(url,headers=self.headers)
+            res = requests.get(url,headers=self.headers,proxies=ip)
             html = etree.HTML(res.content.decode())
             temp_list = html.xpath("//tr/td[@align='left']/a")
             for temp in temp_list:
