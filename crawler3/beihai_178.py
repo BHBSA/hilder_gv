@@ -54,7 +54,11 @@ class Beihai(Crawler):
                 co.co_name = project.xpath("./td[4]/font/text()")[0]
                 co.co_address = project.xpath("./td[5]/font/text()")[0]
                 co.co_use = project.xpath("./td[8]/font/text()")[0]
-                co.co_all_house = project.xpath("./td[11]/font/text()")[0]
+                try:
+                    co.co_all_house = project.xpath("./td[11]/font/text()")[0]
+                except:
+                    log.info("无总套数")
+                    co.co_all_house = None
                 co.co_build_size = project.xpath("./td[10]/font/text()")[0]
                 co.insert_db()
             except Exception as e:
