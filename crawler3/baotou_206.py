@@ -28,7 +28,7 @@ class Baotou(Crawler):
     def start_crawler(self):
         for i in range(1, 40):
             url = 'http://zfbzj.baotou.gov.cn/index.php?m=content&c=permit&a=init&page='+str(i)
-            res = requests.get(url,headers=self.headers,proxies=ip)
+            res = requests.get(url,headers=self.headers)
             html = etree.HTML(res.content.decode())
             temp_list = html.xpath("//tr/td[@align='left']/a")
             for temp in temp_list:
