@@ -68,7 +68,10 @@ class Wuxi(Crawler):
 
     def detail_parse(self,detail,co_id):
         detail_url = 'http://www.wxhouse.com:9097'+detail
-        get_res = requests.get(detail_url,headers=self.headers)
+        try:
+            get_res = requests.get(detail_url,headers=self.headers)
+        except:
+            return
         page = re.search('page.totalPageCount" value="(\d+)"',get_res.content.decode()).group(1)
         for i in range(1,int(page)+1):
             data = {
