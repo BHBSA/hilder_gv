@@ -120,7 +120,6 @@ class Hefei(Crawler):
                 id = re.search('\d+',house_id).group(0)
                 switch_id = self.nscaler(id)
                 rsa_url = 'http://real.hffd.gov.cn/details/getrsa/' + switch_id
-                time.sleep(2)
                 house_res = requests.get(rsa_url,headers=self.headers)
                 id_dict = json.loads(house_res.text)
                 rsa = id_dict['id']
